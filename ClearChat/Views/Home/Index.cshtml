@@ -27,8 +27,22 @@
 
     var hub = $.connection.chatHub;
 
+    var unreadMessages = 0;
+    window.onfocus = function() {
+        focused = true;
+        unreadMessages = 0;
+        window.document.title = "Clear Chat";
+    };
+    window.onblur = function() {
+        focused = false;
+    };
+
     hub.client.newMessage = function (chatItem) {
         insertChatItem(chatItem);
+        if (!focused) {
+            unreadMessages++;
+            window.document.title = "Clear Chat (" + unreadMessages + ")";
+        }
     };
 
     hub.client.initHistory = function (historyItems) {
