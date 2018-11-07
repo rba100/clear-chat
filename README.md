@@ -20,4 +20,4 @@ TODO
 
 ## Philosphy
 
-A place to express yourself. Participation requires acceptance of that all communications witnessed are private in perpetuity.
+A place to express yourself. Participation requires acceptance that all communications witnessed are private in perpetuity.
