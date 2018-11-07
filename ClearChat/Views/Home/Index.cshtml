@@ -31,7 +31,11 @@
         insertChatItem(chatItem);
     };
 
-    hub.client.initHistory = function(historyItems) {
+    hub.client.initHistory = function (historyItems) {
+        if (historyItems.length === 0) {
+            chatHistory.empty();
+            lastAuthor = "";
+        }
         for (var i = 0; i < historyItems.length; i++) {
             insertChatItem(historyItems[i]);
         }

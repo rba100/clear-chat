@@ -17,14 +17,30 @@ namespace ClearChat.Hubs
         {
             if (Context.User.Identity.IsAuthenticated)
             {
-                var messageItem = new MessageItem(Context.User.Identity.Name, message, DateTime.UtcNow);
-
-                Clients.All.newMessage(messageItem);
-
-                lock (s_ChatHistory)
+                if (message.StartsWith("/"))
                 {
-                    s_ChatHistory.Add(messageItem);
-                    if (s_ChatHistory.Count > 400) s_ChatHistory.RemoveAt(0);
+                    var command = message.Substring(1);
+                    switch (command)
+                    {
+                        case "clear": lock(s_ChatHistory) s_ChatHistory.Clear(); Clients.All.initHistory(new Object[0]);
+                            break;
+                        default:
+                            var messageItem = new MessageItem("System", "Unrecognised command: " + command, DateTime.UtcNow);
+                            Clients.Caller.newMessage(messageItem);
+                            break;
+                    }
+                }
+                else
+                {
+                    var messageItem = new MessageItem(Context.User.Identity.Name, message, DateTime.UtcNow);
+
+                    Clients.All.newMessage(messageItem);
+
+                    lock (s_ChatHistory)
+                    {
+                        s_ChatHistory.Add(messageItem);
+                        if (s_ChatHistory.Count > 400) s_ChatHistory.RemoveAt(0);
+                    }
                 }
             }
         }
