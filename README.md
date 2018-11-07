@@ -3,7 +3,7 @@
 Current code shall be discarded and project re-written.
 
 TODO
-- Authentication system. Asymetric key based identity. Only public key stored on server.
+- Authentication system. Asymmetric key based identity. Only public key stored on server.
 - Channels. You have to know the channel name in advance, but that's all that's required to enter the channel.
 - Direct messages.
 - Emoji
@@ -17,3 +17,7 @@ TODO
 - Migrate to VS2017 format
 - Migrate to .NET Core
 - Browser tab to indicate number of unread messages
+
+## Philosphy
+
+A place to express yourself. Participation requires acceptance of that all communications witnessed are private in perpetuity.
