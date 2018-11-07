@@ -24,7 +24,7 @@ namespace ClearChat.Hubs
                 lock (s_ChatHistory)
                 {
                     s_ChatHistory.Add(messageItem);
-                    if(s_ChatHistory.Count > 400) s_ChatHistory.RemoveAt(0);
+                    if (s_ChatHistory.Count > 400) s_ChatHistory.RemoveAt(0);
                 }
             }
         }
@@ -58,7 +58,9 @@ namespace ClearChat.Hubs
             var name = Context.User.Identity.Name;
             lock (s_Clients)
             {
-                s_Clients.RemoveAll(c => c.Name == name);
+                var record = s_Clients.First(c => c.Name == name);
+                record.ConnectionCount--;
+                if (record.ConnectionCount == 0) s_Clients.Remove(record);
                 PushUpdateClients();
             }
             return base.OnDisconnected(stopCalled);
@@ -69,11 +71,12 @@ namespace ClearChat.Hubs
             var name = Context.User.Identity.Name;
             lock (s_Clients)
             {
-                if (!s_Clients.Any(c => c.Name == name))
+                if (s_Clients.All(c => c.Name != name))
                 {
-                    s_Clients.Add(new Client(name));
-                    PushUpdateClients();
+                    s_Clients.Add(new Client(name) { ConnectionCount = 1 });
                 }
+                else s_Clients.First(c => c.Name == name).ConnectionCount++;
+                PushUpdateClients();
             }
             return base.OnConnected();
         }
@@ -83,11 +86,13 @@ namespace ClearChat.Hubs
             var name = Context.User.Identity.Name;
             lock (s_Clients)
             {
-                if (!s_Clients.Any(c => c.Name == name))
+                if (s_Clients.All(c => c.Name != name))
                 {
-                    s_Clients.Add(new Client(name));
+                    s_Clients.Add(new Client(name) { ConnectionCount = 1 });
                     PushUpdateClients();
                 }
+                else s_Clients.First(c => c.Name == name).ConnectionCount++;
+                PushUpdateClients();
             }
             return base.OnReconnected();
         }
@@ -101,6 +106,7 @@ namespace ClearChat.Hubs
         }
 
         public string Name { get; }
+        public int ConnectionCount { get; set; }
     }
 
     public class MessageItem
