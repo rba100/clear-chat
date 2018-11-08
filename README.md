@@ -21,6 +21,6 @@ TODO
 - Migrate to .NET Core
 - Browser tab to indicate number of unread messages
 
-## Philosphy
+## Philosophy
 
 A place to express yourself. Participation requires acceptance that all communications witnessed are private in perpetuity.
