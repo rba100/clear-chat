@@ -28,6 +28,8 @@
     var hub = $.connection.chatHub;
 
     var unreadMessages = 0;
+    var focused = true;
+
     window.onfocus = function() {
         focused = true;
         unreadMessages = 0;

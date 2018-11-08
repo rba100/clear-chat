@@ -6,6 +6,9 @@ TODO
 - Authentication system. Asymmetric key based identity. Only public key stored on server.
 - Channels. You have to know the channel name in advance, but that's all that's required to enter the channel.
 - Direct messages.
+- Message persistence interface.
+  - Message persistence implementation for MS SQL Server.
+  - Message persistence implementation for SQLite.
 - Emoji
 - Slash commands. /clear removes all history from current channel.
 - Choose UI framework(s). Currently Bootstrap + jQuery.
