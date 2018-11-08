@@ -22,7 +22,23 @@ namespace ClearChat.Hubs
                     var command = message.Substring(1);
                     switch (command)
                     {
-                        case "clear": lock(s_ChatHistory) s_ChatHistory.Clear(); Clients.All.initHistory(new Object[0]);
+                        case "clear": lock(s_ChatHistory) s_ChatHistory.Clear(); Clients.All.initHistory(new object[0]);
+                            break;
+
+                        case "whoishere":
+                            Client[] clients;
+                            lock (s_Clients)
+                            {
+                                clients = s_Clients.ToArray();
+                            }
+                            var plural = clients.Length == 1 ? "" : "s";
+                            Clients.Caller.newMessage(new MessageItem("System", $"{clients.Length} user{plural} are here:", DateTime.UtcNow));
+
+                            foreach (var client in clients)
+                            {
+                                var clientReport = new MessageItem("System", client.Name, DateTime.UtcNow);
+                                Clients.Caller.newMessage(clientReport);
+                            }
                             break;
                         default:
                             var messageItem = new MessageItem("System", "Unrecognised command: " + command, DateTime.UtcNow);
@@ -33,8 +49,13 @@ namespace ClearChat.Hubs
                 else
                 {
                     var messageItem = new MessageItem(Context.User.Identity.Name, message, DateTime.UtcNow);
-
+                    
                     Clients.All.newMessage(messageItem);
+
+                    if (message.ToLower().Contains("spaz"))
+                    {
+                        Clients.All.newMessage(new MessageItem("WiseBot", $"I'm watching you, {Context.User.Identity.Name}!", DateTime.UtcNow));
+                    }
 
                     lock (s_ChatHistory)
                     {
