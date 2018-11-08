@@ -23,12 +23,12 @@ namespace ClearChat.Repositories
             using (var db = new DatabaseContext(m_ConnectionString))
             {
                 var msgs = db.Messages
-                         .Where(m => m.ChannelId == channelId)
-                         .OrderByDescending(m => m.TimeStampUtc)
-                         .Take(400)
-                         .ToArray()
-                         .Select(FromBinding)
-                         .ToArray();
+                             .Where(m => m.ChannelId == channelId)
+                             .OrderByDescending(m => m.TimeStampUtc)
+                             .Take(400)
+                             .ToArray()
+                             .Select(FromBinding)
+                             .ToArray();
                 return msgs;
             }
         }
