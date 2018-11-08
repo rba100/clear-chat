@@ -42,8 +42,8 @@ namespace ClearChat.Hubs
                             {
                                 clients = s_Clients.ToArray();
                             }
-                            var plural = clients.Length == 1 ? "" : "s";
-                            Clients.Caller.newMessage(new MessageItem("System", $"{clients.Length} user{plural} are here:", DateTime.UtcNow));
+                            var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
+                            Clients.Caller.newMessage(new MessageItem("System", msg, DateTime.UtcNow));
 
                             foreach (var client in clients)
                             {
