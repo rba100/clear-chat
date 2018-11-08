@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
+using ClearChat.Models;
+using ClearChat.Repositories;
 using Microsoft.AspNet.SignalR;
 
 // ReSharper disable UnusedMember.Global
@@ -10,8 +13,14 @@ namespace ClearChat.Hubs
 {
     public class ChatHub : Hub
     {
-        private static readonly List<MessageItem> s_ChatHistory = new List<MessageItem>();
         private static readonly List<Client> s_Clients = new List<Client>();
+
+        private readonly IMessageRepository m_MessageRepository;
+
+        public ChatHub(IMessageRepository messageRepository)
+        {
+            m_MessageRepository = messageRepository;
+        }
 
         public void Send(string message)
         {
@@ -22,7 +31,9 @@ namespace ClearChat.Hubs
                     var command = message.Substring(1);
                     switch (command)
                     {
-                        case "clear": lock(s_ChatHistory) s_ChatHistory.Clear(); Clients.All.initHistory(new object[0]);
+                        case "clear":
+                            m_MessageRepository.ClearChannel("default");
+                            Clients.All.initHistory(new MessageItem[0]);
                             break;
 
                         case "whoishere":
@@ -49,35 +60,37 @@ namespace ClearChat.Hubs
                 else
                 {
                     var messageItem = new MessageItem(Context.User.Identity.Name, message, DateTime.UtcNow);
-                    
+                    m_MessageRepository.WriteMessage(ToOther(messageItem));
                     Clients.All.newMessage(messageItem);
 
                     if (message.ToLower().Contains("spaz"))
                     {
                         Clients.All.newMessage(new MessageItem("WiseBot", $"I'm watching you, {Context.User.Identity.Name}!", DateTime.UtcNow));
                     }
-
-                    lock (s_ChatHistory)
-                    {
-                        s_ChatHistory.Add(messageItem);
-                        if (s_ChatHistory.Count > 400) s_ChatHistory.RemoveAt(0);
-                    }
                 }
             }
         }
 
+        ChatMessage ToOther(MessageItem item)
+        {
+            return new ChatMessage(item.Name, "default", item.Message, item.TimeStamp);
+        }
+
+        MessageItem ToOther(ChatMessage item)
+        {
+            return new MessageItem(item.UserId, item.Message, item.TimeStampUtc);
+        }
+
         public void GetHistory()
         {
-            lock (s_ChatHistory)
-            {
-                var items = s_ChatHistory.ToArray();
-                Clients.Caller.initHistory(items);
-            }
+            var messages = m_MessageRepository.ChannelMessages("default")
+                                              .Select(ToOther);
+            Clients.Caller.initHistory(messages);
         }
 
         public void GetClients()
         {
-            lock (s_ChatHistory)
+            lock (s_Clients)
             {
                 var items = s_Clients.ToArray();
                 Clients.Caller.initClients(items);

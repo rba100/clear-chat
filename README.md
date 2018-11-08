@@ -8,6 +8,7 @@ TODO
 - Asymmetric key based identity stored in cookie. Only public key stored on server.
 - Channels. You have to know the channel name in advance, but that's all that's required to enter the channel.
 - Direct messages.
+- Editable and deletable messages.
 - User model and persistence interface.
 - Message persistence interface.
 - persistence implementations for MS SQL Server.
@@ -21,8 +22,9 @@ TODO
 - UI component for user name (in messages control).
 - UI component for text entry.
 - Browser tab to indicate number of unread messages.
-- favicon
+- Add favicon.
 - Social justice warrior bot to ensure users repress any sentiment that could cause offence.
+- Ability to upload images, initiated by pasting from the clipboard to the input bar.
 
 ## Philosophy
 
