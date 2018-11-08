@@ -84,7 +84,8 @@ namespace ClearChat.Hubs
         public void GetHistory()
         {
             var messages = m_MessageRepository.ChannelMessages("default")
-                                              .Select(ToOther);
+                                              .Select(ToOther)
+                                              .OrderBy(m => m.TimeStamp);
             Clients.Caller.initHistory(messages);
         }
 
