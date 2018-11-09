@@ -1,0 +1,90 @@
+﻿@font-face {
+    font-family: NotoSans;
+    src: url(../fonts/NotoSans-Regular.ttf);
+}
+
+html, html a {
+    -webkit-font-smoothing: antialiased !important;
+    height: 100%;
+    font-family: NotoSans,appleLogo,sans-serif;
+}
+
+body {
+    height: 100%;
+    padding-top: 50px;
+}
+
+.body-content {
+    padding: 15px;
+    height: 100%;
+}
+
+#main-content {
+    height: 100%;
+}
+
+#output-container {
+    height: calc(100% - 100px);
+    max-height: calc(100% - 100px);
+    overflow-y: auto;
+}
+
+#input-container {
+    height: 80px;
+}
+
+#code-link {
+    height: 20px;
+}
+
+.chat-item {
+    margin: 5px;
+    font-family: NotoSans,appleLogo,sans-serif;
+}
+
+.chat-item p {
+    display: inline;
+}
+
+.chat-item:hover {
+    background-color: #f8f8f8;
+}
+
+.profile-picture {
+    margin-right: 5px;
+    clear: both;
+}
+
+.hide-for-wide {
+    display: none;
+}
+
+.hide-for-small {
+    display: initial;
+}
+
+@media(max-width: 500px) {
+    .hide-for-wide {
+        display: initial;
+    }
+    .hide-for-small {
+        display: none;
+    }
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

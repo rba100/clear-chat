@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Movidesk.SignalR.JS" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>

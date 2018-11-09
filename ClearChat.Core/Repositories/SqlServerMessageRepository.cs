@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using ClearChat.Core.Crypto;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories.Bindings;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ClearChat.Core.Repositories
 {
@@ -76,17 +77,11 @@ namespace ClearChat.Core.Repositories
 
         class DatabaseContext : DbContext
         {
-            public DatabaseContext(string nameOrConnectionString)
-                : base(nameOrConnectionString)
+            public DatabaseContext(string connectionString)
+                : base(new DbContextOptionsBuilder()
+                       .UseSqlServer(connectionString)
+                       .Options)
             {
-            }
-
-            protected override void OnModelCreating(DbModelBuilder modelBuilder)
-            {
-                base.OnModelCreating(modelBuilder);
-
-                // Prevent EF from creating the database if it doesn't exist.
-                Database.SetInitializer<DatabaseContext>(null);
             }
 
             // ReSharper disable UnusedMember.Local
