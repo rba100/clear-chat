@@ -10,6 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearChat.Web", "ClearChat.Web\ClearChat.Web.csproj", "{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearChat.Core", "ClearChat.Core\ClearChat.Core.csproj", "{F77740C8-30A0-4955-8B2D-E5B663C0DC3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +24,14 @@ Global
 		{5102C297-8C04-4625-9CAB-144995882AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5102C297-8C04-4625-9CAB-144995882AF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5102C297-8C04-4625-9CAB-144995882AF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F77740C8-30A0-4955-8B2D-E5B663C0DC3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F77740C8-30A0-4955-8B2D-E5B663C0DC3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F77740C8-30A0-4955-8B2D-E5B663C0DC3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F77740C8-30A0-4955-8B2D-E5B663C0DC3D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

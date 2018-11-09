@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <div class="container" id="main-content">
+        <div id="output-container" class="row">
+            <div id="history"></div>
+        </div>
+        <div id="input-container" class="row">
+            <div id="input-form">
+                <div class="col-xs-12">
+                    <input type="text" id="text-input" class="form-control" />
+                </div>
+                <div class="col-xs-1" style="display: none;">
+                    <button class="btn btn-primary" id="send-button">Send</button>
+                </div>
+            </div>
+        </div>
+        <div class="row text-center" id="code-link">
+            <span>Code at </span><a href="https://github.com/rba100/clear-chat">https://github.com/rba100/clear-chat</a>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var maxHistory = 400;
+        var chatHistory = $('#history');
+        var outputContainer = $('#output-container');
+        var converter = new showdown.Converter();
+
+        var lastAuthor = "";
+
+        var hub = $.connection.chatHub;
+
+        var unreadMessages = 0;
+        var focused = true;
+
+        window.onfocus = function () {
+            focused = true;
+            unreadMessages = 0;
+            window.document.title = "Clear Chat";
+        };
+        window.onblur = function () {
+            focused = false;
+        };
+
+        hub.client.newMessage = function (chatItem) {
+            insertChatItem(chatItem);
+            if (!focused) {
+                unreadMessages++;
+                window.document.title = "Clear Chat (" + unreadMessages + ")";
+            }
+        };
+
+        hub.client.initHistory = function (historyItems) {
+            if (historyItems.length === 0) {
+                chatHistory.empty();
+                lastAuthor = "";
+            }
+            for (var i = 0; i < historyItems.length; i++) {
+                insertChatItem(historyItems[i]);
+            }
+        };
+
+        hub.client.initClients = function (clients) {
+            var plural = clients.length == 1 ? "" : "s";
+            $('#client-count').html(clients.length + " user" + plural);
+        };
+
+        $.connection.hub.disconnected(function () {
+            console.log('DEBUG:Disconnected');
+            setTimeout(function () {
+                $.connection.hub.start().done(function () {
+                    console.log('DEBUG:Reconnected');
+                });
+            }, 5000);
+        });
+
+        $.connection.hub.start().done(function () {
+            console.log('DEBUG:Connected');
+            $('#send-button').click(send);
+            $('#text-input').keypress(function (e) {
+                if (e.which === 13) {
+                    send();
+                }
+            });
+
+            loadHistory();
+        });
+
+        function send() {
+            var message = $('#text-input').val();
+            hub.server.send(message);
+            $('#text-input').val("");
+        }
+
+        function loadHistory() {
+            hub.server.getHistory();
+        }
+
+        function insertChatItem(chatItem) {
+            var safeMessage = chatItem.Message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            var processedMessage = converter.makeHtml(safeMessage);
+            var row = $('<div class="chat-item">' +
+                '<p>' + processedMessage + '</p>' +
+                '</div>');
+            if (lastAuthor !== chatItem.Name) {
+                var nameElement = $('<span title="' + chatItem.TimeStamp + '">' +
+                    '<b>' + chatItem.Name + '</b></span><br class="hide-for-wide" />' +
+                    '<span class="hide-for-small"> : </span>');
+                nameElement.find('b').css("color", randomColor(chatItem.Name));
+                row.prepend(nameElement);
+                //row.prepend(getProfilePicElement(chatItem.Name));
+            }
+            lastAuthor = chatItem.Name;
+            chatHistory.append(row);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            outputContainer.scrollTop(2000000000);
+        }
+
+        function getProfilePicElement(emailAddress) {
+            var hash = md5(emailAddress.trim().toLowerCase());
+            var element = $('<img class="profile-picture" src="https://www.gravatar.com/avatar/' + hash + '?d=retro&s=32" width="32" height="32"/>');
+            return element;
+        }
+
+        function randomColor(seedValue) {
+            var checksum = crc32(seedValue);
+            var rhue = (checksum & 255) / 255.0;
+            var rgb = hslToRgb(rhue, 0.9, 0.25);
+            var value = '#' + rgb[0].toString(16).toUpperCase()
+                + rgb[1].toString(16).toUpperCase()
+                + rgb[2].toString(16).toUpperCase()
+                + '000';
+            return value.slice(0, 7);
+        }
+
+        function hslToRgb(h, s, l) {
+            var r, g, b;
+
+            if (s == 0) {
+                r = g = b = l; // achromatic
+            } else {
+                var hue2rgb = function hue2rgb(p, q, t) {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1 / 6) return p + (q - p) * 6 * t;
+                    if (t < 1 / 2) return q;
+                    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                }
+
+                var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                var p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1 / 3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1 / 3);
+            }
+
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        var m_w = 123456789;
+        var m_z = 987654321;
+        var mask = 0xffffffff;
+        function random(i) {
+            m_w = i;
+            m_z = 987654321;
+            m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+            m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+            var result = ((m_z << 16) + m_w) & mask;
+            result /= 4294967296;
+            return result + 0.5;
+        }
+
+        var crc32 = (function () {
+            var table = new Uint32Array(256);
+
+            // Pre-generate crc32 polynomial lookup table
+            // http://wiki.osdev.org/CRC32#Building_the_Lookup_Table
+            // ... Actually use Alex's because it generates the correct bit order
+            //     so no need for the reversal function
+            for (var i = 256; i--;) {
+                var tmp = i;
+
+                for (var k = 8; k--;) {
+                    tmp = tmp & 1 ? 3988292384 ^ tmp >>> 1 : tmp >>> 1;
+                }
+
+                table[i] = tmp;
+            }
+
+            // crc32b
+            // Example input        : [97, 98, 99, 100, 101] (Uint8Array)
+            // Example output       : 2240272485 (Uint32)
+            return function (data) {
+                var crc = -1; // Begin with all bits set ( 0xffffffff )
+
+                for (var i = 0, l = data.length; i < l; i++) {
+                    crc = crc >>> 8 ^ table[crc & 255 ^ data[i]];
+                }
+
+                return (crc ^ -1) >>> 0; // Apply binary NOT
+            };
+
+        })();
+    </script>
+</body>
+</html>

@@ -21,7 +21,7 @@ namespace ClearChat
             GlobalHost.DependencyResolver.Register(
                 typeof(ChatHub),
                 () => new ChatHub(new SqlServerMessageRepository(connString,
-                                                                 new DpApiStringProtector())));
+                                                                 new AesStringProtector(new byte[32]))));
             app.MapSignalR();
         }
     }
