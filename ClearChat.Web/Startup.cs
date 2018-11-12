@@ -39,22 +39,7 @@ namespace ClearChat.Web
             }
 
             app.UseAuthentication();
-            app.Use((ctx, next) =>
-            {
-                var isChangeIdentity = ctx.Request.Path == "/changeIdentity";
-                if (!isChangeIdentity) return next();
-
-                var done = ctx.Request.Cookies.TryGetValue("IdentityStage", out string val) && val == "done";
-                if (!done)
-                {
-                    ctx.Response.Cookies.Append("IdentityStage", "done");
-                    return ctx.ChallengeAsync();
-                }
-
-                ctx.Response.Cookies.Append("IdentityStage", "notdone");
-                ctx.Response.Redirect("/");
-                return Task.CompletedTask;
-            });
+            app.UseChallengeOnPath("/changeIdentity", returnTo: "/");
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseSignalR(routes => routes.MapHub<ChatHub>("/chatHub"));
