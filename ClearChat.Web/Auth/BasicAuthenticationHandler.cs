@@ -54,7 +54,7 @@ namespace ClearChat.Web.Auth
             {
                 return AuthenticateResult.Fail("Invalid Basic authentication header");
             }
-            string user = parts[0];
+            string user = parts[0].Trim();
             string password = parts[1];
 
             bool isValidUser = await _authenticationService.IsValidUserAsync(user, password);

@@ -24,8 +24,7 @@ namespace ClearChat.Core.Repositories
                 : base(new DbContextOptionsBuilder()
                        .UseSqlServer(connectionString)
                        .Options)
-            {
-            }
+            { }
 
             // ReSharper disable UnusedMember.Local
             public DbSet<UserBinding> Users { get; set; }
