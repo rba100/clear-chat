@@ -17,9 +17,9 @@ namespace ClearChat.Web.Auth
 
         public Task<bool> IsValidUserAsync(string user, string password)
         {
-            if (user.Length < 3) return Task.FromResult(false);
+            var lowerCaseUser = user.ToLowerInvariant().Trim();
 
-            var lowerCaseUser = user.ToLowerInvariant();
+            if (lowerCaseUser.Length < 3) return Task.FromResult(false);
 
             if (m_BannedUserNames.Contains(lowerCaseUser))
             {
