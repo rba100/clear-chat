@@ -25,52 +25,56 @@ namespace ClearChat.Web.Hubs
 
         public void Send(string message)
         {
-            if (Context.User.Identity.IsAuthenticated)
+            if (!Context.User.Identity.IsAuthenticated)
             {
-                if (message.StartsWith("/"))
+                var msg = new ChatMessage("System", "default", "You are not logged in.", DateTime.UtcNow);
+                Clients.Caller.SendAsync("newMessage", msg);
+                return;
+            }
+
+            if (message.StartsWith("/"))
+            {
+                var command = message.Substring(1);
+                switch (command)
                 {
-                    var command = message.Substring(1);
-                    switch (command)
-                    {
-                        case "clear":
-                            m_MessageRepository.ClearChannel("default");
-                            Clients.All.SendAsync("initHistory", new ChatMessage[0]);
-                            break;
+                    case "clear":
+                        m_MessageRepository.ClearChannel("default");
+                        Clients.All.SendAsync("initHistory", new ChatMessage[0]);
+                        break;
 
-                        case "whoishere":
-                            Client[] clients;
-                            lock (s_Clients)
-                            {
-                                clients = s_Clients.ToArray();
-                            }
-                            var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
-                            var sysMessage = new ChatMessage("System", "default", msg, DateTime.UtcNow);
-                            Clients.Caller.SendAsync("newMessage", sysMessage);
+                    case "whoishere":
+                        Client[] clients;
+                        lock (s_Clients)
+                        {
+                            clients = s_Clients.ToArray();
+                        }
+                        var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
+                        var sysMessage = new ChatMessage("System", "default", msg, DateTime.UtcNow);
+                        Clients.Caller.SendAsync("newMessage", sysMessage);
 
-                            foreach (var client in clients)
-                            {
-                                var clientReport = new ChatMessage("System", "default", client.Name, DateTime.UtcNow);
-                                Clients.Caller.SendAsync("newMessage", clientReport);
-                            }
-                            break;
-                        default:
-                            var messageItem = new ChatMessage("System", "default", "Unrecognised command: " + command, DateTime.UtcNow);
-                            Clients.Caller.SendAsync("newMessage", messageItem);
-                            break;
-                    }
+                        foreach (var client in clients)
+                        {
+                            var clientReport = new ChatMessage("System", "default", client.Name, DateTime.UtcNow);
+                            Clients.Caller.SendAsync("newMessage", clientReport);
+                        }
+                        break;
+                    default:
+                        var messageItem = new ChatMessage("System", "default", "Unrecognised command: " + command, DateTime.UtcNow);
+                        Clients.Caller.SendAsync("newMessage", messageItem);
+                        break;
                 }
-                else
-                {
-                    var messageItem = new ChatMessage(Context.User.Identity.Name, "default", message, DateTime.UtcNow);
-                    m_MessageRepository.WriteMessage(messageItem);
-                    Clients.All.SendAsync("newMessage", messageItem);
+            }
+            else
+            {
+                var messageItem = new ChatMessage(Context.User.Identity.Name, "default", message, DateTime.UtcNow);
+                m_MessageRepository.WriteMessage(messageItem);
+                Clients.All.SendAsync("newMessage", messageItem);
 
-                    if (message.ToLower().Contains("spaz"))
-                    {
-                        var msg = new ChatMessage("SjBot", "default",
-                                                  $"I'm watching you, {Context.User.Identity.Name}!", DateTime.UtcNow);
-                        Clients.All.SendAsync("newMessage", msg);
-                    }
+                if (message.ToLower().Contains("spaz"))
+                {
+                    var msg = new ChatMessage("SjBot", "default",
+                                              $"I'm watching you, {Context.User.Identity.Name}!", DateTime.UtcNow);
+                    Clients.All.SendAsync("newMessage", msg);
                 }
             }
         }

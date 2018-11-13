@@ -63,6 +63,11 @@
             focused = false;
         };
 
+        connection.onclose(function(error) {
+            console.log("DEBUG: connection closed.");
+            if (error) console.log("DEBUG: " + error);
+        });
+
         connection.on("newMessage",
             function(chatItem) {
                 insertChatItem(chatItem);
@@ -102,7 +107,9 @@
 
         function send() {
             var message = $('#text-input').val();
-            connection.send("send", message);
+            connection.send("send", message).catch(function(error) {
+                console.log(error);
+            });
             $('#text-input').val("");
         }
 
