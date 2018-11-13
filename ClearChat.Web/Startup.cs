@@ -10,7 +10,6 @@ using ClearChat.Core.Crypto;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
 using ClearChat.Web.Hubs;
-using Microsoft.AspNetCore.Authentication;
 
 namespace ClearChat.Web
 {
@@ -28,6 +27,8 @@ namespace ClearChat.Web
             services.AddSignalR();
             services.AddTransient<IMessageRepository>(sp => new SqlServerMessageRepository(connString,
                                                                                            new AesStringProtector(new byte[32])));
+
+            services.AddTransient<IUserRepository>(sp => new SqlServerUserRepository(connString, new Sha256StringHasher()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

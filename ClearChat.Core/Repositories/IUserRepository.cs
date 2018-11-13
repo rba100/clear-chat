@@ -4,7 +4,8 @@ namespace ClearChat.Core.Repositories
 {
     public interface IUserRepository
     {
-        User GetUser(string id);
-        void SaveUser(string id);
+        bool UserIdExists(string userId);
+        void SaveUser(string userId, string password);
+        bool ValidateUser(string userId, string password);
     }
 }
