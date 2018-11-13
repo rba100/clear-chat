@@ -18,6 +18,8 @@ namespace ClearChat.Web.Hubs
 
         private readonly IMessageRepository m_MessageRepository;
 
+        private MessageFactory m_MessageFactory = new MessageFactory();
+
         public ChatHub(IMessageRepository messageRepository)
         {
             m_MessageRepository = messageRepository;
@@ -27,8 +29,8 @@ namespace ClearChat.Web.Hubs
         {
             if (!Context.User.Identity.IsAuthenticated)
             {
-                var msg = new ChatMessage("System", "default", "You are not logged in.", DateTime.UtcNow);
-                Clients.Caller.SendAsync("newMessage", msg);
+                Clients.Caller.SendAsync("newMessage", 
+                    m_MessageFactory.Create("System", "You are not logged in.", DateTime.UtcNow));
                 return;
             }
 
@@ -49,31 +51,41 @@ namespace ClearChat.Web.Hubs
                             clients = s_Clients.ToArray();
                         }
                         var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
-                        var sysMessage = new ChatMessage("System", "default", msg, DateTime.UtcNow);
+                        var sysMessage = m_MessageFactory.Create("System", msg, DateTime.UtcNow);
                         Clients.Caller.SendAsync("newMessage", sysMessage);
 
                         foreach (var client in clients)
                         {
-                            var clientReport = new ChatMessage("System", "default", client.Name, DateTime.UtcNow);
+                            var clientReport = m_MessageFactory.Create("System", client.Name, DateTime.UtcNow);
                             Clients.Caller.SendAsync("newMessage", clientReport);
                         }
                         break;
+                    case "colours":
+                        for (int i = 0; i < 255; i++)
+                        {
+                            var clientReport = m_MessageFactory.Create("Test" + i, "TEST", DateTime.UtcNow.AddTicks(i));
+                            Clients.Caller.SendAsync("newMessage", clientReport);
+                        }
+
+                        break;
                     default:
-                        var messageItem = new ChatMessage("System", "default", "Unrecognised command: " + command, DateTime.UtcNow);
+                        var messageItem = m_MessageFactory.Create("System", "Unrecognised command: " + command, DateTime.UtcNow);
                         Clients.Caller.SendAsync("newMessage", messageItem);
                         break;
                 }
             }
             else
             {
-                var messageItem = new ChatMessage(Context.User.Identity.Name, "default", message, DateTime.UtcNow);
+                var messageItem = m_MessageFactory.Create(Context.User.Identity.Name, message, DateTime.UtcNow);
                 m_MessageRepository.WriteMessage(messageItem);
                 Clients.All.SendAsync("newMessage", messageItem);
 
                 if (message.ToLower().Contains("spaz"))
                 {
-                    var msg = new ChatMessage("SjBot", "default",
-                                              $"I'm watching you, {Context.User.Identity.Name}!", DateTime.UtcNow);
+                    var msg = m_MessageFactory.Create(
+                        "SjBot",
+                        $"I'm watching you, {Context.User.Identity.Name}!", 
+                        DateTime.UtcNow);
                     Clients.All.SendAsync("newMessage", msg);
                 }
             }

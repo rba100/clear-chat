@@ -1,18 +1,19 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+
 using ClearChat.Core.Crypto;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories.Bindings;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ClearChat.Core.Repositories
 {
     public class SqlServerMessageRepository : IMessageRepository
     {
         private readonly string m_ConnectionString;
-
+        private IColourGenerator m_ColourGenerator = new ColourGenerator();
         private readonly IStringProtector m_StringProtector;
 
         public SqlServerMessageRepository(string connectionString, 
@@ -39,9 +40,11 @@ namespace ClearChat.Core.Repositories
 
         private ChatMessage FromBinding(MessageBinding arg)
         {
+            var userId = m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId));
             return new ChatMessage(m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId)),
                                    arg.ChannelId,
                                    m_StringProtector.Unprotect(arg.Message),
+                                   m_ColourGenerator.GenerateFromString(userId),
                                    DateTime.SpecifyKind(arg.TimeStampUtc, DateTimeKind.Utc));
         }
 

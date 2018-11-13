@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using ClearChat.Core.Crypto;
+using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories.Bindings;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,6 +71,17 @@ namespace ClearChat.Core.Repositories
                 return user != null && m_StringHasher.HashMatch(password, 
                                                                 user.PasswordHash,
                                                                 user.PasswordSalt);
+            }
+        }
+
+        public User GetUserDetails(string userId)
+        {
+            var userIdHashed = m_StringHasher.Hash(userId, new byte[0]);
+
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var user = db.Users.FirstOrDefault(u => u.UserIdHash == userIdHashed);
+                return user == null ? null : new User(userId, null);
             }
         }
     }
