@@ -32,14 +32,14 @@ namespace ClearChat.Web.Hubs
         {
             if (!Context.User.Identity.IsAuthenticated)
             {
-                Clients.Caller.SendAsync("newMessage", 
+                Clients.Caller.SendAsync("newMessage",
                     m_MessageFactory.Create("System", "You are not logged in.", DateTime.UtcNow));
                 return;
             }
 
             if (message.StartsWith("/"))
             {
-                var command = message.Substring(1);
+                var command = message.Substring(1).Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
                 switch (command)
                 {
                     case "clear":
@@ -62,12 +62,16 @@ namespace ClearChat.Web.Hubs
                             Clients.Caller.SendAsync("newMessage", clientReport);
                         }
                         break;
-                    case "colours":
-                        for (int i = 0; i < 255; i++)
+                    case "colour":
+                        var colour = message.Substring("colour".Length + 1).Trim();
+                        if (colour.Length != 6 && colour.Length != 7)
                         {
-                            var clientReport = m_MessageFactory.Create("Test" + i, "TEST", DateTime.UtcNow.AddTicks(i));
+                            var clientReport = m_MessageFactory.Create("System", "Not a valid colour. Must be six character RGB hex code, with optional hash prefix.", DateTime.UtcNow);
                             Clients.Caller.SendAsync("newMessage", clientReport);
                         }
+
+                        var newColour = new string(colour.Reverse().Take(6).Reverse().ToArray());
+                        m_UserRepository.UpdateUserDetails(new User(Context.User.Identity.Name, newColour));
 
                         break;
                     default:
@@ -86,7 +90,7 @@ namespace ClearChat.Web.Hubs
                 {
                     var msg = m_MessageFactory.Create(
                         "SjBot",
-                        $"I'm watching you, {Context.User.Identity.Name}!", 
+                        $"I'm watching you, {Context.User.Identity.Name}!",
                         DateTime.UtcNow);
                     Clients.All.SendAsync("newMessage", msg);
                 }
@@ -95,8 +99,10 @@ namespace ClearChat.Web.Hubs
 
         public void GetHistory()
         {
-            var messages = m_MessageRepository.ChannelMessages("default")
-                                              .OrderBy(m => m.TimeStampUtc);
+            var messages = m_MessageRepository
+                .ChannelMessages("default")
+                .Select(m => m_MessageFactory.Create(m.UserId, m.Message, m.TimeStampUtc))
+                .OrderBy(m => m.TimeStampUtc);
             Clients.Caller.SendAsync("initHistory", messages);
         }
 

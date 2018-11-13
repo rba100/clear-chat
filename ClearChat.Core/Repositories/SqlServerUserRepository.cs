@@ -83,8 +83,7 @@ namespace ClearChat.Core.Repositories
             {
                 var user = db.Users.FirstOrDefault(u => u.UserIdHash == userIdHashed);
                 if (user == null) return null;
-                var colour = user.HexColour ?? m_ColourGenerator.GenerateFromString(userId);
-                return user == null ? null : new User(userId, colour);
+                return user == null ? null : new User(userId, user.HexColour);
             }
         }
 

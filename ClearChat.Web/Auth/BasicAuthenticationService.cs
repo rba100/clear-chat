@@ -26,12 +26,12 @@ namespace ClearChat.Web.Auth
                 return Task.FromResult(false);
             }
 
-            if (m_UserRepository.UserIdExists(lowerCaseUser))
+            if (m_UserRepository.UserIdExists(user))
             {
-                return Task.FromResult(m_UserRepository.ValidateUser(lowerCaseUser, password));
+                return Task.FromResult(m_UserRepository.ValidateUser(user, password));
             }
 
-            m_UserRepository.SaveUser(lowerCaseUser, password);
+            m_UserRepository.SaveUser(user, password);
             return Task.FromResult(true);
         }
     }
