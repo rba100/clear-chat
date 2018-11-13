@@ -3,16 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearChat", "ClearChat\ClearChat.csproj", "{5102C297-8C04-4625-9CAB-144995882AF3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{643371B6-5680-4BA1-AF49-F344924751EA}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearChat.Web", "ClearChat.Web\ClearChat.Web.csproj", "{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClearChat.Web", "ClearChat.Web\ClearChat.Web.csproj", "{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearChat.Core", "ClearChat.Core\ClearChat.Core.csproj", "{F77740C8-30A0-4955-8B2D-E5B663C0DC3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClearChat.Core", "ClearChat.Core\ClearChat.Core.csproj", "{F77740C8-30A0-4955-8B2D-E5B663C0DC3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,10 +18,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5102C297-8C04-4625-9CAB-144995882AF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5102C297-8C04-4625-9CAB-144995882AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5102C297-8C04-4625-9CAB-144995882AF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5102C297-8C04-4625-9CAB-144995882AF3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}.Release|Any CPU.ActiveCfg = Release|Any CPU
