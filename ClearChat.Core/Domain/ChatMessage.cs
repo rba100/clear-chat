@@ -28,15 +28,25 @@ namespace ClearChat.Core.Domain
     public class MessageFactory
     {
         private readonly IColourGenerator m_ColourGenerator;
+        private readonly IUserRepository m_UserRepository;
 
-        public MessageFactory()
+        public MessageFactory(IUserRepository userRepository)
         {
             m_ColourGenerator = new ColourGenerator();
+            m_UserRepository = userRepository;
         }
 
         public ChatMessage Create(string userId, string message, DateTime timeStampUtc)
         {
-            return new ChatMessage(userId, "default", message, m_ColourGenerator.GenerateFromString(userId), timeStampUtc);
+            var colour = m_UserRepository.GetUserDetails(userId)?.HexColour ??
+                         m_ColourGenerator.GenerateFromString(userId);
+
+            return new ChatMessage(
+                userId,
+                "default", 
+                message, 
+                colour,
+                timeStampUtc);
         }
     }
 }

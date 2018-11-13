@@ -28,7 +28,8 @@ namespace ClearChat.Web
             services.AddTransient<IMessageRepository>(sp => new SqlServerMessageRepository(connString,
                                                                                            new AesStringProtector(new byte[32])));
 
-            services.AddTransient<IUserRepository>(sp => new SqlServerUserRepository(connString, new Sha256StringHasher()));
+            services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(
+                new SqlServerUserRepository(connString, new Sha256StringHasher())));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

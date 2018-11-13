@@ -11,6 +11,7 @@ namespace ClearChat.Core.Repositories
     {
         private readonly string m_ConnectionString;
         private readonly IStringHasher m_StringHasher;
+        private readonly ColourGenerator m_ColourGenerator;
 
         public SqlServerUserRepository(string connectionString, 
                                        IStringHasher stringHasher)
@@ -81,7 +82,21 @@ namespace ClearChat.Core.Repositories
             using (var db = new DatabaseContext(m_ConnectionString))
             {
                 var user = db.Users.FirstOrDefault(u => u.UserIdHash == userIdHashed);
-                return user == null ? null : new User(userId, null);
+                if (user == null) return null;
+                var colour = user.HexColour ?? m_ColourGenerator.GenerateFromString(userId);
+                return user == null ? null : new User(userId, colour);
+            }
+        }
+
+        public void UpdateUserDetails(User user)
+        {
+            var userIdHashed = m_StringHasher.Hash(user.UserId, new byte[0]);
+
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var userBinding = db.Users.FirstOrDefault(u => u.UserIdHash == userIdHashed);
+                userBinding.HexColour = user.HexColour;
+                db.SaveChanges();
             }
         }
     }

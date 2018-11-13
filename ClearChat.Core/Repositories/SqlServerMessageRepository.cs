@@ -41,6 +41,7 @@ namespace ClearChat.Core.Repositories
         private ChatMessage FromBinding(MessageBinding arg)
         {
             var userId = m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId));
+            
             return new ChatMessage(m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId)),
                                    arg.ChannelId,
                                    m_StringProtector.Unprotect(arg.Message),

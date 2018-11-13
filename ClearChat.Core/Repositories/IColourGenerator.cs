@@ -18,8 +18,7 @@ namespace ClearChat.Core.Repositories
         private string colourFromHue(double hue)
         {
             var rgb = hslToRgb(hue, 0.9, 0.30);
-            var value = '#' +
-                        ((int)rgb[0]).ToString("X").PadLeft(2, '0').ToUpperInvariant() +
+            var value = ((int)rgb[0]).ToString("X").PadLeft(2, '0').ToUpperInvariant() +
                         ((int)rgb[1]).ToString("X").PadLeft(2, '0').ToUpperInvariant() +
                         ((int)rgb[2]).ToString("X").PadLeft(2, '0').ToUpperInvariant();
             return value;

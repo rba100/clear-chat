@@ -17,12 +17,15 @@ namespace ClearChat.Web.Hubs
         private static readonly List<Client> s_Clients = new List<Client>();
 
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IUserRepository m_UserRepository;
 
-        private MessageFactory m_MessageFactory = new MessageFactory();
+        private MessageFactory m_MessageFactory;
 
-        public ChatHub(IMessageRepository messageRepository)
+        public ChatHub(IMessageRepository messageRepository, IUserRepository userRepository)
         {
             m_MessageRepository = messageRepository;
+            m_UserRepository = userRepository;
+            m_MessageFactory = new MessageFactory(userRepository);
         }
 
         public void Send(string message)
@@ -43,7 +46,6 @@ namespace ClearChat.Web.Hubs
                         m_MessageRepository.ClearChannel("default");
                         Clients.All.SendAsync("initHistory", new ChatMessage[0]);
                         break;
-
                     case "whoishere":
                         Client[] clients;
                         lock (s_Clients)
