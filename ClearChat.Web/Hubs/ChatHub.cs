@@ -66,18 +66,6 @@ namespace ClearChat.Web.Hubs
                             Clients.Caller.SendAsync("newMessage", clientReport);
                         }
                         break;
-                    case "colour":
-                        var colour = message.Substring("colour".Length + 1).Trim();
-                        if (colour.Length != 6 && colour.Length != 7)
-                        {
-                            var clientReport = m_MessageFactory.Create("System", "Not a valid colour. Must be six character RGB hex code, with optional hash prefix.", DateTime.UtcNow);
-                            Clients.Caller.SendAsync("newMessage", clientReport);
-                        }
-
-                        var newColour = new string(colour.Reverse().Take(6).Reverse().ToArray());
-                        m_UserRepository.UpdateUserDetails(new User(Context.User.Identity.Name, newColour));
-
-                        break;
                     default:
                         m_SlashCommandHandler.Handle(this, message);
                         break;
