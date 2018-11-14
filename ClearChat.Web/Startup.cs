@@ -10,6 +10,7 @@ using ClearChat.Core.Crypto;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
 using ClearChat.Web.Hubs;
+using ClearChat.Web.SlashCommands;
 
 namespace ClearChat.Web
 {
@@ -28,8 +29,16 @@ namespace ClearChat.Web
             services.AddTransient<IMessageRepository>(sp => new SqlServerMessageRepository(connString,
                                                                                            new AesStringProtector(new byte[32])));
 
-            services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(
-                new SqlServerUserRepository(connString, new Sha256StringHasher())));
+            var userRepo = new CachingUserRepository(new SqlServerUserRepository(connString, 
+                                                                                 new Sha256StringHasher()));
+            services.AddSingleton<IUserRepository>(sp => userRepo);
+
+            var commands = new ISlashCommand[]{ new ColourCommand(userRepo) };
+
+            services.AddSingleton<ISlashCommandHandler>(new SlashCommandHandler(new[]
+            {
+                new HelpSlashCommand(commands),
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

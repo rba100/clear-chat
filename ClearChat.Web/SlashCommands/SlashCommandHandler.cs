@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ClearChat.Web.Messaging;
-using Microsoft.AspNetCore.SignalR;
 
 namespace ClearChat.Web.SlashCommands
 {
@@ -17,7 +16,7 @@ namespace ClearChat.Web.SlashCommands
 
         public void Handle(IMessageSink messageSink, string commandStringWithArguments)
         {
-            if (commandStringWithArguments.StartsWith("/"))
+            if (!commandStringWithArguments.StartsWith("/"))
             {
                 throw new ArgumentException("slash commands must begin with a slash");
             }
@@ -30,7 +29,13 @@ namespace ClearChat.Web.SlashCommands
 
             if(m_Commands.ContainsKey(command))
             {
-                m_Commands[command].Handle(messageSink, arguments);
+                m_Commands[command].Handle(null, messageSink, arguments);
+            }
+            else
+            {
+                messageSink.PublishSystemMessage($"Command '{command}' not recognised.", 
+                                                 "default", 
+                                                 MessageScope.Caller);
             }
         }
     }

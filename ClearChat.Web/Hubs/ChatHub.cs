@@ -5,26 +5,30 @@ using System.Threading.Tasks;
 
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
-
+using ClearChat.Web.Messaging;
+using ClearChat.Web.SlashCommands;
 using Microsoft.AspNetCore.SignalR;
 
 // ReSharper disable UnusedMember.Global
 
 namespace ClearChat.Web.Hubs
 {
-    public class ChatHub : Hub
+    public class ChatHub : Hub, IMessageSink
     {
         private static readonly List<Client> s_Clients = new List<Client>();
 
         private readonly IMessageRepository m_MessageRepository;
         private readonly IUserRepository m_UserRepository;
+        private readonly ISlashCommandHandler m_SlashCommandHandler;
+        private readonly MessageFactory m_MessageFactory;
 
-        private MessageFactory m_MessageFactory;
-
-        public ChatHub(IMessageRepository messageRepository, IUserRepository userRepository)
+        public ChatHub(IMessageRepository messageRepository, 
+                       IUserRepository userRepository,
+                       ISlashCommandHandler slashCommandHandler)
         {
             m_MessageRepository = messageRepository;
             m_UserRepository = userRepository;
+            m_SlashCommandHandler = slashCommandHandler;
             m_MessageFactory = new MessageFactory(userRepository);
         }
 
@@ -75,8 +79,7 @@ namespace ClearChat.Web.Hubs
 
                         break;
                     default:
-                        var messageItem = m_MessageFactory.Create("System", "Unrecognised command: " + command, DateTime.UtcNow);
-                        Clients.Caller.SendAsync("newMessage", messageItem);
+                        m_SlashCommandHandler.Handle(this, message);
                         break;
                 }
             }
@@ -147,6 +150,20 @@ namespace ClearChat.Web.Hubs
                 PushUpdateClients();
             }
             return base.OnDisconnectedAsync(exception);
+        }
+
+        public void Publish(ChatMessage message)
+        {
+            Clients.All.SendAsync("newMessage", message);
+        }
+
+        public void PublishSystemMessage(string message, string channelId, MessageScope messageScope)
+        {
+            var msg = m_MessageFactory.Create("System", message, DateTime.UtcNow);
+            if(messageScope == MessageScope.All)
+                Clients.All.SendAsync("newMessage", msg);
+            else
+                Clients.Caller.SendAsync("newMessage", msg);
         }
     }
 

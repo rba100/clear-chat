@@ -1,4 +1,6 @@
-﻿using ClearChat.Web.Messaging;
+﻿using ClearChat.Core.Domain;
+using ClearChat.Core.Repositories;
+using ClearChat.Web.Messaging;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ClearChat.Web.SlashCommands
@@ -16,7 +18,7 @@ namespace ClearChat.Web.SlashCommands
         /// <summary>
         /// A function which handles the invocation of the command.
         /// </summary>
-        void Handle(IMessageSink messageSink, string arguments);
+        void Handle(User user, IMessageSink messageSink, string arguments);
 
         /// <summary>
         /// Short description of what the command does.
@@ -24,15 +26,25 @@ namespace ClearChat.Web.SlashCommands
         string HelpText { get; }
     }
 
-    class HelpSlashCommand : ISlashCommand
+    public class ColourCommand : ISlashCommand
     {
-        public string CommandText => "help";
+        private readonly IUserRepository m_UserRepository;
 
-        public void Handle(IMessageSink messageSink, string arguments)
+        public ColourCommand(IUserRepository userRepository)
         {
-            
+            m_UserRepository = userRepository;
         }
 
-        public string HelpText => "shows available commands";
+        public string CommandText => "colour";
+
+        public void Handle(User user, IMessageSink messageSink, string arguments)
+        {
+            var colourStr = arguments.StartsWith("#") ? arguments.Substring(1) : arguments;
+            if(arguments.Length != 6) messageSink.PublishSystemMessage("Must be a six character hex string", "default", MessageScope.Caller);
+            var newUser = new User(user.UserId, colourStr);
+            m_UserRepository.UpdateUserDetails(newUser);
+        }
+
+        public string HelpText => "changes your user name colour. Six character RGB hex string.";
     }
 }
