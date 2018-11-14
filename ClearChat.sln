@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{643371B6-5680-4BA1-AF49-F344924751EA}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
+		schema.sql = schema.sql
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClearChat.Web", "ClearChat.Web\ClearChat.Web.csproj", "{5A8CA628-A9CC-42BF-9F2D-D3EC377DDD40}"

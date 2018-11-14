@@ -11,7 +11,6 @@ namespace ClearChat.Core.Repositories
     {
         private readonly string m_ConnectionString;
         private readonly IStringHasher m_StringHasher;
-        private readonly ColourGenerator m_ColourGenerator;
 
         public SqlServerUserRepository(string connectionString, 
                                        IStringHasher stringHasher)
