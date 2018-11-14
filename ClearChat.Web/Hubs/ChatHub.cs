@@ -41,6 +41,8 @@ namespace ClearChat.Web.Hubs
                 return;
             }
 
+            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
+
             if (message.StartsWith("/"))
             {
                 var command = message.Substring(1).Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
@@ -67,7 +69,7 @@ namespace ClearChat.Web.Hubs
                         }
                         break;
                     default:
-                        m_SlashCommandHandler.Handle(this, message);
+                        m_SlashCommandHandler.Handle(user, this, message);
                         break;
                 }
             }

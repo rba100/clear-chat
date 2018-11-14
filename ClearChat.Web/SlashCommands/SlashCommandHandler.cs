@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ClearChat.Core.Domain;
 using ClearChat.Web.Messaging;
 
 namespace ClearChat.Web.SlashCommands
@@ -14,7 +15,7 @@ namespace ClearChat.Web.SlashCommands
             m_Commands = commands.ToDictionary(c => c.CommandText.ToLowerInvariant(), c => c);
         }
 
-        public void Handle(IMessageSink messageSink, string commandStringWithArguments)
+        public void Handle(User user, IMessageSink messageSink, string commandStringWithArguments)
         {
             if (!commandStringWithArguments.StartsWith("/"))
             {
@@ -29,7 +30,7 @@ namespace ClearChat.Web.SlashCommands
 
             if(m_Commands.ContainsKey(command))
             {
-                m_Commands[command].Handle(null, messageSink, arguments);
+                m_Commands[command].Handle(user, messageSink, arguments);
             }
             else
             {
