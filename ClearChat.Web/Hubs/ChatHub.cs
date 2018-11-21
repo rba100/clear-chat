@@ -135,15 +135,17 @@ namespace ClearChat.Web.Hubs
         {
             var name = Context.User.Identity.Name;
             s_ConnectionChannels[Context.ConnectionId] = "default";
-
             Groups.AddToGroupAsync(Context.ConnectionId, "default");
             lock (s_Clients)
             {
-                if (s_Clients.All(c => c.Name != name))
+                Client client = s_Clients.FirstOrDefault(c => c.Name == name);
+
+                if (client == null)
                 {
-                    s_Clients.Add(new Client(name) { ConnectionCount = 1 });
+                    client = new Client(name);
+                    s_Clients.Add(client);
                 }
-                else s_Clients.First(c => c.Name == name).ConnectionCount++;
+                client.AddConnection(Context.ConnectionId);
                 PushUpdateClients();
             }
             return base.OnConnectedAsync();
@@ -155,8 +157,7 @@ namespace ClearChat.Web.Hubs
             lock (s_Clients)
             {
                 var record = s_Clients.First(c => c.Name == name);
-                record.ConnectionCount--;
-                if (record.ConnectionCount == 0) s_Clients.Remove(record);
+                record.RemoveConnection(Context.ConnectionId);
                 PushUpdateClients();
             }
             s_ConnectionChannels.Remove(Context.ConnectionId);
@@ -195,6 +196,21 @@ namespace ClearChat.Web.Hubs
         }
 
         public string Name { get; }
-        public int ConnectionCount { get; set; }
+
+        public void AddConnection(string connectionId)
+        {
+            m_ConnectionIds[connectionId] = null;
+        }
+
+        public void RemoveConnection(string connectionId)
+        {
+            m_ConnectionIds.TryRemove(connectionId, out object _);
+        }
+
+        public int ConnectionCount => m_ConnectionIds.Count;
+
+        private readonly ConcurrentDictionary<string, object> m_ConnectionIds 
+            = new ConcurrentDictionary<string, object>();
+        
     }
 }

@@ -13,7 +13,7 @@
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
-            <div class="navbar-text">
+            <div class="navbar-text" style="display: none;">
                 <span id="client-count"></span>
             </div>
             <div class="navbar-text"><a class="nav navbar-nav" href="changeIdentity">change identity</a></div>
@@ -83,6 +83,7 @@
                 }
             });
 
+        // client count is currently broken because it doesn't handle channels
         connection.on("initClients",
             function (clients) {
                 var plural = clients.length == 1 ? "" : "s";
@@ -128,10 +129,8 @@
                     chatItem.userId +
                     '</b></span><br class="hide-for-wide" />' +
                     '<span class="hide-for-small"> : </span>');
-                //nameElement.find('b').css("color", randomColor(chatItem.userId));
                 nameElement.find('b').css("color", '#' + chatItem.colour);
                 row.prepend(nameElement);
-                //row.prepend(getProfilePicElement(chatItem.Name));
             }
             lastAuthor = chatItem.userId;
             chatHistory.append(row);
@@ -152,11 +151,6 @@
 
         var crc32 = (function () {
             var table = new Uint32Array(256);
-
-            // Pre-generate crc32 polynomial lookup table
-            // http://wiki.osdev.org/CRC32#Building_the_Lookup_Table
-            // ... Actually use Alex's because it generates the correct bit order
-            //     so no need for the reversal function
             for (var i = 256; i--;) {
                 var tmp = i;
 
@@ -166,10 +160,6 @@
 
                 table[i] = tmp;
             }
-
-            // crc32b
-            // Example input        : [97, 98, 99, 100, 101] (Uint8Array)
-            // Example output       : 2240272485 (Uint32)
             return function (data) {
                 var crc = -1; // Begin with all bits set ( 0xffffffff )
 
