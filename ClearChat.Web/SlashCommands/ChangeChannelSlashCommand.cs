@@ -29,13 +29,24 @@ namespace ClearChat.Web.SlashCommands
 
             var channelName = parts[0];
             var password = parts.Length > 1 ? parts[1] : string.Empty;
-            if (!m_MessageRepository.GetOrCreateChannel(channelName, password))
+            var channelResult = m_MessageRepository.GetOrCreateChannel(channelName, password);
+            switch (channelResult)
             {
-                messageSink.PublishSystemMessage("Error: wrong password channel",
-                                                 MessageScope.Caller);
-                return;
+                case ChannelResult.Denied:
+                    messageSink.PublishSystemMessage("Error: wrong password channel",
+                                                     MessageScope.Caller);
+                    break;
+                case ChannelResult.Created:
+                    messageSink.ChangeChannel(channelName);
+                    messageSink.PublishSystemMessage($"You created channel '{channelName}'",
+                                                     MessageScope.Caller);
+                    break;
+                case ChannelResult.Accepted:
+                    messageSink.ChangeChannel(channelName);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            messageSink.ChangeChannel(channelName);
         }
 
         public string HelpText => "Switch channel with: /channel channelName [password]";

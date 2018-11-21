@@ -11,7 +11,7 @@ using ClearChat.Core.Repositories.Bindings;
 
 namespace ClearChat.Core.Repositories
 {
-    public class SqlServerMessageRepository : IMessageRepository, IChannelRepository
+    public class SqlServerMessageRepository : IMessageRepository
     {
         private readonly string m_ConnectionString;
         private IColourGenerator m_ColourGenerator = new ColourGenerator();
@@ -97,9 +97,9 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public bool GetOrCreateChannel(string channelName, string channelPassword)
+        public ChannelResult GetOrCreateChannel(string channelName, string channelPassword)
         {
-            if (channelName == "default") return true;
+            if (channelName == "default") return ChannelResult.Accepted;
 
             var channelNameHash = m_StringHasher.Hash(channelName);
 
@@ -117,15 +117,16 @@ namespace ClearChat.Core.Repositories
                     };
                     db.Channels.Add(channel);
                     db.SaveChanges();
+                    return ChannelResult.Created;
                 }
                 else
                 {
                     if (!m_StringHasher.HashMatch(channelPassword, channel.PasswordHash, channel.PasswordSalt))
                     {
-                        return false;
+                        return ChannelResult.Denied;
                     }
                 }
-                return true;
+                return ChannelResult.Accepted;
             }
         }
 

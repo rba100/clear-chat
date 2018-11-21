@@ -16,6 +16,9 @@
             <div class="navbar-text" style="display: none;">
                 <span id="client-count"></span>
             </div>
+            <div class="navbar-text">
+                <span id="channel-name">default</span>
+            </div>
             <div class="navbar-text"><a class="nav navbar-nav" href="changeIdentity">change identity</a></div>
         </div>
     </div>
@@ -39,6 +42,7 @@
         var maxHistory = 400;
         var chatHistory = $('#history');
         var outputContainer = $('#output-container');
+        var channelNameLabel = $('#channel-name');
         var converter = new showdown.Converter();
 
         var lastAuthor = "";
@@ -72,6 +76,11 @@
                     unreadMessages++;
                     window.document.title = "Clear Chat (" + unreadMessages + ")";
                 }
+            });
+
+        connection.on("updateChannelName",
+            function(name) {
+                channelNameLabel.html(name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"));
             });
 
         connection.on("initHistory",
