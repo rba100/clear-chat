@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using ClearChat.Core;
 using ClearChat.Core.Domain;
-using ClearChat.Web.Messaging;
 
 namespace ClearChat.Web.SlashCommands
 {
@@ -17,10 +17,10 @@ namespace ClearChat.Web.SlashCommands
 
         public void Handle(User user, IMessageSink messageSink, string arguments)
         {
-            messageSink.PublishSystemMessage("Available commands:", "default", MessageScope.Caller);
+            messageSink.PublishSystemMessage("Available commands:", MessageScope.Caller);
             foreach (var command in m_Commands)
             {
-                messageSink.PublishSystemMessage($"/{command.CommandText} — {command.HelpText}", "default", MessageScope.Caller);
+                messageSink.PublishSystemMessage($"/{command.CommandText} — {command.HelpText}", MessageScope.Caller);
             }
         }
 

@@ -60,13 +60,13 @@
             focused = false;
         };
 
-        connection.onclose(function(error) {
+        connection.onclose(function (error) {
             console.log("DEBUG: connection closed.");
             if (error) console.log("DEBUG: " + error);
         });
 
         connection.on("newMessage",
-            function(chatItem) {
+            function (chatItem) {
                 insertChatItem(chatItem);
                 if (!focused) {
                     unreadMessages++;
@@ -76,10 +76,8 @@
 
         connection.on("initHistory",
             function (historyItems) {
-                if (historyItems.length === 0) {
-                    chatHistory.empty();
-                    lastAuthor = "";
-                }
+                chatHistory.empty();
+                lastAuthor = "";
                 for (var i = 0; i < historyItems.length; i++) {
                     insertChatItem(historyItems[i]);
                 }
@@ -91,7 +89,7 @@
                 $('#client-count').html(clients.length + " user" + plural);
             });
 
-        connection.start().then(function() {
+        connection.start().then(function () {
             $('#send-button').click(send);
             $('#text-input').keypress(function (e) {
                 if (e.which === 13) {
@@ -104,7 +102,7 @@
 
         function send() {
             var message = $('#text-input').val();
-            connection.send("send", message).catch(function(error) {
+            connection.send("send", message).catch(function (error) {
                 console.log(error);
             });
             $('#text-input').val("");

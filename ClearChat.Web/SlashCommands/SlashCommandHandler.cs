@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ClearChat.Core.Domain;
-using ClearChat.Web.Messaging;
+using ClearChat.Core;
 
 namespace ClearChat.Web.SlashCommands
 {
@@ -34,8 +34,7 @@ namespace ClearChat.Web.SlashCommands
             }
             else
             {
-                messageSink.PublishSystemMessage($"Command '{command}' not recognised.", 
-                                                 "default", 
+                messageSink.PublishSystemMessage($"Command '{command}' not recognised.",
                                                  MessageScope.Caller);
             }
         }

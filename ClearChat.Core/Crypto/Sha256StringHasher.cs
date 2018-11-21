@@ -7,6 +7,13 @@ namespace ClearChat.Core.Crypto
 {
     public class Sha256StringHasher : IStringHasher
     {
+        public byte[] Hash(string payload)
+        {
+            var hasher = new SHA256CryptoServiceProvider();
+            return hasher.ComputeHash(Encoding.UTF8.GetBytes(payload)
+                                          .ToArray());
+        }
+
         public byte[] Hash(string payload, byte[] salt)
         {
             var hasher = new SHA256CryptoServiceProvider();

@@ -6,20 +6,20 @@ namespace ClearChat.Core.Domain
     public class ChatMessage
     {
         public ChatMessage(string userId,
-                           string channelId, 
+                           string channelName, 
                            string message,
                            string colour,
                            DateTime timeStampUtc)
         {
             UserId = userId;
-            ChannelId = channelId;
+            ChannelName = channelName;
             Message = message;
             TimeStampUtc = timeStampUtc;
             Colour = colour;
         }
 
         public string UserId { get; }
-        public string ChannelId { get; }
+        public string ChannelName { get; }
         public string Message { get; }
         public DateTime TimeStampUtc { get; }
         public string Colour { get; }
@@ -36,14 +36,14 @@ namespace ClearChat.Core.Domain
             m_UserRepository = userRepository;
         }
 
-        public ChatMessage Create(string userId, string message, DateTime timeStampUtc)
+        public ChatMessage Create(string userId, string message, string channelName, DateTime timeStampUtc)
         {
             var colour = m_UserRepository.GetUserDetails(userId)?.HexColour ??
                          m_ColourGenerator.GenerateFromString(userId);
 
             return new ChatMessage(
                 userId,
-                "default", 
+                channelName, 
                 message, 
                 colour,
                 timeStampUtc);

@@ -1,6 +1,5 @@
-﻿using ClearChat.Core.Domain;
-using ClearChat.Web.Messaging;
-using Microsoft.AspNetCore.SignalR;
+﻿using ClearChat.Core;
+using ClearChat.Core.Domain;
 
 namespace ClearChat.Web.SlashCommands
 {

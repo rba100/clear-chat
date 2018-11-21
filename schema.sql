@@ -1,8 +1,10 @@
-﻿CREATE TABLE [dbo].[Messages]
+﻿-- TODO: Normalisation
+
+CREATE TABLE [dbo].[Messages]
 (
     [id] [INT] IDENTITY(1, 1) NOT NULL,
     [userId] [VARCHAR](1000) NOT NULL,
-    [channelId] [VARCHAR](1000) NOT NULL,
+    [channelId] INT NOT NULL,
     [message] [VARBINARY](MAX) NOT NULL,
     [TimeStampUtc] [DATETIME2](7) NOT NULL
 );
@@ -13,4 +15,12 @@ CREATE TABLE [dbo].[Users]
     [passwordHash] [VARBINARY](256) NOT NULL,
     [passwordSalt] [VARBINARY](256) NOT NULL,
     [hexColour] [VARCHAR](6) NULL
+);
+
+CREATE TABLE [dbo].[Channels]
+(
+    [channelId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[channelNameHash] [VARBINARY](256) NOT NULL,
+	[passwordHash] [VARBINARY](256) NOT NULL,
+    [passwordSalt] [VARBINARY](256) NOT NULL
 );

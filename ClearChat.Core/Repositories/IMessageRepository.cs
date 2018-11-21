@@ -5,8 +5,9 @@ namespace ClearChat.Core.Repositories
 {
     public interface IMessageRepository
     {
-        IReadOnlyCollection<ChatMessage> ChannelMessages(string channelId);
+        IReadOnlyCollection<ChatMessage> ChannelMessages(string channelName);
         void WriteMessage(ChatMessage message);
-        void ClearChannel(string channelId);
+        void ClearChannel(string channelName);
+        bool GetOrCreateChannel(string channelName, string channelPassword);
     }
 }

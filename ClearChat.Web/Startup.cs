@@ -22,19 +22,22 @@ namespace ClearChat.Web
         public void ConfigureServices(IServiceCollection services)
         {
             var connString = Environment.GetEnvironmentVariable("ClearChat", EnvironmentVariableTarget.Machine);
+            var hasher = new Sha256StringHasher();
+            var msgRepo = new SqlServerMessageRepository(connString,
+                                                         new AesStringProtector(new byte[32]),
+                                                         hasher);
 
             services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme)
                     .AddBasic<BasicAuthenticationService>(o => o.Realm = "ClearChat");
 
             services.AddSignalR();
-            services.AddTransient<IMessageRepository>(sp => new SqlServerMessageRepository(connString,
-                                                                                           new AesStringProtector(new byte[32])));
+            services.AddTransient<IMessageRepository>(sp => msgRepo);
 
-            var userRepo = new CachingUserRepository(new SqlServerUserRepository(connString, 
-                                                                                 new Sha256StringHasher()));
+            var userRepo = new CachingUserRepository(new SqlServerUserRepository(connString,
+                                                                                 hasher));
             services.AddSingleton<IUserRepository>(sp => userRepo);
 
-            var commands = new ISlashCommand[]{ new ColourCommand(userRepo) };
+            var commands = new ISlashCommand[]{ new ColourCommand(userRepo), new ChangeChannelSlashCommand(msgRepo) };
 
             services.AddSingleton<ISlashCommandHandler>(new SlashCommandHandler(new[]
             {
@@ -51,7 +54,8 @@ namespace ClearChat.Web
             }
 
             app.UseAuthentication();
-            app.UseChallengeOnPath("/changeIdentity", returnTo: "/");
+            app.UseChallengeOnPath("/", returnTo: "/");
+            app.UseChallengeOnPathAlways("/changeIdentity", returnTo: "/");
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseSignalR(routes => routes.MapHub<ChatHub>("/chatHub"));
