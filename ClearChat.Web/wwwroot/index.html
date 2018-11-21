@@ -42,7 +42,7 @@
         var converter = new showdown.Converter();
 
         var lastAuthor = "";
-
+        var lastMessageSent = "";
 
         connection = new signalR.HubConnectionBuilder()
             .withUrl("/chatHub")
@@ -93,16 +93,23 @@
         connection.start().then(function () {
             $('#send-button').click(send);
             $('#text-input').keypress(function (e) {
-                if (e.which === 13) {
+                if (e.which === 13) { // ENTER KEY
                     send();
+                }
+            });
+            $('#text-input').keydown(function(e) {
+                if (e.which === 38) { // UP ARROW
+                    $('#text-input').val(lastMessageSent);
                 }
             });
             $('#text-input').focus();
             loadHistory();
         });
-
+        
         function send() {
             var message = $('#text-input').val();
+            if (message === "") return;
+            lastMessageSent = message;
             connection.send("send", message).catch(function (error) {
                 console.log(error);
             });
