@@ -15,6 +15,7 @@ TODO
 - Add favicon.
 - Social justice warrior bot to ensure users repress any sentiment that could cause offence.
 - Ability to upload images, initiated by pasting from the clipboard to the input bar.
+- 'chap is typing...' system
 
 ## Philosophy
 
