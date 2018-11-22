@@ -162,6 +162,7 @@ namespace ClearChat.Web.Hubs
             Groups.RemoveFromGroupAsync(Context.ConnectionId, previousChannel);
             Groups.AddToGroupAsync(Context.ConnectionId, channel);
             s_ConnectionChannels[Context.ConnectionId] = channel;
+            m_ConnectionManager.ChangeConnectionChannel(Context.ConnectionId, channel);
             Clients.Caller.SendAsync("updateChannelName", channel);
             GetHistory();
         }
