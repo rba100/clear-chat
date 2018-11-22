@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace ClearChat.Web.Hubs
 {
-    public class ChatHub : Hub, IMessageSink
+    public class ChatHub : Hub, IMessageHub
     {
         private static readonly List<Client> s_Clients = new List<Client>();
         private static readonly IDictionary<string, string> s_ConnectionChannels
@@ -22,7 +22,7 @@ namespace ClearChat.Web.Hubs
         private readonly IMessageRepository m_MessageRepository;
         private readonly IUserRepository m_UserRepository;
         private readonly ISlashCommandHandler m_SlashCommandHandler;
-        private readonly MessageFactory m_MessageFactory;
+        private readonly ChatMessageFactory m_ChatMessageFactory;
 
         public ChatHub(IMessageRepository messageRepository,
                        IUserRepository userRepository,
@@ -31,7 +31,7 @@ namespace ClearChat.Web.Hubs
             m_MessageRepository = messageRepository;
             m_UserRepository = userRepository;
             m_SlashCommandHandler = slashCommandHandler;
-            m_MessageFactory = new MessageFactory(userRepository);
+            m_ChatMessageFactory = new ChatMessageFactory(userRepository);
         }
 
         public void Send(string message)
@@ -39,11 +39,11 @@ namespace ClearChat.Web.Hubs
             if (!Context.User.Identity.IsAuthenticated)
             {
                 Clients.Caller.SendAsync("newMessage",
-                    m_MessageFactory.Create("System", "You are not logged in.", "", DateTime.UtcNow));
+                    m_ChatMessageFactory.Create("System", "You are not logged in.", "", DateTime.UtcNow));
                 return;
             }
 
-            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
+            var context = GetContext();
 
             if (message.StartsWith("/"))
             {
@@ -66,7 +66,7 @@ namespace ClearChat.Web.Hubs
                         }
                         var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
                         PublishSystemMessage(msg, MessageScope.Caller);
-                        var sysMessage = m_MessageFactory.Create("System", msg, "", DateTime.UtcNow);
+                        var sysMessage = m_ChatMessageFactory.Create("System", msg, "", DateTime.UtcNow);
                         Clients.Caller.SendAsync("newMessage", sysMessage);
 
                         foreach (var client in clients)
@@ -75,14 +75,14 @@ namespace ClearChat.Web.Hubs
                         }
                         break;
                     default:
-                        m_SlashCommandHandler.Handle(user, this, message);
+                        m_SlashCommandHandler.Handle(context, message);
                         break;
                 }
             }
             else
             {
                 var channel = s_ConnectionChannels[Context.ConnectionId];
-                var messageItem = m_MessageFactory.Create(Context.User.Identity.Name,
+                var messageItem = m_ChatMessageFactory.Create(Context.User.Identity.Name,
                                                           message,
                                                           channel,
                                                           DateTime.UtcNow);
@@ -91,7 +91,7 @@ namespace ClearChat.Web.Hubs
 
                 if (message.ToLower().Contains("spaz"))
                 {
-                    var msg = m_MessageFactory.Create(
+                    var msg = m_ChatMessageFactory.Create(
                         "SjBot",
                         $"I'm watching you, {Context.User.Identity.Name}!",
                         channel,
@@ -111,7 +111,7 @@ namespace ClearChat.Web.Hubs
         {
             var messages = m_MessageRepository
                            .ChannelMessages(channelName)
-                           .Select(m => m_MessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
+                           .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
                            .OrderBy(m => m.TimeStampUtc);
             Clients.Caller.SendAsync("initHistory", messages);
         }
@@ -171,7 +171,7 @@ namespace ClearChat.Web.Hubs
 
         public void PublishSystemMessage(string message, MessageScope messageScope)
         {
-            var msg = m_MessageFactory.Create("System", message, "", DateTime.UtcNow);
+            var msg = m_ChatMessageFactory.Create("System", message, "", DateTime.UtcNow);
             if (messageScope == MessageScope.All)
                 Clients.All.SendAsync("newMessage", msg);
             else
@@ -186,6 +186,13 @@ namespace ClearChat.Web.Hubs
             s_ConnectionChannels[Context.ConnectionId] = channel;
             Clients.Caller.SendAsync("updateChannelName", channel);
             GetHistory();
+        }
+
+        private ChatContext GetContext()
+        {
+            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
+            var channel = s_ConnectionChannels[Context.ConnectionId];
+            return new ChatContext(user, channel, this);
         }
     }
 

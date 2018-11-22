@@ -5,6 +5,6 @@ namespace ClearChat.Web.SlashCommands
 {
     public interface ISlashCommandHandler
     {
-        void Handle(User user, IMessageSink messageSink, string commandStringWithArguments);
+        void Handle(ChatContext context, string commandStringWithArguments);
     }
 }

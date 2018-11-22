@@ -16,7 +16,7 @@ namespace ClearChat.Web.SlashCommands
         /// <summary>
         /// A function which handles the invocation of the command.
         /// </summary>
-        void Handle(User user, IMessageSink messageSink, string arguments);
+        void Handle(ChatContext context, string arguments);
 
         /// <summary>
         /// Short description of what the command does.

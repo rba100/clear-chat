@@ -5,7 +5,7 @@ namespace ClearChat.Core
     /// <summary>
     /// Defines a message publisher.
     /// </summary>
-    public interface IMessageSink
+    public interface IMessageHub
     {
         /// <summary>
         /// Publish a message.

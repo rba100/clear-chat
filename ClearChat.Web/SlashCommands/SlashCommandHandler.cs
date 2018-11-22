@@ -15,7 +15,7 @@ namespace ClearChat.Web.SlashCommands
             m_Commands = commands.ToDictionary(c => c.CommandText.ToLowerInvariant(), c => c);
         }
 
-        public void Handle(User user, IMessageSink messageSink, string commandStringWithArguments)
+        public void Handle(ChatContext context, string commandStringWithArguments)
         {
             if (!commandStringWithArguments.StartsWith("/"))
             {
@@ -30,11 +30,11 @@ namespace ClearChat.Web.SlashCommands
 
             if(m_Commands.ContainsKey(command))
             {
-                m_Commands[command].Handle(user, messageSink, arguments);
+                m_Commands[command].Handle(context, arguments);
             }
             else
             {
-                messageSink.PublishSystemMessage($"Command '{command}' not recognised.",
+                context.MessageHub.PublishSystemMessage($"Command '{command}' not recognised.",
                                                  MessageScope.Caller);
             }
         }

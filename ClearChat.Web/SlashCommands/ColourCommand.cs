@@ -15,11 +15,11 @@ namespace ClearChat.Web.SlashCommands
 
         public string CommandText => "colour";
 
-        public void Handle(User user, IMessageSink messageSink, string arguments)
+        public void Handle(ChatContext context, string arguments)
         {
             var colourStr = arguments.StartsWith("#") ? arguments.Substring(1) : arguments;
-            if(arguments.Length != 6) messageSink.PublishSystemMessage("Must be a six character hex string", MessageScope.Caller);
-            var newUser = new User(user.UserId, colourStr);
+            if(arguments.Length != 6) context.MessageHub.PublishSystemMessage("Must be a six character hex string", MessageScope.Caller);
+            var newUser = new User(context.User.UserId, colourStr);
             m_UserRepository.UpdateUserDetails(newUser);
         }
 

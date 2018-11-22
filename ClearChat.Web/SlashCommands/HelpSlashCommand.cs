@@ -15,12 +15,12 @@ namespace ClearChat.Web.SlashCommands
             m_Commands = commands;
         }
 
-        public void Handle(User user, IMessageSink messageSink, string arguments)
+        public void Handle(ChatContext context, string arguments)
         {
-            messageSink.PublishSystemMessage("Available commands:", MessageScope.Caller);
+            context.MessageHub.PublishSystemMessage("Available commands:", MessageScope.Caller);
             foreach (var command in m_Commands)
             {
-                messageSink.PublishSystemMessage($"/{command.CommandText} — {command.HelpText}", MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage($"/{command.CommandText} — {command.HelpText}", MessageScope.Caller);
             }
         }
 

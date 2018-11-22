@@ -97,9 +97,9 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public ChannelResult GetOrCreateChannel(string channelName, string channelPassword)
+        public SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword)
         {
-            if (channelName == "default") return ChannelResult.Accepted;
+            if (channelName == "default") return SwitchChannelResult.Accepted;
 
             var channelNameHash = m_StringHasher.Hash(channelName);
 
@@ -117,16 +117,16 @@ namespace ClearChat.Core.Repositories
                     };
                     db.Channels.Add(channel);
                     db.SaveChanges();
-                    return ChannelResult.Created;
+                    return SwitchChannelResult.Created;
                 }
                 else
                 {
                     if (!m_StringHasher.HashMatch(channelPassword, channel.PasswordHash, channel.PasswordSalt))
                     {
-                        return ChannelResult.Denied;
+                        return SwitchChannelResult.Denied;
                     }
                 }
-                return ChannelResult.Accepted;
+                return SwitchChannelResult.Accepted;
             }
         }
 

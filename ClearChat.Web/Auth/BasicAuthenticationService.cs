@@ -9,7 +9,7 @@ namespace ClearChat.Web.Auth
     {
         private readonly IUserRepository m_UserRepository;
 
-        private readonly string[] m_BannedUserNames = { "system" };
+        private readonly string[] m_BannedUserNames = { "system", "admin", "administrator" };
 
         public BasicAuthenticationService(IUserRepository userRepository)
         {

@@ -8,6 +8,6 @@ namespace ClearChat.Core.Repositories
         IReadOnlyCollection<ChatMessage> ChannelMessages(string channelName);
         void WriteMessage(ChatMessage message);
         void ClearChannel(string channelName);
-        ChannelResult GetOrCreateChannel(string channelName, string channelPassword);
+        SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword);
     }
 }

@@ -17,12 +17,12 @@ namespace ClearChat.Web.SlashCommands
 
         public string CommandText => "channel";
 
-        public void Handle(User user, IMessageSink messageSink, string arguments)
+        public void Handle(ChatContext context, string arguments)
         {
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())
             {
-                messageSink.PublishSystemMessage("Error: correct usage is /channel channelName channelPassword", 
+                context.MessageHub.PublishSystemMessage("Error: correct usage is /channel channelName channelPassword", 
                                                  MessageScope.Caller);
                 return;
             }
@@ -32,17 +32,17 @@ namespace ClearChat.Web.SlashCommands
             var channelResult = m_MessageRepository.GetOrCreateChannel(channelName, password);
             switch (channelResult)
             {
-                case ChannelResult.Denied:
-                    messageSink.PublishSystemMessage("Error: wrong password channel",
+                case SwitchChannelResult.Denied:
+                    context.MessageHub.PublishSystemMessage("Error: wrong password channel",
                                                      MessageScope.Caller);
                     break;
-                case ChannelResult.Created:
-                    messageSink.ChangeChannel(channelName);
-                    messageSink.PublishSystemMessage($"You created channel '{channelName}'",
+                case SwitchChannelResult.Created:
+                    context.MessageHub.ChangeChannel(channelName);
+                    context.MessageHub.PublishSystemMessage($"You created channel '{channelName}'",
                                                      MessageScope.Caller);
                     break;
-                case ChannelResult.Accepted:
-                    messageSink.ChangeChannel(channelName);
+                case SwitchChannelResult.Accepted:
+                    context.MessageHub.ChangeChannel(channelName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
