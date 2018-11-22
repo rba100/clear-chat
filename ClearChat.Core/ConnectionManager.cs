@@ -6,9 +6,9 @@ namespace ClearChat.Core
 {
     public class ConnectionManager : IConnectionManager
     {
-        private readonly ConcurrentDictionary<string, List<string>> m_UserIdToConnection;
-        private readonly ConcurrentDictionary<string, string> m_ConnectionToUserId;
-        private readonly ConcurrentDictionary<string, string> m_ConnectionToChannel;
+        private readonly ConcurrentDictionary<string, List<string>> m_UserIdToConnection = new ConcurrentDictionary<string, List<string>>();
+        private readonly ConcurrentDictionary<string, string> m_ConnectionToUserId = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> m_ConnectionToChannel = new ConcurrentDictionary<string, string>();
 
         public void RegisterConnection(string connectionId, string userId, string channelName)
         {

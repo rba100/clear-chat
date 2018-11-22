@@ -32,23 +32,16 @@ namespace ClearChat.Web
                     .AddBasic<BasicAuthenticationService>(o => o.Realm = "ClearChat");
 
             services.AddSignalR();
-            services.AddTransient<IMessageRepository>(sp => msgRepo);
-
-            var userRepo = new CachingUserRepository(new SqlServerUserRepository(connString,
-                                                                                 hasher));
-            services.AddSingleton<IUserRepository>(sp => userRepo);
-            services.AddSingleton<IConnectionManager>(sp => new ConnectionManager());
-
-            var commands = new ISlashCommand[]
+            services.AddSingleton<IColourGenerator, ColourGenerator>();
+            services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(new SqlServerUserRepository(connString, hasher)));
+            services.AddTransient(s => new ISlashCommand[]
             {
-                new ColourCommand(userRepo, new ColourGenerator()),
-                new ChangeChannelCommand(msgRepo)
-            };
-
-            services.AddSingleton<ISlashCommandHandler>(new SlashCommandHandler(new[]
-            {
-                new HelpCommand(commands),
-            }.Concat(commands)));
+                new ColourCommand(s.GetService<IUserRepository>(),s.GetService<IColourGenerator>()), 
+                new ChangeChannelCommand(s.GetService<IMessageRepository>())
+            });
+            services.AddSingleton<IMessageRepository>(sp => msgRepo);
+            services.AddSingleton<IConnectionManager, ConnectionManager>();
+            services.AddSingleton<ISlashCommandHandler, SlashCommandHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

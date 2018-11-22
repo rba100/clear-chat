@@ -10,9 +10,11 @@ namespace ClearChat.Web.MessageHandling
     {
         private readonly IDictionary<string, ISlashCommand> m_Commands;
 
-        public SlashCommandHandler(IEnumerable<ISlashCommand> commands)
+        public SlashCommandHandler(ISlashCommand[] commands)
         {
             m_Commands = commands.ToDictionary(c => c.CommandText.ToLowerInvariant(), c => c);
+            var helpCommand = new HelpCommand(commands);
+            m_Commands.Add(helpCommand.CommandText, helpCommand);
         }
 
         public void Handle(ChatContext context, string commandStringWithArguments)
