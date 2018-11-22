@@ -1,14 +1,46 @@
-﻿using System;
+﻿
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ClearChat.Core
 {
-    public interface IConnectionManager
+    public class ConnectionManager : IConnectionManager
     {
-        void RegisterConnection(string connectionId, string userId);
-        void RegisterDisconnection(string connectionId, string userId);
-        int CountUniqueUsers(string channelId);
-        string GetChannelForConnection(string connectionId);
+        private readonly ConcurrentDictionary<string, List<string>> m_UserIdToConnection;
+        private readonly ConcurrentDictionary<string, string> m_ConnectionToUserId;
+        private readonly ConcurrentDictionary<string, string> m_ConnectionToChannel;
+
+        public void RegisterConnection(string connectionId, string userId, string channelName)
+        {
+            m_ConnectionToUserId[connectionId] = userId;
+            m_ConnectionToChannel[connectionId] = channelName;
+
+            var connectionList = m_UserIdToConnection.GetOrAdd(userId, new List<string>());
+            lock(connectionList) connectionList.Add(connectionId);
+        }
+
+        public void RegisterDisconnection(string connectionId)
+        {
+            var userId = m_ConnectionToChannel[connectionId];
+            m_ConnectionToUserId.TryRemove(connectionId, out string _);
+            m_ConnectionToChannel.TryRemove(connectionId, out string _);
+            m_UserIdToConnection[userId].Remove(connectionId);
+        }
+
+        public string GetChannelForConnection(string connectionId)
+        {
+            return m_ConnectionToChannel[connectionId];
+        }
+
+        public void ChangeConnectionChannel(string connectionId, string channel)
+        {
+            m_ConnectionToChannel[connectionId] = channel;
+        }
+
+        public IReadOnlyCollection<string> GetConnectionsForUser(string userId)
+        {
+            var connectionList = m_UserIdToConnection.GetOrAdd(userId, new List<string>());
+            lock (connectionList) return connectionList.ToArray();
+        }
     }
 }

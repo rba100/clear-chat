@@ -8,9 +8,6 @@ namespace ClearChat.Core.Repositories
         private const int Red = 0;
         private const int Green = 1;
         private const int Blue = 2;
-        private const int Hue = 0;
-        private const int Saturation = 1;
-        private const int Luminance = 2;
 
         public string GenerateFromString(string input)
         {

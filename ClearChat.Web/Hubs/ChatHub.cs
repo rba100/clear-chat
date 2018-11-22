@@ -20,15 +20,18 @@ namespace ClearChat.Web.Hubs
             = new ConcurrentDictionary<string, string>();
 
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IConnectionManager m_ConnectionManager;
         private readonly IUserRepository m_UserRepository;
         private readonly ISlashCommandHandler m_SlashCommandHandler;
         private readonly ChatMessageFactory m_ChatMessageFactory;
 
         public ChatHub(IMessageRepository messageRepository,
+                       IConnectionManager connectionManager,
                        IUserRepository userRepository,
                        ISlashCommandHandler slashCommandHandler)
         {
             m_MessageRepository = messageRepository;
+            m_ConnectionManager = connectionManager;
             m_UserRepository = userRepository;
             m_SlashCommandHandler = slashCommandHandler;
             m_ChatMessageFactory = new ChatMessageFactory(userRepository);
@@ -125,12 +128,6 @@ namespace ClearChat.Web.Hubs
             }
         }
 
-        private void PushUpdateClients()
-        {
-            var items = s_Clients.ToArray();
-            Clients.All.SendAsync("initClients", items);
-        }
-
         public override Task OnConnectedAsync()
         {
             var name = Context.User.Identity.Name;
@@ -146,7 +143,6 @@ namespace ClearChat.Web.Hubs
                     s_Clients.Add(client);
                 }
                 client.AddConnection(Context.ConnectionId);
-                PushUpdateClients();
             }
             return base.OnConnectedAsync();
         }
@@ -158,7 +154,6 @@ namespace ClearChat.Web.Hubs
             {
                 var record = s_Clients.First(c => c.Name == name);
                 record.RemoveConnection(Context.ConnectionId);
-                PushUpdateClients();
             }
             s_ConnectionChannels.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
@@ -166,7 +161,7 @@ namespace ClearChat.Web.Hubs
 
         public void Publish(ChatMessage message)
         {
-            Clients.All.SendAsync("newMessage", message);
+            Clients.Group(message.ChannelName).SendAsync("newMessage", message);
         }
 
         public void PublishSystemMessage(string message, MessageScope messageScope)

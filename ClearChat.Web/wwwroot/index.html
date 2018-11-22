@@ -13,9 +13,6 @@
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
-            <div class="navbar-text" style="display: none;">
-                <span id="client-count"></span>
-            </div>
             <div class="navbar-text">
                 <span id="channel-name">default</span>
             </div>
@@ -90,13 +87,6 @@
                 for (var i = 0; i < historyItems.length; i++) {
                     insertChatItem(historyItems[i]);
                 }
-            });
-
-        // client count is currently broken because it doesn't handle channels
-        connection.on("initClients",
-            function (clients) {
-                var plural = clients.length == 1 ? "" : "s";
-                $('#client-count').html(clients.length + " user" + plural);
             });
 
         connection.start().then(function () {

@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using ClearChat.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,7 @@ namespace ClearChat.Web
             var userRepo = new CachingUserRepository(new SqlServerUserRepository(connString,
                                                                                  hasher));
             services.AddSingleton<IUserRepository>(sp => userRepo);
+            services.AddSingleton<IConnectionManager>(sp => new ConnectionManager());
 
             var commands = new ISlashCommand[]
             {
