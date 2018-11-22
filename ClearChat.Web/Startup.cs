@@ -14,6 +14,7 @@ using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
 using ClearChat.Web.Hubs;
 using ClearChat.Web.MessageHandling;
+using ClearChat.Web.MessageHandling.SlashCommands;
 
 namespace ClearChat.Web
 {

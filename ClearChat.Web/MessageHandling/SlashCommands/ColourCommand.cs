@@ -2,7 +2,7 @@
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
 
-namespace ClearChat.Web.MessageHandling
+namespace ClearChat.Web.MessageHandling.SlashCommands
 {
     public class ColourCommand : ISlashCommand
     {
@@ -29,7 +29,7 @@ namespace ClearChat.Web.MessageHandling
             }
 
             var newUser = new User(context.User.UserId, colourStr);
-            m_UserRepository.UpdateUserDetails(newUser);
+            m_UserRepository.UpdateUser(newUser);
         }
 
         public string HelpText => "changes your user name colour. Six character RGB hex string.";

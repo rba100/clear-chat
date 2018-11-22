@@ -1,6 +1,6 @@
 ﻿using ClearChat.Core.Domain;
 
-namespace ClearChat.Web.MessageHandling
+namespace ClearChat.Web.MessageHandling.SlashCommands
 {
     public interface ISlashCommand
     {

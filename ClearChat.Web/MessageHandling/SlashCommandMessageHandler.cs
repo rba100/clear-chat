@@ -4,6 +4,7 @@ using System.Linq;
 
 using ClearChat.Core;
 using ClearChat.Core.Domain;
+using ClearChat.Web.MessageHandling.SlashCommands;
 
 namespace ClearChat.Web.MessageHandling
 {
@@ -14,8 +15,6 @@ namespace ClearChat.Web.MessageHandling
         public SlashCommandMessageHandler(ISlashCommand[] commands)
         {
             m_Commands = commands.ToDictionary(c => c.CommandText.ToLowerInvariant(), c => c);
-            var helpCommand = new HelpCommand(commands);
-            m_Commands.Add(helpCommand.CommandText, helpCommand);
         }
 
         public bool Handle(MessageContext context)
@@ -31,6 +30,14 @@ namespace ClearChat.Web.MessageHandling
             if (m_Commands.ContainsKey(command))
             {
                 m_Commands[command].Handle(context, arguments);
+            }
+            else if (command == "help")
+            {
+                context.MessageHub.PublishSystemMessage("Available commands:", MessageScope.Caller);
+                foreach (var c in m_Commands.Values)
+                {
+                    context.MessageHub.PublishSystemMessage($"/{c.CommandText} — {c.HelpText}", MessageScope.Caller);
+                }
             }
             else
             {

@@ -9,7 +9,7 @@ namespace ClearChat.Core.Repositories
         bool UserIdExists(string userId);
         User GetUserDetails(string userId);
         void SaveUser(string userId, string password);
-        void UpdateUserDetails(User user);
+        void UpdateUser(User user);
         bool ValidateUser(string userId, string password);
     }
 
@@ -41,9 +41,9 @@ namespace ClearChat.Core.Repositories
             m_UserRepository.SaveUser(userId, password);
         }
 
-        public void UpdateUserDetails(User user)
+        public void UpdateUser(User user)
         {
-            m_UserRepository.UpdateUserDetails(user);
+            m_UserRepository.UpdateUser(user);
             m_Cache[user.UserId] = user;
         }
 
