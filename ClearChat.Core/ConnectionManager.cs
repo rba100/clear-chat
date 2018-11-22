@@ -24,7 +24,8 @@ namespace ClearChat.Core
             var userId = m_ConnectionToChannel[connectionId];
             m_ConnectionToUserId.TryRemove(connectionId, out string _);
             m_ConnectionToChannel.TryRemove(connectionId, out string _);
-            m_UserIdToConnection[userId].Remove(connectionId);
+            if(m_UserIdToConnection.ContainsKey(userId))
+                m_UserIdToConnection[userId].Remove(connectionId);
         }
 
         public string GetChannelForConnection(string connectionId)

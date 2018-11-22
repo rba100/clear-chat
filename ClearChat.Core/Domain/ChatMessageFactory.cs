@@ -11,9 +11,10 @@ namespace ClearChat.Core.Domain
         private readonly IColourGenerator m_ColourGenerator;
         private readonly IUserRepository m_UserRepository;
 
-        public ChatMessageFactory(IUserRepository userRepository)
+        public ChatMessageFactory(IUserRepository userRepository, 
+                                  IColourGenerator colourGenerator)
         {
-            m_ColourGenerator = new ColourGenerator();
+            m_ColourGenerator = colourGenerator;
             m_UserRepository = userRepository;
         }
 

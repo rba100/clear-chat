@@ -23,18 +23,19 @@ namespace ClearChat.Web.Hubs
         private readonly IConnectionManager m_ConnectionManager;
         private readonly IUserRepository m_UserRepository;
         private readonly IMessageHandler m_MessageHandler;
-        private readonly ChatMessageFactory m_ChatMessageFactory;
+        private readonly IChatMessageFactory m_ChatMessageFactory;
 
         public ChatHub(IMessageRepository messageRepository,
                        IConnectionManager connectionManager,
                        IUserRepository userRepository,
-                       IMessageHandler messageHandler)
+                       IMessageHandler messageHandler,
+                       IChatMessageFactory chatMessageFactory)
         {
             m_MessageRepository = messageRepository;
             m_ConnectionManager = connectionManager;
             m_UserRepository = userRepository;
             m_MessageHandler = messageHandler;
-            m_ChatMessageFactory = new ChatMessageFactory(userRepository);
+            m_ChatMessageFactory = chatMessageFactory;
         }
 
         public void Send(string message)
@@ -80,6 +81,7 @@ namespace ClearChat.Web.Hubs
                         return;
                 }
             }
+
             m_MessageHandler.Handle(context);
         }
 
@@ -104,20 +106,26 @@ namespace ClearChat.Web.Hubs
 
         public override Task OnConnectedAsync()
         {
-            var name = Context.User.Identity.Name;
+            var name = Context.User.Identity.IsAuthenticated? Context.User.Identity.Name : null;
             s_ConnectionChannels[Context.ConnectionId] = "default";
             Groups.AddToGroupAsync(Context.ConnectionId, "default");
-            lock (s_Clients)
-            {
-                Client client = s_Clients.FirstOrDefault(c => c.Name == name);
 
-                if (client == null)
+            if (name != null)
+            {
+                m_ConnectionManager.RegisterConnection(Context.ConnectionId, name, "default");
+                lock (s_Clients)
                 {
-                    client = new Client(name);
-                    s_Clients.Add(client);
+                    Client client = s_Clients.FirstOrDefault(c => c.Name == name);
+
+                    if (client == null)
+                    {
+                        client = new Client(name);
+                        s_Clients.Add(client);
+                    }
+                    client.AddConnection(Context.ConnectionId);
                 }
-                client.AddConnection(Context.ConnectionId);
             }
+            
             return base.OnConnectedAsync();
         }
 
@@ -129,6 +137,7 @@ namespace ClearChat.Web.Hubs
                 var record = s_Clients.First(c => c.Name == name);
                 record.RemoveConnection(Context.ConnectionId);
             }
+            m_ConnectionManager.RegisterDisconnection(Context.ConnectionId);
             s_ConnectionChannels.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }

@@ -34,6 +34,7 @@ namespace ClearChat.Web
 
             services.AddSignalR();
             services.AddSingleton<IColourGenerator, ColourGenerator>();
+            services.AddSingleton<IChatMessageFactory, ChatMessageFactory>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(new SqlServerUserRepository(connString, hasher)));
             services.AddSingleton<IMessageRepository>(sp => msgRepo);
             services.AddSingleton<IConnectionManager, ConnectionManager>();
