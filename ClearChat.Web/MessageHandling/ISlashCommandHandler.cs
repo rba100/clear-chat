@@ -1,7 +1,6 @@
-﻿using ClearChat.Core;
-using ClearChat.Core.Domain;
+﻿using ClearChat.Core.Domain;
 
-namespace ClearChat.Web.SlashCommands
+namespace ClearChat.Web.MessageHandling
 {
     public interface ISlashCommandHandler
     {

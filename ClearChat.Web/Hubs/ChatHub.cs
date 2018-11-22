@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ClearChat.Core;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
-using ClearChat.Web.SlashCommands;
+using ClearChat.Web.MessageHandling;
 using Microsoft.AspNetCore.SignalR;
 
 // ReSharper disable UnusedMember.Global

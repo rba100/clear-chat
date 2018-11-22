@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ClearChat.Core.Domain;
 using ClearChat.Core;
+using ClearChat.Core.Domain;
 
-namespace ClearChat.Web.SlashCommands
+namespace ClearChat.Web.MessageHandling
 {
     internal class SlashCommandHandler : ISlashCommandHandler
     {

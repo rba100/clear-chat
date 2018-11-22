@@ -11,7 +11,7 @@ using ClearChat.Core.Crypto;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
 using ClearChat.Web.Hubs;
-using ClearChat.Web.SlashCommands;
+using ClearChat.Web.MessageHandling;
 
 namespace ClearChat.Web
 {
@@ -37,11 +37,15 @@ namespace ClearChat.Web
                                                                                  hasher));
             services.AddSingleton<IUserRepository>(sp => userRepo);
 
-            var commands = new ISlashCommand[]{ new ColourCommand(userRepo), new ChangeChannelSlashCommand(msgRepo) };
+            var commands = new ISlashCommand[]
+            {
+                new ColourCommand(userRepo, new ColourGenerator()),
+                new ChangeChannelCommand(msgRepo)
+            };
 
             services.AddSingleton<ISlashCommandHandler>(new SlashCommandHandler(new[]
             {
-                new HelpSlashCommand(commands),
+                new HelpCommand(commands),
             }.Concat(commands)));
         }
 

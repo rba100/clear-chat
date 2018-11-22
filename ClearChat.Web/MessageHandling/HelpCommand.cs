@@ -2,15 +2,15 @@
 using ClearChat.Core;
 using ClearChat.Core.Domain;
 
-namespace ClearChat.Web.SlashCommands
+namespace ClearChat.Web.MessageHandling
 {
-    internal class HelpSlashCommand : ISlashCommand
+    internal class HelpCommand : ISlashCommand
     {
         public string CommandText => "help";
 
         private readonly IReadOnlyCollection<ISlashCommand> m_Commands;
 
-        public HelpSlashCommand(IReadOnlyCollection<ISlashCommand> commands)
+        public HelpCommand(IReadOnlyCollection<ISlashCommand> commands)
         {
             m_Commands = commands;
         }

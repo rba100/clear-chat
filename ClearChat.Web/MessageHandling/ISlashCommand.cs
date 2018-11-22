@@ -1,7 +1,6 @@
-﻿using ClearChat.Core;
-using ClearChat.Core.Domain;
+﻿using ClearChat.Core.Domain;
 
-namespace ClearChat.Web.SlashCommands
+namespace ClearChat.Web.MessageHandling
 {
     public interface ISlashCommand
     {
@@ -22,5 +21,10 @@ namespace ClearChat.Web.SlashCommands
         /// Short description of what the command does.
         /// </summary>
         string HelpText { get; }
+    }
+
+    public interface IMessageHandler
+    {
+        bool Handle(string message, ChatContext context);
     }
 }
