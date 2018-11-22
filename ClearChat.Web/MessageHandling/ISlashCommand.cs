@@ -15,16 +15,11 @@ namespace ClearChat.Web.MessageHandling
         /// <summary>
         /// A function which handles the invocation of the command.
         /// </summary>
-        void Handle(ChatContext context, string arguments);
+        void Handle(MessageContext context, string arguments);
 
         /// <summary>
         /// Short description of what the command does.
         /// </summary>
         string HelpText { get; }
-    }
-
-    public interface IMessageHandler
-    {
-        bool Handle(string message, ChatContext context);
     }
 }

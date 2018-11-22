@@ -22,18 +22,18 @@ namespace ClearChat.Web.Hubs
         private readonly IMessageRepository m_MessageRepository;
         private readonly IConnectionManager m_ConnectionManager;
         private readonly IUserRepository m_UserRepository;
-        private readonly ISlashCommandHandler m_SlashCommandHandler;
+        private readonly IMessageHandler m_MessageHandler;
         private readonly ChatMessageFactory m_ChatMessageFactory;
 
         public ChatHub(IMessageRepository messageRepository,
                        IConnectionManager connectionManager,
                        IUserRepository userRepository,
-                       ISlashCommandHandler slashCommandHandler)
+                       IMessageHandler messageHandler)
         {
             m_MessageRepository = messageRepository;
             m_ConnectionManager = connectionManager;
             m_UserRepository = userRepository;
-            m_SlashCommandHandler = slashCommandHandler;
+            m_MessageHandler = messageHandler;
             m_ChatMessageFactory = new ChatMessageFactory(userRepository);
         }
 
@@ -46,8 +46,9 @@ namespace ClearChat.Web.Hubs
                 return;
             }
 
-            var context = GetContext();
+            var context = GetContext(message);
 
+            // Commands not yet migrated
             if (message.StartsWith("/"))
             {
                 var command = message.Substring(1).Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
@@ -55,12 +56,12 @@ namespace ClearChat.Web.Hubs
                 {
                     case "reset":
                         GetHistory();
-                        break;
+                        return;
                     case "purge":
                         var channel = s_ConnectionChannels[Context.ConnectionId];
                         m_MessageRepository.ClearChannel(channel);
                         Clients.Group(channel).SendAsync("initHistory", new ChatMessage[0]);
-                        break;
+                        return;
                     case "whoishere":
                         Client[] clients;
                         lock (s_Clients)
@@ -76,42 +77,15 @@ namespace ClearChat.Web.Hubs
                         {
                             PublishSystemMessage(client.Name, MessageScope.Caller);
                         }
-                        break;
-                    default:
-                        m_SlashCommandHandler.Handle(context, message);
-                        break;
+                        return;
                 }
             }
-            else
-            {
-                var channel = s_ConnectionChannels[Context.ConnectionId];
-                var messageItem = m_ChatMessageFactory.Create(Context.User.Identity.Name,
-                                                          message,
-                                                          channel,
-                                                          DateTime.UtcNow);
-                m_MessageRepository.WriteMessage(messageItem);
-                Clients.Group(channel).SendAsync("newMessage", messageItem);
-
-                if (message.ToLower().Contains("spaz"))
-                {
-                    var msg = m_ChatMessageFactory.Create(
-                        "SjBot",
-                        $"I'm watching you, {Context.User.Identity.Name}!",
-                        channel,
-                        DateTime.UtcNow);
-                    Clients.Group(channel).SendAsync("newMessage", msg);
-                }
-            }
+            m_MessageHandler.Handle(context);
         }
 
         public void GetHistory()
         {
-            var channel = s_ConnectionChannels[Context.ConnectionId];
-            RefreshHistory(channel);
-        }
-
-        private void RefreshHistory(string channelName)
-        {
+            var channelName = s_ConnectionChannels[Context.ConnectionId];
             var messages = m_MessageRepository
                            .ChannelMessages(channelName)
                            .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
@@ -183,11 +157,11 @@ namespace ClearChat.Web.Hubs
             GetHistory();
         }
 
-        private ChatContext GetContext()
+        private MessageContext GetContext(string message)
         {
             var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
             var channel = s_ConnectionChannels[Context.ConnectionId];
-            return new ChatContext(user, channel, this);
+            return new MessageContext(message, user, channel, this, DateTime.UtcNow);
         }
     }
 
@@ -212,8 +186,8 @@ namespace ClearChat.Web.Hubs
 
         public int ConnectionCount => m_ConnectionIds.Count;
 
-        private readonly ConcurrentDictionary<string, object> m_ConnectionIds 
+        private readonly ConcurrentDictionary<string, object> m_ConnectionIds
             = new ConcurrentDictionary<string, object>();
-        
+
     }
 }

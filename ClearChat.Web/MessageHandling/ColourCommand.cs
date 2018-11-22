@@ -17,7 +17,7 @@ namespace ClearChat.Web.MessageHandling
 
         public string CommandText => "colour";
 
-        public void Handle(ChatContext context, string arguments)
+        public void Handle(MessageContext context, string arguments)
         {
             var colourStr = arguments.StartsWith("#") ? arguments.Substring(1) : arguments;
             if(arguments.Length != 6) context.MessageHub.PublishSystemMessage("Must be a six character hex string", MessageScope.Caller);

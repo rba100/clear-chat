@@ -17,7 +17,7 @@ namespace ClearChat.Web.MessageHandling
 
         public string CommandText => "channel";
 
-        public void Handle(ChatContext context, string arguments)
+        public void Handle(MessageContext context, string arguments)
         {
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())

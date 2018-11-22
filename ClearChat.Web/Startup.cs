@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 using ClearChat.Core.Crypto;
+using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
 using ClearChat.Web.Hubs;
@@ -34,14 +35,17 @@ namespace ClearChat.Web
             services.AddSignalR();
             services.AddSingleton<IColourGenerator, ColourGenerator>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(new SqlServerUserRepository(connString, hasher)));
-            services.AddTransient(s => new ISlashCommand[]
-            {
-                new ColourCommand(s.GetService<IUserRepository>(),s.GetService<IColourGenerator>()), 
-                new ChangeChannelCommand(s.GetService<IMessageRepository>())
-            });
             services.AddSingleton<IMessageRepository>(sp => msgRepo);
             services.AddSingleton<IConnectionManager, ConnectionManager>();
-            services.AddSingleton<ISlashCommandHandler, SlashCommandHandler>();
+            services.AddSingleton<IMessageHandler>(s=>new CompositeMessageHandler(new IMessageHandler[]
+            {
+                new SlashCommandMessageHandler(new ISlashCommand[]
+                {
+                    new ColourCommand(s.GetService<IUserRepository>(),s.GetService<IColourGenerator>()),
+                    new ChangeChannelCommand(s.GetService<IMessageRepository>())
+                }),
+                new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo)
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

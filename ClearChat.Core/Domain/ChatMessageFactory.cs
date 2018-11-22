@@ -6,7 +6,7 @@ namespace ClearChat.Core.Domain
     /// <summary>
     /// Generates instances of ChatMessage. Chooses the colour if the User doesn't have one set.
     /// </summary>
-    public class ChatMessageFactory
+    public class ChatMessageFactory : IChatMessageFactory
     {
         private readonly IColourGenerator m_ColourGenerator;
         private readonly IUserRepository m_UserRepository;

@@ -15,7 +15,7 @@ namespace ClearChat.Web.MessageHandling
             m_Commands = commands;
         }
 
-        public void Handle(ChatContext context, string arguments)
+        public void Handle(MessageContext context, string arguments)
         {
             context.MessageHub.PublishSystemMessage("Available commands:", MessageScope.Caller);
             foreach (var command in m_Commands)
