@@ -5,7 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Api\" />
+    <Compile Remove="Api\**" />
+    <Content Remove="Api\**" />
+    <EmbeddedResource Remove="Api\**" />
+    <None Remove="Api\**" />
   </ItemGroup>
 
   <ItemGroup>

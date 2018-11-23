@@ -86,7 +86,7 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public void UpdateUserDetails(User user)
+        public void UpdateUser(User user)
         {
             var userIdHashed = m_StringHasher.Hash(user.UserId, new byte[0]);
 

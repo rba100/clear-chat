@@ -10,7 +10,6 @@ namespace ClearChat.Core
         /// <summary>
         /// Publish a message.
         /// </summary>
-        /// <param name="message"></param>
         void Publish(ChatMessage message);
 
         /// <summary>

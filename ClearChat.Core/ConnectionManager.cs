@@ -6,9 +6,9 @@ namespace ClearChat.Core
 {
     public class ConnectionManager : IConnectionManager
     {
-        private readonly ConcurrentDictionary<string, List<string>> m_UserIdToConnection;
-        private readonly ConcurrentDictionary<string, string> m_ConnectionToUserId;
-        private readonly ConcurrentDictionary<string, string> m_ConnectionToChannel;
+        private readonly ConcurrentDictionary<string, List<string>> m_UserIdToConnection = new ConcurrentDictionary<string, List<string>>();
+        private readonly ConcurrentDictionary<string, string> m_ConnectionToUserId = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> m_ConnectionToChannel = new ConcurrentDictionary<string, string>();
 
         public void RegisterConnection(string connectionId, string userId, string channelName)
         {
@@ -24,7 +24,8 @@ namespace ClearChat.Core
             var userId = m_ConnectionToChannel[connectionId];
             m_ConnectionToUserId.TryRemove(connectionId, out string _);
             m_ConnectionToChannel.TryRemove(connectionId, out string _);
-            m_UserIdToConnection[userId].Remove(connectionId);
+            if(m_UserIdToConnection.ContainsKey(userId))
+                m_UserIdToConnection[userId].Remove(connectionId);
         }
 
         public string GetChannelForConnection(string connectionId)

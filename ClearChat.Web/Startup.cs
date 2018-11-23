@@ -9,10 +9,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 using ClearChat.Core.Crypto;
+using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
 using ClearChat.Web.Hubs;
 using ClearChat.Web.MessageHandling;
+using ClearChat.Web.MessageHandling.SlashCommands;
 
 namespace ClearChat.Web
 {
@@ -32,23 +34,20 @@ namespace ClearChat.Web
                     .AddBasic<BasicAuthenticationService>(o => o.Realm = "ClearChat");
 
             services.AddSignalR();
-            services.AddTransient<IMessageRepository>(sp => msgRepo);
-
-            var userRepo = new CachingUserRepository(new SqlServerUserRepository(connString,
-                                                                                 hasher));
-            services.AddSingleton<IUserRepository>(sp => userRepo);
-            services.AddSingleton<IConnectionManager>(sp => new ConnectionManager());
-
-            var commands = new ISlashCommand[]
+            services.AddSingleton<IColourGenerator, ColourGenerator>();
+            services.AddSingleton<IChatMessageFactory, ChatMessageFactory>();
+            services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(new SqlServerUserRepository(connString, hasher)));
+            services.AddSingleton<IMessageRepository>(sp => msgRepo);
+            services.AddSingleton<IConnectionManager, ConnectionManager>();
+            services.AddSingleton<IMessageHandler>(s=>new CompositeMessageHandler(new IMessageHandler[]
             {
-                new ColourCommand(userRepo, new ColourGenerator()),
-                new ChangeChannelCommand(msgRepo)
-            };
-
-            services.AddSingleton<ISlashCommandHandler>(new SlashCommandHandler(new[]
-            {
-                new HelpCommand(commands),
-            }.Concat(commands)));
+                new SlashCommandMessageHandler(new ISlashCommand[]
+                {
+                    new ColourCommand(s.GetService<IUserRepository>(),s.GetService<IColourGenerator>()),
+                    new ChangeChannelCommand(s.GetService<IMessageRepository>())
+                }),
+                new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo)
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
