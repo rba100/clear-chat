@@ -98,7 +98,9 @@ namespace ClearChat.Web.Hubs
 
         public void Typing()
         {
-            Debug.Write("typing");
+            var channel = s_ConnectionChannels[Context.ConnectionId];
+            m_MessageRepository.ClearChannel(channel);
+            Clients.Group(channel).SendAsync("isTyping", Context.User.Identity.Name);
         }
 
         public void GetClients()

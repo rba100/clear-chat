@@ -85,6 +85,12 @@
                 }
             });
 
+        connection.on("isTyping",
+            function(typerName) {
+                typingNotifier.text(typerName + " is typing...");
+            }
+        );
+
         connection.on("updateChannelName",
             function (name) {
                 var safeName = name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
