@@ -53,11 +53,12 @@
 
         var unreadMessages = 0;
         var focused = true;
+        var channelName = "default";
 
         window.onfocus = function () {
             focused = true;
             unreadMessages = 0;
-            window.document.title = "Clear Chat";
+            window.document.title = "Clear Chat - " + channelName;
         };
         window.onblur = function () {
             focused = false;
@@ -73,13 +74,15 @@
                 insertChatItem(chatItem);
                 if (!focused) {
                     unreadMessages++;
-                    window.document.title = "Clear Chat (" + unreadMessages + ")";
+                    window.document.title = "Clear Chat - " + channelName + " (" + unreadMessages + ")";
                 }
             });
 
         connection.on("updateChannelName",
-            function(name) {
-                channelNameLabel.html(name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"));
+            function (name) {
+                var safeName = name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                channelName = safeName;
+                channelNameLabel.html(safeName);
             });
 
         connection.on("initHistory",
