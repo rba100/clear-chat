@@ -58,11 +58,16 @@
         window.onfocus = function () {
             focused = true;
             unreadMessages = 0;
-            window.document.title = "Clear Chat - " + channelName;
+            SetWindowTitle();
         };
         window.onblur = function () {
             focused = false;
         };
+
+        function SetWindowTitle() {
+            if (focused || unreadMessages === 0) window.document.title = "Clear Chat - " + channelName;
+            else window.document.title = "Clear Chat - " + channelName + " (" + unreadMessages + ")";
+        }
 
         connection.onclose(function (error) {
             console.log("DEBUG: connection closed.");
@@ -74,7 +79,7 @@
                 insertChatItem(chatItem);
                 if (!focused) {
                     unreadMessages++;
-                    window.document.title = "Clear Chat - " + channelName + " (" + unreadMessages + ")";
+                    SetWindowTitle();
                 }
             });
 
@@ -83,6 +88,7 @@
                 var safeName = name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 channelName = safeName;
                 channelNameLabel.html(safeName);
+                SetWindowTitle();
             });
 
         connection.on("initHistory",
