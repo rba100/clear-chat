@@ -109,6 +109,7 @@ namespace ClearChat.Web.Hubs
             var name = Context.User.Identity.IsAuthenticated? Context.User.Identity.Name : null;
             s_ConnectionChannels[Context.ConnectionId] = "default";
             Groups.AddToGroupAsync(Context.ConnectionId, "default");
+            Clients.Caller.SendAsync("updateChannelName", "default");
 
             if (name != null)
             {
