@@ -9,6 +9,8 @@
     <script src="scripts/md5.js"></script>
     <script src="scripts/showdown.js"></script>
     <script src="scripts/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emojione@4.0.0/lib/js/emojione.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emojione@4.0.0/extras/css/emojione.min.css"/>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -121,7 +123,8 @@
 
         function insertChatItem(chatItem) {
             var safeMessage = chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            var processedMessage = converter.makeHtml(safeMessage);
+            var safeMessageWithEmoji = emojione.shortnameToImage(safeMessage);
+            var processedMessage = converter.makeHtml(safeMessageWithEmoji);
             var row = $('<div class="chat-item">' +
                 '<p>' +
                 processedMessage +
