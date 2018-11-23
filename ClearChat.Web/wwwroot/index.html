@@ -26,9 +26,10 @@
             <div id="history"></div>
         </div>
         <div id="input-container" class="row">
+            <div id="typing-notifier"></div>
             <div id="input-form">
                 <div class="col-xs-12">
-                    <input type="text" id="text-input" class="form-control" />
+                    <input type="text" id="text-input" class="form-control"/>
                 </div>
                 <div class="col-xs-1" style="display: none;">
                     <button class="btn btn-primary" id="send-button">Send</button>
@@ -42,6 +43,7 @@
         var chatHistory = $('#history');
         var outputContainer = $('#output-container');
         var channelNameLabel = $('#channel-name');
+        var typingNotifier = $('#typing-notifier');
         var converter = new showdown.Converter();
 
         var lastAuthor = "";
@@ -103,6 +105,7 @@
         connection.start().then(function () {
             $('#send-button').click(send);
             $('#text-input').keypress(function (e) {
+                sendKeypressHeartbeat();
                 if (e.which === 13) { // ENTER KEY
                     send();
                 }
@@ -124,6 +127,12 @@
                 console.log(error);
             });
             $('#text-input').val("");
+        }
+
+        function sendKeypressHeartbeat() {
+            connection.send("typing").catch(function(error) {
+                console.log(error);
+            });
         }
 
         function loadHistory() {

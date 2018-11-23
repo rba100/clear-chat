@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using ClearChat.Core;
@@ -93,6 +94,11 @@ namespace ClearChat.Web.Hubs
                            .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
                            .OrderBy(m => m.TimeStampUtc);
             Clients.Caller.SendAsync("initHistory", messages);
+        }
+
+        public void Typing()
+        {
+            Debug.Write("typing");
         }
 
         public void GetClients()
