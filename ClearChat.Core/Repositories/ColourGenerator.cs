@@ -12,7 +12,7 @@ namespace ClearChat.Core.Repositories
         public string GenerateFromString(string input)
         {
             if (input == "System") return "000000";
-            var random = new Random(input.GetHashCode());
+            var random = new Random(input.GetStableHashCode());
             return ColourFromHue(random.NextDouble());
         }
 

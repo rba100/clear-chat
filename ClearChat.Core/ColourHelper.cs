@@ -2,24 +2,24 @@
 
 namespace ClearChat.Core
 {
-    internal class ColourHelper
+    internal static class ColourHelper
     {
         // Convert an RGB value into an HLS value.
         public static (double hue, double saturation, double luminance) RgbToHls(int r, int g, int b)
         {
             // Convert RGB to a 0.0 to 1.0 range.
-            double double_r = r / 255.0;
-            double double_g = g / 255.0;
-            double double_b = b / 255.0;
+            double doubleR = r / 255.0;
+            double doubleG = g / 255.0;
+            double doubleB = b / 255.0;
 
             // Get the maximum and minimum RGB components.
-            double max = double_r;
-            if (max < double_g) max = double_g;
-            if (max < double_b) max = double_b;
+            double max = doubleR;
+            if (max < doubleG) max = doubleG;
+            if (max < doubleB) max = doubleB;
 
-            double min = double_r;
-            if (min > double_g) min = double_g;
-            if (min > double_b) min = double_b;
+            double min = doubleR;
+            if (min > doubleG) min = doubleG;
+            if (min > doubleB) min = doubleB;
 
             double diff = max - min;
             double luminance = (max + min) / 2;
@@ -34,13 +34,16 @@ namespace ClearChat.Core
                 if (luminance <= 0.5) saturation = diff / (max + min);
                 else saturation = diff / (2 - max - min);
 
-                double r_dist = (max - double_r) / diff;
-                double g_dist = (max - double_g) / diff;
-                double b_dist = (max - double_b) / diff;
+                double rDist = (max - doubleR) / diff;
+                double gDist = (max - doubleG) / diff;
+                double bDist = (max - doubleB) / diff;
 
-                if (double_r == max) hue = b_dist - g_dist;
-                else if (double_g == max) hue = 2 + r_dist - b_dist;
-                else hue = 4 + g_dist - r_dist;
+                // Exact match is OK, because max is defined by one of these values.
+                // ReSharper disable CompareOfFloatsByEqualityOperator
+                if (doubleR == max) hue = bDist - gDist;
+                else if (doubleG == max) hue = 2 + rDist - bDist;
+                // ReSharper restore CompareOfFloatsByEqualityOperator
+                else hue = 4 + gDist - rDist;
 
                 hue = hue * 60;
                 if (hue < 0) hue += 360;
@@ -57,24 +60,24 @@ namespace ClearChat.Core
             else p2 = l + s - l * s;
 
             double p1 = 2 * l - p2;
-            double double_r, double_g, double_b;
+            double doubleR, doubleG, doubleB;
             if (s == 0)
             {
-                double_r = l;
-                double_g = l;
-                double_b = l;
+                doubleR = l;
+                doubleG = l;
+                doubleB = l;
             }
             else
             {
-                double_r = QqhToRgb(p1, p2, h + 120);
-                double_g = QqhToRgb(p1, p2, h);
-                double_b = QqhToRgb(p1, p2, h - 120);
+                doubleR = QqhToRgb(p1, p2, h + 120);
+                doubleG = QqhToRgb(p1, p2, h);
+                doubleB = QqhToRgb(p1, p2, h - 120);
             }
 
             // Convert RGB to the 0 to 255 range.
-            var red = (int)(double_r * 255.0);
-            var green = (int)(double_g * 255.0);
-            var blue = (int)(double_b * 255.0);
+            var red = (int)(doubleR * 255.0);
+            var green = (int)(doubleG * 255.0);
+            var blue = (int)(doubleB * 255.0);
 
             return (red, green, blue);
         }
@@ -88,6 +91,28 @@ namespace ClearChat.Core
             if (hue < 180) return q2;
             if (hue < 240) return q1 + (q2 - q1) * (240 - hue) / 60;
             return q1;
+        }
+
+        /// <summary>
+        /// Get a random-looking number from a string.
+        /// </summary>
+        public static int GetStableHashCode(this string str)
+        {
+            unchecked
+            {
+                int hash1 = 5381;
+                int hash2 = hash1;
+
+                for (int i = 0; i < str.Length && str[i] != '\0'; i += 2)
+                {
+                    hash1 = ((hash1 << 5) + hash1) ^ str[i];
+                    if (i == str.Length - 1 || str[i + 1] == '\0')
+                        break;
+                    hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
+                }
+
+                return hash1 + hash2 * 1566083941;
+            }
         }
     }
 }
