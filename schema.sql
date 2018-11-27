@@ -19,8 +19,15 @@ CREATE TABLE [dbo].[Users]
 
 CREATE TABLE [dbo].[Channels]
 (
-    [channelId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	[channelNameHash] [VARBINARY](256) NOT NULL,
-	[passwordHash] [VARBINARY](256) NOT NULL,
+    [channelId] INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
+    [channelNameHash] [VARBINARY](256) NOT NULL,
+    [passwordHash] [VARBINARY](256) NOT NULL,
     [passwordSalt] [VARBINARY](256) NOT NULL
+);
+
+CREATE TABLE [dbo].[ChannelMembership]
+(
+    [id] INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
+    [userIdHash] [VARBINARY](256) NOT NULL,
+    [channelName] [VARBINARY](MAX) NOT NULL
 );

@@ -3,70 +3,56 @@
 <head>
     <meta charset="utf-8" />
     <title>Clear Chat</title>
-    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="deps/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="site.css">
-    <script src="scripts/jquery-3.3.1.js"></script>
-    <script src="scripts/md5.js"></script>
-    <script src="scripts/showdown.js"></script>
-    <script src="scripts/signalr.min.js"></script>
-    <script src="scripts/site.js"></script>
+    <script src="deps/jquery-3.3.1.js"></script>
+    <script src="deps/md5.js"></script>
+    <script src="deps/showdown.js"></script>
+    <script src="deps/signalr.min.js"></script>
+    <script src="site.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/emojione@4.0.0/lib/js/emojione.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emojione@4.0.0/extras/css/emojione.min.css" />
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-text">
-                <span id="channel-name">default</span>
+    <!-- PAGE LAYOUT -->
+
+    <div class="main-container">
+        <div class="nav-section" id="nav-section">
+            <div class="nav-section-header">
+                <a href="changeIdentity">change identity</a>
             </div>
-            <div class="navbar-text"><a class="nav navbar-nav" href="changeIdentity">change identity</a></div>
+            <div id="nav-section-channels" class="nav-section-header">
+                <p>Channels</p>
+            </div>
         </div>
-    </div>
-    <div class="container" id="main-content">
-        <div id="output-container" class="row">
-            <div id="history"></div>
-        </div>
-        <div id="input-container" class="row">
-            <div id="input-form">
-                <div class="col-xs-12">
-                    <input type="text" id="text-input" class="form-control" />
-                </div>
-                <div class="col-xs-1" style="display: none;">
-                    <button class="btn btn-primary" id="send-button">Send</button>
-                </div>
+        <div class="message-section">
+            <div class="message-section-content" id="message-container"></div>
+            <div class="input-area">
+                <input type="text" id="text-input">
             </div>
         </div>
     </div>
 
-    <script type="text/javascript">
-   
-    </script>
+    <!-- COMPONENT TEMPLATES -->
 
-    <template id="message-template">
+    <template id="tmpt-message">
         <div class="message">
-            <div class="message-gutter"><span>5:54 PM</span></div>
+            <div class="message-gutter"><span data-from="timeStamp"></span></div>
             <div class="message-content">
-                <div class="message-content-header"><b>Name</b></div>
-                <div class="message-content-body">Something said.</div>
+                <div class="message-content-header"><b data-from="author"></b></div>
+                <div class="message-content-body" data-from="body"></div>
             </div>
         </div>
     </template>
 
-    <template id="message-follow-up">
-        <div class="message">
-            <div class="message-gutter"><span class="hover-show">5:54 PM</span></div>
-            <div class="message-content">
-                <div class="message-content-body">Something said.</div>
-            </div>
+    <template id="tmpt-nav-section-header">
+        <div class="nav-section-header">
+            <p data-from="label"></p>
         </div>
     </template>
 
-    <template id="nav-section-header">
-        <div class="nav-section-header"><p>---</p></div>
-    </template>
-
-    <template id="nav-section-channel-link">
-        <div class="nav-section-channel-link"><a href="#" data-from="label">---</a></div>
+    <template id="tmpt-nav-section-link">
+        <div class="nav-section-channel-link"><a href="#" data-from="label"></a></div>
     </template>
 </body>
 </html>

@@ -9,5 +9,7 @@ namespace ClearChat.Core.Repositories
         void WriteMessage(ChatMessage message);
         void ClearChannel(string channelName);
         SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword);
+        void AddChannelMembership(string userId, string channelName);
+        IReadOnlyCollection<string> GetChannelMemberships(string userId);
     }
 }

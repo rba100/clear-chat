@@ -38,8 +38,9 @@ namespace ClearChat.Web.Hubs
             m_ChatMessageFactory = chatMessageFactory;
         }
 
-        public void Send(string message)
+        public void Send(SendEventBinding eventBinding)
         {
+            var message = eventBinding.Body;
             if (!Context.User.Identity.IsAuthenticated)
             {
                 Clients.Caller.SendAsync("newMessage",
@@ -174,6 +175,12 @@ namespace ClearChat.Web.Hubs
             var channel = s_ConnectionChannels[Context.ConnectionId];
             return new MessageContext(message, user, channel, this, DateTime.UtcNow);
         }
+    }
+
+    public class SendEventBinding
+    {
+        public string Channel { get; set; }
+        public string Body { get; set; }
     }
 
     internal class Client

@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security;
 using Microsoft.EntityFrameworkCore;
 
 using ClearChat.Core.Crypto;
@@ -130,6 +129,50 @@ namespace ClearChat.Core.Repositories
             }
         }
 
+        public void AddChannelMembership(string userId, string channelName)
+        {
+            var userIdHash = m_StringHasher.Hash(userId);
+
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var memberships = db.Memberships.Where(m => m.UserIdHash == userIdHash).ToArray();
+                if (memberships.Any(m => m_StringProtector.Unprotect(m.ChannelName) == channelName)) return;
+                var newMembership = new ChannelMembershipBinding
+                {
+                    ChannelName = m_StringProtector.Protect(channelName),
+                    UserIdHash = userIdHash
+                };
+                db.Memberships.Add(newMembership);
+                db.SaveChanges();
+            }
+        }
+
+        public void RemoveChannelMembership(string userId, string channelName)
+        {
+            var userIdHash = m_StringHasher.Hash(userId);
+
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var membership =
+                    db.Memberships.FirstOrDefault(m => m.UserIdHash == userIdHash &&
+                                                       m_StringProtector.Unprotect(m.ChannelName) == channelName);
+                if (membership == null) return;
+                db.Memberships.Remove(membership);
+                db.SaveChanges();
+            }
+        }
+
+        public IReadOnlyCollection<string> GetChannelMemberships(string userId)
+        {
+            var userIdHash = m_StringHasher.Hash(userId);
+
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var memberships = db.Memberships.Where(m => m.UserIdHash == userIdHash).ToArray();
+                return memberships.Select(m => m_StringProtector.Unprotect(m.ChannelName)).ToArray();
+            }
+        }
+
         class DatabaseContext : DbContext
         {
             public DatabaseContext(string connectionString)
@@ -142,6 +185,7 @@ namespace ClearChat.Core.Repositories
             // ReSharper disable UnusedMember.Local
             public DbSet<MessageBinding> Messages { get; set; }
             public DbSet<ChannelBinding> Channels { get; set; }
+            public DbSet<ChannelMembershipBinding> Memberships { get; set; }
             // ReSharper restore UnusedMember.Local
         }
     }

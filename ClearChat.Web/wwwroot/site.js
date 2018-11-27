@@ -93,7 +93,8 @@ $(function () {
         var message = $('#text-input').val();
         if (message === "") return;
         lastMessageSent = message;
-        connection.send("send", message).catch(function (error) {
+        var eventData = { Channel: model.selectedChannel, Body: message };
+        connection.send("send", eventData).catch(function (error) {
             console.log(error);
         });
         $('#text-input').val("");
@@ -138,7 +139,7 @@ $(function () {
 // parameters - an object like { labelText: 'field value' }
 //              template must have an element with 'data-from' attribute
 //              e.g. <p data-from="labelText"></p>
-function instantiateTemplate(template, parameters) {
+function instantiate(template, parameters) {
     if (typeof (template) === "string") template = $('#' + template);
     var newElement = $(template.html());
 
