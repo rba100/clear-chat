@@ -44,7 +44,7 @@ namespace ClearChat.Web
                 new SlashCommandMessageHandler(new ISlashCommand[]
                 {
                     new ColourCommand(s.GetService<IUserRepository>(),s.GetService<IColourGenerator>()),
-                    new ChangeChannelCommand(s.GetService<IMessageRepository>())
+                    new JoinChannelCommand(s.GetService<IMessageRepository>())
                 }),
                 new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo)
             }));

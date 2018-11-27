@@ -1,10 +1,10 @@
 ﻿/* global variable to hold page state */
 
 var model = {
-    selectedChannel: "#default",
-    channels: ["#default"],
+    selectedChannel: "default",
+    channels: ["default"],
     channelContentCache: {
-        "#default": { items: [], lastAuthor: "" }
+        "default": { items: [], lastAuthor: "" }
     }
 };
 
@@ -64,6 +64,16 @@ $(function () {
             setWindowTitle();
         });
 
+    connection.on("channelMembership",
+        function (names) {
+            model.channels = names;
+            for (var i = 0; i < names.length; i++) {
+                var channelName = names[i];
+                model.channelContentCache[channelName] = { items: [], lastAuthor: "" };
+            }
+            updateChannelNavList();
+        });
+
     connection.on("initHistory",
         function (historyItems) {
             chatHistory.empty();
@@ -102,6 +112,15 @@ $(function () {
 
     function loadHistory() {
         connection.send("getHistory");
+    }
+
+    function updateChannelNavList() {
+        var channelLinks = navSection.find(".nav-section-channel-link");
+
+        for (var i = 0; i < model.channels.length; i++) {
+            var channelName = model.channels[i];
+            
+        }
     }
 
     function insertChatItem(chatItem) {

@@ -13,7 +13,7 @@ namespace ClearChat.Core.Repositories
     public class SqlServerMessageRepository : IMessageRepository
     {
         private readonly string m_ConnectionString;
-        private IColourGenerator m_ColourGenerator = new ColourGenerator();
+        private readonly IColourGenerator m_ColourGenerator = new ColourGenerator();
 
         private readonly IStringProtector m_StringProtector;
         private readonly IStringHasher m_StringHasher;
@@ -118,12 +118,10 @@ namespace ClearChat.Core.Repositories
                     db.SaveChanges();
                     return SwitchChannelResult.Created;
                 }
-                else
+
+                if (!m_StringHasher.HashMatch(channelPassword, channel.PasswordHash, channel.PasswordSalt))
                 {
-                    if (!m_StringHasher.HashMatch(channelPassword, channel.PasswordHash, channel.PasswordSalt))
-                    {
-                        return SwitchChannelResult.Denied;
-                    }
+                    return SwitchChannelResult.Denied;
                 }
                 return SwitchChannelResult.Accepted;
             }
@@ -183,9 +181,11 @@ namespace ClearChat.Core.Repositories
             }
 
             // ReSharper disable UnusedMember.Local
+            // ReSharper disable UnusedAutoPropertyAccessor.Local
             public DbSet<MessageBinding> Messages { get; set; }
             public DbSet<ChannelBinding> Channels { get; set; }
             public DbSet<ChannelMembershipBinding> Memberships { get; set; }
+            // ReSharper restore UnusedAutoPropertyAccessor.Local
             // ReSharper restore UnusedMember.Local
         }
     }

@@ -96,20 +96,24 @@ namespace ClearChat.Web.Hubs
             Clients.Caller.SendAsync("initHistory", messages);
         }
 
-        public void GetClients()
+        public void GetChannels()
         {
-            lock (s_Clients)
+            if (!Context.User.Identity.IsAuthenticated)
             {
-                var items = s_Clients.ToArray();
-                Clients.Caller.SendAsync("initClients", items);
+                return;
             }
+
+            var userId = Context.User.Identity.Name;
+            var channelNames = new[] { "default" }.Concat(m_MessageRepository.GetChannelMemberships(userId));
+            Clients.Caller.SendAsync("channelMembership", channelNames);
         }
 
         public override Task OnConnectedAsync()
         {
-            var name = Context.User.Identity.IsAuthenticated? Context.User.Identity.Name : null;
+            var name = Context.User.Identity.IsAuthenticated ? Context.User.Identity.Name : null;
             s_ConnectionChannels[Context.ConnectionId] = "default";
             Groups.AddToGroupAsync(Context.ConnectionId, "default");
+            UpdateChannelMembership();
             Clients.Caller.SendAsync("updateChannelName", "default");
 
             if (name != null)
@@ -127,7 +131,7 @@ namespace ClearChat.Web.Hubs
                     client.AddConnection(Context.ConnectionId);
                 }
             }
-            
+
             return base.OnConnectedAsync();
         }
 
@@ -167,6 +171,16 @@ namespace ClearChat.Web.Hubs
             m_ConnectionManager.ChangeConnectionChannel(Context.ConnectionId, channel);
             Clients.Caller.SendAsync("updateChannelName", channel);
             GetHistory();
+        }
+
+        public void UpdateChannelMembership()
+        {
+            var channels = m_MessageRepository.GetChannelMemberships(Context.User.Identity.Name);
+            foreach (var channel in channels)
+            {
+                Groups.AddToGroupAsync(Context.ConnectionId, channel);
+            }
+            GetChannels();
         }
 
         private MessageContext GetContext(string message)
