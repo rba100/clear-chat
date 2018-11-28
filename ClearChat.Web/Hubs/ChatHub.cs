@@ -56,13 +56,10 @@ namespace ClearChat.Web.Hubs
                 var command = message.Substring(1).Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
                 switch (command)
                 {
-                    case "reset":
-                        GetHistory();
-                        return;
                     case "purge":
                         var channel = s_ConnectionChannels[Context.ConnectionId];
                         m_MessageRepository.ClearChannel(channel);
-                        Clients.Group(channel).SendAsync("initHistory", new ChatMessage[0]);
+                        Clients.Group(channel).SendAsync("initHistory", channel, new ChatMessage[0]);
                         return;
                     case "whoishere":
                         Client[] clients;
@@ -86,14 +83,18 @@ namespace ClearChat.Web.Hubs
             m_MessageHandler.Handle(context);
         }
 
-        public void GetHistory()
+        public void GetHistory(string channelName)
         {
-            var channelName = s_ConnectionChannels[Context.ConnectionId];
+            if (channelName != "default" &&
+                !m_MessageRepository.GetChannelMemberships(Context.User.Identity.Name).Contains(channelName))
+            {
+                return;
+            }
             var messages = m_MessageRepository
                            .ChannelMessages(channelName)
                            .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
                            .OrderBy(m => m.TimeStampUtc);
-            Clients.Caller.SendAsync("initHistory", messages);
+            Clients.Caller.SendAsync("initHistory", channelName, messages);
         }
 
         public void GetChannels()
@@ -105,16 +106,16 @@ namespace ClearChat.Web.Hubs
 
             var userId = Context.User.Identity.Name;
             var channelNames = new[] { "default" }.Concat(m_MessageRepository.GetChannelMemberships(userId));
+            foreach (var channelName in channelNames)
+            {
+                Groups.AddToGroupAsync(Context.ConnectionId, channelName);
+            }
             Clients.Caller.SendAsync("channelMembership", channelNames);
         }
 
         public override Task OnConnectedAsync()
         {
             var name = Context.User.Identity.IsAuthenticated ? Context.User.Identity.Name : null;
-            s_ConnectionChannels[Context.ConnectionId] = "default";
-            Groups.AddToGroupAsync(Context.ConnectionId, "default");
-            UpdateChannelMembership();
-            Clients.Caller.SendAsync("updateChannelName", "default");
 
             if (name != null)
             {
@@ -160,17 +161,6 @@ namespace ClearChat.Web.Hubs
                 Clients.All.SendAsync("newMessage", msg);
             else
                 Clients.Caller.SendAsync("newMessage", msg);
-        }
-
-        public void ChangeChannel(string channel)
-        {
-            var previousChannel = s_ConnectionChannels[Context.ConnectionId];
-            Groups.RemoveFromGroupAsync(Context.ConnectionId, previousChannel);
-            Groups.AddToGroupAsync(Context.ConnectionId, channel);
-            s_ConnectionChannels[Context.ConnectionId] = channel;
-            m_ConnectionManager.ChangeConnectionChannel(Context.ConnectionId, channel);
-            Clients.Caller.SendAsync("updateChannelName", channel);
-            GetHistory();
         }
 
         public void UpdateChannelMembership()

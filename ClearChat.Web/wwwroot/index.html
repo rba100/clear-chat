@@ -21,12 +21,15 @@
             <div class="nav-section-header">
                 <a href="changeIdentity">change identity</a>
             </div>
-            <div id="nav-section-channels" class="nav-section-header">
+            <div class="nav-section-header">
                 <p>Channels</p>
+            </div>
+            <div id="nav-section-channels">
+
             </div>
         </div>
         <div class="message-section">
-            <div class="message-section-content" id="message-container"></div>
+            <div class="message-section-content" id="message-container" data-template="tmpt-message"></div>
             <div class="input-area">
                 <input type="text" id="text-input">
             </div>
@@ -37,10 +40,10 @@
 
     <template id="tmpt-message">
         <div class="message">
-            <div class="message-gutter"><span data-from="timeStamp"></span></div>
+            <div class="message-gutter"><span data-from="timeStampUtc"></span></div>
             <div class="message-content">
-                <div class="message-content-header"><b data-from="author"></b></div>
-                <div class="message-content-body" data-from="body"></div>
+                <div class="message-content-header"><b data-from="userId"></b></div>
+                <div class="message-content-body" data-from="message"></div>
             </div>
         </div>
     </template>
@@ -52,7 +55,7 @@
     </template>
 
     <template id="tmpt-nav-section-link">
-        <div class="nav-section-channel-link"><a href="#" data-from="label"></a></div>
+        <div class="nav-section-channel-link"><a href="#" data-from="channelName"></a></div>
     </template>
 </body>
 </html>

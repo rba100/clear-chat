@@ -1,19 +1,20 @@
 ﻿/* global variable to hold page state */
 
 var model = {
-    selectedChannel: "default",
-    channels: ["default"],
+    selectedChannel: "",
+    channels: [""],
     channelContentCache: {
-        "default": { items: [], lastAuthor: "" }
     }
 };
 
 $(function () {
     var workspace = $('#workspace');
     var navSection = $('#nav-section');
+    var channelList = $('#nav-section-channels');
     var maxHistory = 400;
     var chatHistory = $('#history');
     var outputContainer = $('#output-container');
+    var messageContainer = $('#message-container');
     var channelNameLabel = $('#channel-name');
     var converter = new showdown.Converter();
 
@@ -49,38 +50,43 @@ $(function () {
 
     connection.on("newMessage",
         function (chatItem) {
-            insertChatItem(chatItem);
+            var cacheEntry = model.channelContentCache[channelName];
+            if (!cacheEntry) return;
+            cacheEntry.messages.push(chatItem);
+            if (model.selectedChannel === chatItem.ChannelName) {
+                appendSingleMessage(chatItem);
+            }
             if (!focused) {
                 unreadMessages++;
                 setWindowTitle();
             }
         });
 
-    connection.on("updateChannelName",
-        function (name) {
-            var safeName = name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            channelName = safeName;
-            channelNameLabel.html(safeName);
-            setWindowTitle();
-        });
-
     connection.on("channelMembership",
         function (names) {
+            if (model.selectedChannel === "") model.selectedChannel = names[0];
             model.channels = names;
+            channelList.html("");
             for (var i = 0; i < names.length; i++) {
                 var channelName = names[i];
-                model.channelContentCache[channelName] = { items: [], lastAuthor: "" };
+                var channelLink = instantiate('tmpt-nav-section-link', { channelName: channelName });
+                channelList.append(channelLink);
+                if (typeof (model.channelContentCache[channelName]) === "undefined") {
+                    model.channelContentCache[channelName] = { items: [], lastAuthor: "" };
+                    connection.send("getHistory", channelName).catch(function (error) {
+                        console.log(error);
+                    });
+                }
             }
-            updateChannelNavList();
         });
 
     connection.on("initHistory",
-        function (historyItems) {
-            chatHistory.empty();
-            lastAuthor = "";
-            for (var i = 0; i < historyItems.length; i++) {
-                insertChatItem(historyItems[i]);
-            }
+        function (channelName, historyItems) {
+            var cacheEntry = model.channelContentCache[channelName];
+            if (!cacheEntry) return;
+            model.channelContentCache[channelName].lastAuthor = "";
+            model.channelContentCache[channelName].messages = historyItems;
+            if (model.selectedChannel === channelName) dataRefresh(messageContainer, historyItems);
         });
 
     connection.start().then(function () {
@@ -96,7 +102,7 @@ $(function () {
             }
         });
         $('#text-input').focus();
-        loadHistory();
+        connection.send('GetChannels');
     });
 
     function send() {
@@ -110,41 +116,16 @@ $(function () {
         $('#text-input').val("");
     }
 
-    function loadHistory() {
-        connection.send("getHistory");
-    }
-
-    function updateChannelNavList() {
-        var channelLinks = navSection.find(".nav-section-channel-link");
-
-        for (var i = 0; i < model.channels.length; i++) {
-            var channelName = model.channels[i];
-            
+    function appendSingleMessage(chatItem) {
+        var sameAuthor = lastAuthor === chatItem.userId;
+        var messageElement = instantiate('tmpt-message', chatItem);
+        if (sameAuthor) {
+            messageElement.find("b").first().hide();
+        } else {
+            messageElement.find('b').css("color", '#' + chatItem.userIdColour);
         }
-    }
-
-    function insertChatItem(chatItem) {
-        var safeMessage = chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        var safeMessageWithEmoji = emojione.shortnameToImage(safeMessage);
-        var processedMessage = converter.makeHtml(safeMessageWithEmoji);
-        var row = $('<div class="chat-item">' +
-            '<p>' +
-            processedMessage +
-            '</p>' +
-            '</div>');
-        if (lastAuthor !== chatItem.userId) {
-            var nameElement = $('<span title="' +
-                chatItem.timeStampUtc +
-                '">' +
-                '<b>' +
-                chatItem.userId +
-                '</b></span><br class="hide-for-wide" />' +
-                '<span class="hide-for-small"> : </span>');
-            nameElement.find('b').css("color", '#' + chatItem.userIdColour);
-            row.prepend(nameElement);
-        }
+        messageContainer.append(messageElement);
         lastAuthor = chatItem.userId;
-        chatHistory.append(row);
         scrollToBottom();
     }
 
@@ -161,12 +142,50 @@ $(function () {
 function instantiate(template, parameters) {
     if (typeof (template) === "string") template = $('#' + template);
     var newElement = $(template.html());
+    if (typeof (parameters) !== "undefined")
+        dataRefresh(newElement, parameters);
+    return newElement;
+}
 
-    if (parameters && typeof (parameters) === "object") {
-        for (var property in parameters) {
+function dataRefresh(element, parameters) {
+    if (!parameters) return;
+    if (typeof (parameters) === "object") {
+        if (Array.isArray(parameters)) {
+            var dataTemplate = element.attr("data-template");
+            var container = element;
+            if (!dataTemplate) {
+                container = element.find("[data-template]");
+                dataTemplate = container.attr('data-template');
+            }
+            if (!dataTemplate) return;
+            container.html("");
+            for (var value in parameters) {
+                var itemElement = instantiate(dataTemplate, parameters[value]);
+                container.append(itemElement);
+            }
+            return;
+        } else for (var property in parameters) {
             var value = parameters[property];
-            newElement.find("[data-from='" + property + "']").text(value);
+            var target = element.find("[data-from='" + property + "']")
+                .addBack("[data-from='" + property + "']");
+            if (target.length) {
+                if (typeof (value) === "string")
+                    target.text(value);
+                else if (typeof (value) === "object") {
+                    dataRefresh(target, value);
+                }
+            }
+            var dataFieldTarget = element.find("[data-field='" + property + "']")
+                .addBack("[data-field='" + property + "']");
+            if (dataFieldTarget.length) {
+                dataFieldTarget.data(property, value);
+            }
         }
     }
-    return newElement;
+    else if (typeof (parameters) === "string") {
+        var targetElement = element.find('[data-from]').addBack('[data-from]');
+        if (!targetElement.length) return;
+        var textFrom = targetElement.attr('data-from');
+        if (textFrom === "") targetElement.text(parameters);
+    }
 }

@@ -21,7 +21,6 @@ namespace ClearChat.Core
         /// </remarks>
         void PublishSystemMessage(string message, MessageScope messageScope);
 
-        void ChangeChannel(string channel);
         void UpdateChannelMembership();
     }
 }
