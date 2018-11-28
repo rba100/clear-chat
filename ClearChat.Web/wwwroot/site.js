@@ -53,7 +53,7 @@ $(function () {
             var cacheEntry = model.channelContentCache[channelName];
             if (!cacheEntry) return;
             cacheEntry.messages.push(chatItem);
-            if (model.selectedChannel === chatItem.ChannelName) {
+            if (model.selectedChannel === chatItem.channelName) {
                 appendSingleMessage(chatItem);
             }
             if (!focused) {
@@ -86,7 +86,7 @@ $(function () {
             if (!cacheEntry) return;
             model.channelContentCache[channelName].lastAuthor = "";
             model.channelContentCache[channelName].messages = historyItems;
-            if (model.selectedChannel === channelName) dataRefresh(messageContainer, historyItems);
+            if (model.selectedChannel === channelName) dataRefresh(messageContainer, historyItems.map(processChatItem));
         });
 
     connection.start().then(function () {
@@ -105,6 +105,16 @@ $(function () {
         connection.send('GetChannels');
     });
 
+    function processChatItem(chatItem) {
+        return {
+            userId: chatItem.userId,
+            channelName: chatItem.channelName,
+            timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
+            message: chatItem.message,
+            userIdColour: '#' + chatItem.userIdColour
+        };
+    }
+
     function send() {
         var message = $('#text-input').val();
         if (message === "") return;
@@ -118,11 +128,11 @@ $(function () {
 
     function appendSingleMessage(chatItem) {
         var sameAuthor = lastAuthor === chatItem.userId;
-        var messageElement = instantiate('tmpt-message', chatItem);
+        var messageElement = instantiate('tmpt-message', processChatItem(chatItem));
         if (sameAuthor) {
             messageElement.find("b").first().hide();
         } else {
-            messageElement.find('b').css("color", '#' + chatItem.userIdColour);
+            messageElement.find('b').css("color", chatItem.userIdColour);
         }
         messageContainer.append(messageElement);
         lastAuthor = chatItem.userId;
@@ -164,21 +174,27 @@ function dataRefresh(element, parameters) {
                 container.append(itemElement);
             }
             return;
-        } else for (var property in parameters) {
-            var value = parameters[property];
-            var target = element.find("[data-from='" + property + "']")
-                .addBack("[data-from='" + property + "']");
+        } else for (var key in parameters) {
+            var dataValue = parameters[key];
+            var target = element.find("[data-from='" + key + "']")
+                .addBack("[data-from='" + key + "']");
             if (target.length) {
-                if (typeof (value) === "string")
-                    target.text(value);
-                else if (typeof (value) === "object") {
-                    dataRefresh(target, value);
+                if (typeof (dataValue) === "string")
+                    target.text(dataValue);
+                else if (typeof (dataValue) === "object") {
+                    dataRefresh(target, dataValue);
                 }
             }
-            var dataFieldTarget = element.find("[data-field='" + property + "']")
-                .addBack("[data-field='" + property + "']");
+            var dataFieldTarget = element.find("[data-field='" + key + "']")
+                .addBack("[data-field='" + key + "']");
             if (dataFieldTarget.length) {
-                dataFieldTarget.data(property, value);
+                dataFieldTarget.data(key, dataValue);
+            }
+            var styleTarget = element.find("[data-style$='" + key + "']");
+            if (styleTarget.length) {
+                var styleCommand = styleTarget.attr('data-style');
+                var cssField = styleCommand.slice(0, styleCommand.indexOf(':'));
+                styleTarget.css(cssField, dataValue);
             }
         }
     }

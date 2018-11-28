@@ -40,6 +40,7 @@ namespace ClearChat.Web.Hubs
 
         public void Send(SendEventBinding eventBinding)
         {
+            var channelName = eventBinding.Channel;
             var message = eventBinding.Body;
             if (!Context.User.Identity.IsAuthenticated)
             {
@@ -48,7 +49,7 @@ namespace ClearChat.Web.Hubs
                 return;
             }
 
-            var context = GetContext(message);
+            var context = GetContext(message, channelName);
 
             // Commands not yet migrated
             if (message.StartsWith("/"))
@@ -156,7 +157,7 @@ namespace ClearChat.Web.Hubs
 
         public void PublishSystemMessage(string message, MessageScope messageScope)
         {
-            var msg = m_ChatMessageFactory.Create("System", message, "", DateTime.UtcNow);
+            var msg = m_ChatMessageFactory.Create("System", message, "system", DateTime.UtcNow);
             if (messageScope == MessageScope.All)
                 Clients.All.SendAsync("newMessage", msg);
             else
@@ -173,11 +174,10 @@ namespace ClearChat.Web.Hubs
             GetChannels();
         }
 
-        private MessageContext GetContext(string message)
+        private MessageContext GetContext(string message, string channelName)
         {
             var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
-            var channel = s_ConnectionChannels[Context.ConnectionId];
-            return new MessageContext(message, user, channel, this, DateTime.UtcNow);
+            return new MessageContext(message, user, channelName, this, DateTime.UtcNow);
         }
     }
 

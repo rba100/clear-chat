@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="deps/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="site.css">
     <script src="deps/jquery-3.3.1.js"></script>
+    <script src="deps/dateformat.js"></script>
     <script src="deps/md5.js"></script>
     <script src="deps/showdown.js"></script>
     <script src="deps/signalr.min.js"></script>
@@ -42,7 +43,7 @@
         <div class="message">
             <div class="message-gutter"><span data-from="timeStampUtc"></span></div>
             <div class="message-content">
-                <div class="message-content-header"><b data-from="userId"></b></div>
+                <div class="message-content-header" data-style="color:userIdColour"><b data-from="userId"></b></div>
                 <div class="message-content-body" data-from="message"></div>
             </div>
         </div>
