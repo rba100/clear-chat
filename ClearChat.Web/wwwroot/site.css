@@ -70,14 +70,17 @@ html, body {
         color: var(--nav-fg-color);
     }
 
+.nav-section-channel-link-unread a {
+    font-weight: 700;
+    color: white;
+}
+
 .nav-section-channel-link-selected {
     background-color: var(--nav-bg-color--selected);
 }
-
     .nav-section-channel-link-selected a {
         color: var(--nav-fg-color--selected);
     }
-
     .nav-section-channel-link-selected:hover {
         background-color: var(--nav-bg-color--selected);
     }

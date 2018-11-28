@@ -25,24 +25,6 @@ $(function () {
         .withUrl("/chatHub")
         .build();
 
-    var unreadMessages = 0;
-    var focused = true;
-    var channelName = "default";
-
-    window.onfocus = function () {
-        focused = true;
-        unreadMessages = 0;
-        setWindowTitle();
-    };
-    window.onblur = function () {
-        focused = false;
-    };
-
-    function setWindowTitle() {
-        if (focused || unreadMessages === 0) window.document.title = "Clear Chat - " + channelName;
-        else window.document.title = "Clear Chat - " + channelName + " (" + unreadMessages + ")";
-    }
-
     connection.onclose(function (error) {
         console.log("DEBUG: connection closed.");
         if (error) console.log("DEBUG: " + error);
@@ -50,26 +32,30 @@ $(function () {
 
     connection.on("newMessage",
         function (chatItemRaw) {
-            var cacheEntry = model.channelContentCache[channelName];
-            if (!cacheEntry) return;
-            cacheEntry.messages.push(chatItemRaw);
-            if (model.selectedChannel === chatItemRaw.channelName) {
+            var cacheEntry = model.channelContentCache[chatItemRaw.channelName];
+            if (cacheEntry) cacheEntry.messages.push(chatItemRaw);
+            if (model.selectedChannel === chatItemRaw.channelName || chatItemRaw.channelName === "system") {
                 appendSingleMessage(chatItemRaw);
-            }
-            if (!focused) {
-                unreadMessages++;
-                setWindowTitle();
+            } else {
+                var channelLink = channelList.children(":eq(" + model.channels.indexOf(chatItemRaw.channelName) + ")");
+                channelLink.addClass('nav-section-channel-link-unread');
             }
         });
 
     connection.on("channelMembership",
         function (names) {
-            if (model.selectedChannel === "") model.selectedChannel = names[0];
+            if (model.selectedChannel === "") {
+                model.selectedChannel = names[0];
+            }
             model.channels = names;
             channelList.html("");
             for (var i = 0; i < names.length; i++) {
                 var channelName = names[i];
                 var channelLink = instantiate('tmpt-nav-section-link', { channelName: channelName });
+                if (channelName === model.selectedChannel)
+                    channelLink.addClass('nav-section-channel-link-selected');
+                channelLink.click(changeChannelHandler(channelName));
+
                 channelList.append(channelLink);
                 if (typeof (model.channelContentCache[channelName]) === "undefined") {
                     model.channelContentCache[channelName] = { items: [], lastAuthor: "" };
@@ -135,6 +121,22 @@ $(function () {
         messageContainer.append(messageElement);
         lastAuthor = chatItem.userId;
         scrollToBottom();
+    }
+
+    function changeChannelHandler(channelName) {
+        return function(e) {
+            var link = $(this);
+            channelList.children().removeClass('nav-section-channel-link-selected');
+            link.addClass('nav-section-channel-link-selected');
+            link.removeClass('nav-section-channel-link-unread');
+            model.selectedChannel = channelName;
+            var cacheEntry = model.channelContentCache[channelName];
+            model.channelContentCache[channelName].messages;
+            if (model.selectedChannel === channelName)
+                dataRefresh(
+                    messageContainer,
+                    cacheEntry.messages.map(toChatItemDataBinding));
+        };
     }
 
     function scrollToBottom() {
