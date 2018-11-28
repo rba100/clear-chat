@@ -130,6 +130,10 @@ html, body {
     display: inline;
 }
 
+.message-content p {
+    display: inline;
+}
+
 .message-gutter {
     float: left;
     text-align: right;

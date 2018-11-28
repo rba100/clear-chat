@@ -86,7 +86,7 @@ $(function () {
             if (!cacheEntry) return;
             model.channelContentCache[channelName].lastAuthor = "";
             model.channelContentCache[channelName].messages = historyItems;
-            if (model.selectedChannel === channelName) dataRefresh(messageContainer, historyItems.map(processChatItem));
+            if (model.selectedChannel === channelName) dataRefresh(messageContainer, historyItems.map(toChatItemDataBinding));
         });
 
     connection.start().then(function () {
@@ -105,12 +105,12 @@ $(function () {
         connection.send('GetChannels');
     });
 
-    function processChatItem(chatItem) {
+    function toChatItemDataBinding(chatItem) {
         return {
             userId: chatItem.userId,
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
-            message: chatItem.message,
+            message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
             css: { color: '#' + chatItem.userIdColour }
         };
     }
@@ -128,7 +128,7 @@ $(function () {
 
     function appendSingleMessage(chatItem) {
         var sameAuthor = lastAuthor === chatItem.userId;
-        var messageElement = instantiate('tmpt-message', processChatItem(chatItem));
+        var messageElement = instantiate('tmpt-message', toChatItemDataBinding(chatItem));
         if (sameAuthor) {
             messageElement.find("b").first().hide();
         }
@@ -178,7 +178,7 @@ function dataRefresh(element, parameters) {
                 .addBack("[data-from='" + key + "']");
             if (target.length) {
                 if (typeof (dataValue) === "string")
-                    target.text(dataValue);
+                    target.html(dataValue);
                 else if (typeof (dataValue) === "object") {
                     dataRefresh(target, dataValue);
                 }
@@ -200,6 +200,6 @@ function dataRefresh(element, parameters) {
         var targetElement = element.find('[data-from]').addBack('[data-from]');
         if (!targetElement.length) return;
         var textFrom = targetElement.attr('data-from');
-        if (textFrom === "") targetElement.text(parameters);
+        if (textFrom === "") targetElement.html(parameters);
     }
 }
