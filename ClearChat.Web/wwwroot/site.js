@@ -190,9 +190,9 @@ function dataRefresh(element, parameters) {
             if (dataFieldTarget.length) {
                 dataFieldTarget.data(key, dataValue);
             }
-            var styleTarget = element.find("[data-style$='" + key + "']");
+            var styleTarget = element.find("[data-css='" + key + "']");
             if (styleTarget.length) {
-                var styleCommand = styleTarget.attr('data-style');
+                var styleCommand = styleTarget.attr('data-css');
                 var cssField = styleCommand.slice(0, styleCommand.indexOf(':'));
                 styleTarget.css(cssField, dataValue);
             }
