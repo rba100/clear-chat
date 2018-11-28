@@ -49,12 +49,12 @@ $(function () {
     });
 
     connection.on("newMessage",
-        function (chatItem) {
+        function (chatItemRaw) {
             var cacheEntry = model.channelContentCache[channelName];
             if (!cacheEntry) return;
-            cacheEntry.messages.push(chatItem);
-            if (model.selectedChannel === chatItem.channelName) {
-                appendSingleMessage(chatItem);
+            cacheEntry.messages.push(chatItemRaw);
+            if (model.selectedChannel === chatItemRaw.channelName) {
+                appendSingleMessage(chatItemRaw);
             }
             if (!focused) {
                 unreadMessages++;
@@ -111,7 +111,7 @@ $(function () {
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
             message: chatItem.message,
-            userIdColour: '#' + chatItem.userIdColour
+            css: { color: '#' + chatItem.userIdColour }
         };
     }
 
@@ -131,8 +131,6 @@ $(function () {
         var messageElement = instantiate('tmpt-message', processChatItem(chatItem));
         if (sameAuthor) {
             messageElement.find("b").first().hide();
-        } else {
-            messageElement.find('b').css("color", chatItem.userIdColour);
         }
         messageContainer.append(messageElement);
         lastAuthor = chatItem.userId;
@@ -192,9 +190,9 @@ function dataRefresh(element, parameters) {
             }
             var styleTarget = element.find("[data-css='" + key + "']");
             if (styleTarget.length) {
-                var styleCommand = styleTarget.attr('data-css');
-                var cssField = styleCommand.slice(0, styleCommand.indexOf(':'));
-                styleTarget.css(cssField, dataValue);
+                for (var cssKey in dataValue) {
+                    styleTarget.css(cssKey, dataValue[cssKey]);
+                }
             }
         }
     }
