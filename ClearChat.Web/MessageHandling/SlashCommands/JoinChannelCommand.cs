@@ -37,6 +37,13 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
+            if (channelName.Length > 20)
+            {
+                context.MessageHub.PublishSystemMessage("Error: channel names should be 20 characters or fewer.",
+                                                        MessageScope.Caller);
+                return;
+            }
+
             var channels = m_MessageRepository.GetChannelMembershipsForUser(userId);
             if (channels.Contains(channelName))
             {
