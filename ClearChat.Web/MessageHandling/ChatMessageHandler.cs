@@ -10,12 +10,15 @@ namespace ClearChat.Web.MessageHandling
     {
         private readonly IChatMessageFactory m_ChatMessageFactory;
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IChatHubController m_ChatHubController;
 
         public ChatMessageHandler(IChatMessageFactory chatMessageFactory, 
-                                  IMessageRepository messageRepository)
+                                  IMessageRepository messageRepository,
+                                  IChatHubController chatHubController)
         {
             m_ChatMessageFactory = chatMessageFactory;
             m_MessageRepository = messageRepository;
+            m_ChatHubController = chatHubController;
         }
 
         public bool Handle(MessageContext context)
