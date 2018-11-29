@@ -63,6 +63,7 @@ namespace ClearChat.Core.Repositories
 
         public void RemoveChannelMembership(string userId, string channelName)
         {
+            if (channelName == "default") return;
             var userIdHash = m_StringHasher.Hash(userId);
             if (m_ChannelToUserHashCache.ContainsKey(channelName))
             {

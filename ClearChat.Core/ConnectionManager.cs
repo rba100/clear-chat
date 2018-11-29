@@ -36,5 +36,10 @@ namespace ClearChat.Core
         {
             return m_ConnectionToUserId.Select(kvp => kvp.Value).Distinct().ToArray();
         }
+
+        public string GetUserIdForConnection(string connectionId)
+        {
+            return m_ConnectionToUserId[connectionId];
+        }
     }
 }

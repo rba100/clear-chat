@@ -1,4 +1,5 @@
-﻿using ClearChat.Core.Domain;
+﻿using System.Collections.Generic;
+using ClearChat.Core.Domain;
 
 namespace ClearChat.Core
 {
@@ -20,8 +21,11 @@ namespace ClearChat.Core
         /// the original worker thread handling an inbound request.
         /// </remarks>
         void PublishSystemMessage(string connectionId, string message);
-        void ForceInitHistory(string connectionId, string channelName);
+
         void UpdateChannelMembership(string connectionId);
         void RemoveChannelMembership(string connectionId, string channelName);
+        void SendChannelHistory(string connectionId, string channelName);
+        void SendChannelList(string connectionId);
+        void PublishUserDetails(string connectionId, IReadOnlyCollection<User> users);
     }
 }

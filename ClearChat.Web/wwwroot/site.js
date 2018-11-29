@@ -4,7 +4,8 @@ var model = {
     selectedChannel: "",
     channels: [""],
     channelContentCache: {
-    }
+    },
+    userIdToColour: {}
 };
 
 $(function () {
@@ -64,7 +65,14 @@ $(function () {
             }
         });
 
-    connection.on("initHistory",
+    connection.on("userDetails",
+        function(users) {
+            for(var user in users) {
+                model.userIdToColour[user.userId] = user.hexColour;
+            }
+        });
+
+    connection.on("channelHistory",
         function (channelName, historyItems) {
             var cacheEntry = model.channelContentCache[channelName];
             if (!cacheEntry) return;
@@ -95,7 +103,7 @@ $(function () {
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
             message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
-            userIdcss: { color: '#' + chatItem.userIdColour }
+            userIdcss: { color: '#' + model.userIdToColour[chatItem.userId] }
         };
     }
 

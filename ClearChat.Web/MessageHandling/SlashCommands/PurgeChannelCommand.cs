@@ -51,7 +51,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             var affectedConnections = affectedUsers.SelectMany(u => m_ConnectionManager.GetConnectionsForUser(u.Value));
             foreach (var connection in affectedConnections)
             {
-                context.MessageHub.ForceInitHistory(connection, channelName);
+                context.MessageHub.SendChannelHistory(connection, channelName);
             }
         }
 

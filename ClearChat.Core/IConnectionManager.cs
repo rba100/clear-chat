@@ -8,5 +8,6 @@ namespace ClearChat.Core
         void RegisterDisconnection(string connectionId);
         IReadOnlyCollection<string> GetConnectionsForUser(string userId);
         IReadOnlyCollection<string> GetUsers();
+        string GetUserIdForConnection(string connectionId);
     }
 }

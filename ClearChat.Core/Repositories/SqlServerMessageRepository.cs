@@ -57,7 +57,6 @@ namespace ClearChat.Core.Repositories
             return new ChatMessage(m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId)),
                                    channelName,
                                    m_StringProtector.Unprotect(arg.Message),
-                                   m_ColourGenerator.GenerateFromString(userId),
                                    DateTime.SpecifyKind(arg.TimeStampUtc, DateTimeKind.Utc));
         }
 
@@ -167,7 +166,8 @@ namespace ClearChat.Core.Repositories
             using (var db = new DatabaseContext(m_ConnectionString))
             {
                 var memberships = db.Memberships.Where(m => m.UserIdHash == userIdHash).ToArray();
-                return memberships.Select(m => m_StringProtector.Unprotect(m.ChannelName)).ToArray();
+                return new[] { "default" }.Concat(memberships.Select(m => m_StringProtector.Unprotect(m.ChannelName)))
+                                          .ToArray();
             }
         }
 
