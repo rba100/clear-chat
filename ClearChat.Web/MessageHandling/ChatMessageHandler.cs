@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using ClearChat.Core;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
 
@@ -18,11 +20,18 @@ namespace ClearChat.Web.MessageHandling
 
         public bool Handle(MessageContext context)
         {
+            if (!m_MessageRepository.GetChannelMembershipsForUser(context.User.UserId).Contains(context.ChannelName))
+            {
+
+                context.MessageHub.PublishSystemMessage($"Error: you are not in channel {context.ChannelName}.",
+                                                        MessageScope.Caller);
+                return true;
+            }
             var chatMessage = m_ChatMessageFactory.Create(context.User.UserId,
                                                           context.Message, 
-                                                          context.CurrentChannel,
+                                                          context.ChannelName,
                                                           DateTime.UtcNow);
-
+            
             m_MessageRepository.WriteMessage(chatMessage);
             context.MessageHub.Publish(chatMessage);
 

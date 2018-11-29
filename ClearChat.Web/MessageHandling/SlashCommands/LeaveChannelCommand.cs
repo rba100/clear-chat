@@ -42,9 +42,9 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             var connectionIds = m_ConnectionManager.GetConnectionsForUser(userId);
             foreach (var connection in connectionIds)
             {
-                context.MessageHub.ForceInitHistory(connection, channelName);
+                context.MessageHub.RemoveChannelMembership(connection, channelName);
+                context.MessageHub.UpdateChannelMembership(connection);
             }
-            context.MessageHub.UpdateChannelMembership();
         }
 
         public string HelpText => "Leave a channel with: /leave channelName";

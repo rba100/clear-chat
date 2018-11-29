@@ -9,10 +9,13 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
     class JoinChannelCommand : ISlashCommand
     {
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IConnectionManager m_ConnectionManager;
 
-        public JoinChannelCommand(IMessageRepository messageRepository)
+        public JoinChannelCommand(IMessageRepository messageRepository,
+                                  IConnectionManager connectionManager)
         {
             m_MessageRepository = messageRepository;
+            m_ConnectionManager = connectionManager;
         }
 
         public string CommandText => "join";
@@ -54,6 +57,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
             var password = parts.Length > 1 ? parts[1] : string.Empty;
             var channelResult = m_MessageRepository.GetOrCreateChannel(channelName, password);
+            var connectionIds = m_ConnectionManager.GetConnectionsForUser(userId);
             switch (channelResult)
             {
                 case SwitchChannelResult.Denied:
@@ -62,13 +66,13 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                     break;
                 case SwitchChannelResult.Created:
                     m_MessageRepository.AddChannelMembership(userId, channelName);
-                    context.MessageHub.UpdateChannelMembership();
+                    foreach(var connectionId in connectionIds) context.MessageHub.UpdateChannelMembership(connectionId);
                     context.MessageHub.PublishSystemMessage($"You created channel '{channelName}'",
                                                             MessageScope.Caller);
                     break;
                 case SwitchChannelResult.Accepted:
                     m_MessageRepository.AddChannelMembership(userId, channelName);
-                    context.MessageHub.UpdateChannelMembership();
+                    foreach (var connectionId in connectionIds) context.MessageHub.UpdateChannelMembership(connectionId);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

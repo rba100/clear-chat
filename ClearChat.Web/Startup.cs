@@ -1,8 +1,5 @@
 ﻿
 using System;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using ClearChat.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,30 +23,30 @@ namespace ClearChat.Web
         {
             var connString = Environment.GetEnvironmentVariable("ClearChat", EnvironmentVariableTarget.Machine);
             var hasher = new Sha256StringHasher();
-            var msgRepo = new SqlServerMessageRepository(connString,
+            var msgRepo = new CachingMessageRepository(new SqlServerMessageRepository(connString,
                                                          new AesStringProtector(new byte[32]),
-                                                         hasher);
-
-            services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme)
-                    .AddBasic<BasicAuthenticationService>(o => o.Realm = "ClearChat");
+                                                         hasher), hasher);
 
             services.AddSignalR();
+            services.AddSingleton<IMessageRepository>(sp => msgRepo);
             services.AddSingleton<IColourGenerator, ColourGenerator>();
             services.AddSingleton<IChatMessageFactory, ChatMessageFactory>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(new SqlServerUserRepository(connString, hasher)));
-            services.AddSingleton<IMessageRepository>(sp => msgRepo);
             services.AddSingleton<IConnectionManager, ConnectionManager>();
             services.AddSingleton<IMessageHandler>(s=>new CompositeMessageHandler(new IMessageHandler[]
             {
                 new SlashCommandMessageHandler(new ISlashCommand[]
                 {
                     new ColourCommand(s.GetService<IUserRepository>(),s.GetService<IColourGenerator>()),
-                    new JoinChannelCommand(s.GetService<IMessageRepository>()),
+                    new JoinChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
                     new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher),
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>())
                 }),
                 new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo)
             }));
+            
+            services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme)
+                    .AddBasic<BasicAuthenticationService>(o => o.Realm = "ClearChat");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

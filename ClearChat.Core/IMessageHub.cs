@@ -20,8 +20,8 @@ namespace ClearChat.Core
         /// the original worker thread handling an inbound request.
         /// </remarks>
         void PublishSystemMessage(string message, MessageScope messageScope);
-
-        void UpdateChannelMembership();
         void ForceInitHistory(string connectionId, string channelName);
+        void UpdateChannelMembership(string connectionId);
+        void RemoveChannelMembership(string connectionId, string channelName);
     }
 }

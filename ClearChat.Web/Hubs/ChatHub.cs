@@ -156,14 +156,21 @@ namespace ClearChat.Web.Hubs
                 Clients.Caller.SendAsync("newMessage", msg);
         }
 
-        public void UpdateChannelMembership()
+        public void UpdateChannelMembership(string connectionId)
         {
-            var channels = m_MessageRepository.GetChannelMembershipsForUser(Context.User.Identity.Name);
-            foreach (var channel in channels)
+            var userId = Context.User.Identity.Name;
+            var channels = m_MessageRepository.GetChannelMembershipsForUser(userId);
+            var channelsAndDefault = new[] { "default" }.Concat(channels).ToArray();
+            foreach (var channelName in channelsAndDefault)
             {
-                Groups.AddToGroupAsync(Context.ConnectionId, channel);
+                Groups.AddToGroupAsync(Context.ConnectionId, channelName);
             }
-            GetChannels();
+            Clients.Client(connectionId).SendAsync("channelMembership", channelsAndDefault);
+        }
+
+        public void RemoveChannelMembership(string connectionId, string channelName)
+        {
+            Groups.RemoveFromGroupAsync(connectionId, channelName);
         }
 
         public void ForceInitHistory(string connectionId, string channelName)
