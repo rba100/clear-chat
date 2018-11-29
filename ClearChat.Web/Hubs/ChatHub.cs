@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace ClearChat.Web.Hubs
 {
-    public class ChatHub : Hub, IMessageHub
+    public class ChatHub : Hub
     {
         private static readonly List<Client> s_Clients = new List<Client>();
 
@@ -22,18 +22,21 @@ namespace ClearChat.Web.Hubs
         private readonly IUserRepository m_UserRepository;
         private readonly IMessageHandler m_MessageHandler;
         private readonly IChatMessageFactory m_ChatMessageFactory;
+        private readonly IMessageHub m_MessageHub;
 
         public ChatHub(IMessageRepository messageRepository,
                        IConnectionManager connectionManager,
                        IUserRepository userRepository,
                        IMessageHandler messageHandler,
-                       IChatMessageFactory chatMessageFactory)
+                       IChatMessageFactory chatMessageFactory, 
+                       IMessageHub messageHub)
         {
             m_MessageRepository = messageRepository;
             m_ConnectionManager = connectionManager;
             m_UserRepository = userRepository;
             m_MessageHandler = messageHandler;
             m_ChatMessageFactory = chatMessageFactory;
+            m_MessageHub = messageHub;
         }
 
         public void Send(SendEventBinding eventBinding)
@@ -62,13 +65,13 @@ namespace ClearChat.Web.Hubs
                             clients = s_Clients.Where(c => c.ConnectionCount > 0).ToArray();
                         }
                         var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
-                        PublishSystemMessage(Context.ConnectionId, msg);
+                        m_MessageHub.PublishSystemMessage(Context.ConnectionId, msg);
                         var sysMessage = m_ChatMessageFactory.Create("System", msg, "", DateTime.UtcNow);
                         Clients.Caller.SendAsync("newMessage", sysMessage);
 
                         foreach (var client in clients)
                         {
-                            PublishSystemMessage(Context.ConnectionId, client.Name);
+                            m_MessageHub.PublishSystemMessage(Context.ConnectionId, client.Name);
                         }
                         return;
                 }
@@ -147,12 +150,6 @@ namespace ClearChat.Web.Hubs
             Clients.Group(message.ChannelName).SendAsync("newMessage", message);
         }
 
-        public void PublishSystemMessage(string connectionId, string message)
-        {
-            var msg = m_ChatMessageFactory.Create("System", message, "system", DateTime.UtcNow);
-            Clients.Client(connectionId).SendAsync("newMessage", msg);
-        }
-
         public void UpdateChannelMembership(string connectionId)
         {
             var userId = Context.User.Identity.Name;
@@ -182,7 +179,7 @@ namespace ClearChat.Web.Hubs
         private MessageContext GetContext(string message, string channelName)
         {
             var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
-            return new MessageContext(message, user, Context.ConnectionId, channelName, this, DateTime.UtcNow);
+            return new MessageContext(message, user, Context.ConnectionId, channelName, m_MessageHub, DateTime.UtcNow);
         }
     }
 

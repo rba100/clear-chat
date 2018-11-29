@@ -46,6 +46,8 @@ namespace ClearChat.Web
                 }),
                 new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo,s.GetService<IChatContext>())
             }));
+
+            services.AddSingleton<IMessageHub, ChatController>();
             
             services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme)
                     .AddBasic<BasicAuthenticationService>(o => o.Realm = "ClearChat");
