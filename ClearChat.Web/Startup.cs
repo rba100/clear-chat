@@ -29,7 +29,7 @@ namespace ClearChat.Web
                                                          hasher), hasher);
 
             services.AddSignalR();
-            services.AddSingleton<IChatHubController>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
+            services.AddSingleton<IChatContext>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
             services.AddSingleton<IMessageRepository>(sp => msgRepo);
             services.AddSingleton<IColourGenerator, ColourGenerator>();
             services.AddSingleton<IChatMessageFactory, ChatMessageFactory>();
@@ -44,7 +44,7 @@ namespace ClearChat.Web
                     new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher),
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>())
                 }),
-                new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo,s.GetService<IChatHubController>())
+                new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo,s.GetService<IChatContext>())
             }));
             
             services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme)

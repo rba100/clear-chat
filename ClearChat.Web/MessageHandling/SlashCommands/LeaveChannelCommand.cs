@@ -25,8 +25,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())
             {
-                context.MessageHub.PublishSystemMessage("Error: correct usage is /leave channelName",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: correct usage is /leave channelName");
                 return;
             }
 

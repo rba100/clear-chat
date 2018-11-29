@@ -30,8 +30,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())
             {
-                context.MessageHub.PublishSystemMessage("Error: correct usage is /purge channelName",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: correct usage is /purge channelName");
                 return;
             }
 
@@ -40,8 +39,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             var channels = m_MessageRepository.GetChannelMembershipsForUser(userId);
             if (!channels.Contains(channelName))
             {
-                context.MessageHub.PublishSystemMessage("Error: you are not a member of that channel.",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: you are not a member of that channel.");
                 return;
             }
 

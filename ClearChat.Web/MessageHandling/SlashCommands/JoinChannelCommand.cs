@@ -26,8 +26,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())
             {
-                context.MessageHub.PublishSystemMessage("Error: correct usage is /join channelName channelPassword",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: correct usage is /join channelName channelPassword");
                 return;
             }
 
@@ -35,23 +34,20 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
             if (channelName.StartsWith("@"))
             {
-                context.MessageHub.PublishSystemMessage("Error: channel names cannot start with '@'. This is a reserved character for direct messages.",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: channel names cannot start with '@'. This is a reserved character for direct messages.");
                 return;
             }
 
             if (channelName.Length > 20)
             {
-                context.MessageHub.PublishSystemMessage("Error: channel names should be 20 characters or fewer.",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: channel names should be 20 characters or fewer.");
                 return;
             }
 
             var channels = m_MessageRepository.GetChannelMembershipsForUser(userId);
             if (channels.Contains(channelName))
             {
-                context.MessageHub.PublishSystemMessage("Error: you are already a member of that channel.",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: you are already a member of that channel.");
                 return;
             }
 
@@ -61,14 +57,12 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             switch (channelResult)
             {
                 case SwitchChannelResult.Denied:
-                    context.MessageHub.PublishSystemMessage("Error: wrong password channel",
-                                                            MessageScope.Caller);
+                    context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: wrong password channel");
                     break;
                 case SwitchChannelResult.Created:
                     m_MessageRepository.AddChannelMembership(userId, channelName);
                     foreach(var connectionId in connectionIds) context.MessageHub.UpdateChannelMembership(connectionId);
-                    context.MessageHub.PublishSystemMessage($"You created channel '{channelName}'",
-                                                            MessageScope.Caller);
+                    context.MessageHub.PublishSystemMessage(context.ConnectionId, $"You created channel '{channelName}'");
                     break;
                 case SwitchChannelResult.Accepted:
                     m_MessageRepository.AddChannelMembership(userId, channelName);

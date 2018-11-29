@@ -10,15 +10,15 @@ namespace ClearChat.Web.MessageHandling
     {
         private readonly IChatMessageFactory m_ChatMessageFactory;
         private readonly IMessageRepository m_MessageRepository;
-        private readonly IChatHubController m_ChatHubController;
+        private readonly IChatContext m_ChatContext;
 
         public ChatMessageHandler(IChatMessageFactory chatMessageFactory, 
                                   IMessageRepository messageRepository,
-                                  IChatHubController chatHubController)
+                                  IChatContext chatContext)
         {
             m_ChatMessageFactory = chatMessageFactory;
             m_MessageRepository = messageRepository;
-            m_ChatHubController = chatHubController;
+            m_ChatContext = chatContext;
         }
 
         public bool Handle(MessageContext context)
@@ -26,8 +26,8 @@ namespace ClearChat.Web.MessageHandling
             if (!m_MessageRepository.GetChannelMembershipsForUser(context.User.UserId).Contains(context.ChannelName))
             {
 
-                context.MessageHub.PublishSystemMessage($"Error: you are not in channel {context.ChannelName}.",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId,
+                                                        $"Error: you are not in channel {context.ChannelName}.");
                 return true;
             }
             var chatMessage = m_ChatMessageFactory.Create(context.User.UserId,

@@ -33,16 +33,15 @@ namespace ClearChat.Web.MessageHandling
             }
             else if (command == "help")
             {
-                context.MessageHub.PublishSystemMessage("Available commands:", MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Available commands:");
                 foreach (var c in m_Commands.Values)
                 {
-                    context.MessageHub.PublishSystemMessage($"/{c.CommandText} — {c.HelpText}", MessageScope.Caller);
+                    context.MessageHub.PublishSystemMessage(context.ConnectionId, $"/{c.CommandText} — {c.HelpText}");
                 }
             }
             else
             {
-                context.MessageHub.PublishSystemMessage($"Command '{command}' not recognised.",
-                                                        MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, $"Command '{command}' not recognised.");
             }
 
             return true;

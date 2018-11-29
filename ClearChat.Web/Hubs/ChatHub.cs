@@ -62,13 +62,13 @@ namespace ClearChat.Web.Hubs
                             clients = s_Clients.Where(c => c.ConnectionCount > 0).ToArray();
                         }
                         var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
-                        PublishSystemMessage(msg, MessageScope.Caller);
+                        PublishSystemMessage(Context.ConnectionId, msg);
                         var sysMessage = m_ChatMessageFactory.Create("System", msg, "", DateTime.UtcNow);
                         Clients.Caller.SendAsync("newMessage", sysMessage);
 
                         foreach (var client in clients)
                         {
-                            PublishSystemMessage(client.Name, MessageScope.Caller);
+                            PublishSystemMessage(Context.ConnectionId, client.Name);
                         }
                         return;
                 }
@@ -147,13 +147,10 @@ namespace ClearChat.Web.Hubs
             Clients.Group(message.ChannelName).SendAsync("newMessage", message);
         }
 
-        public void PublishSystemMessage(string message, MessageScope messageScope)
+        public void PublishSystemMessage(string connectionId, string message)
         {
             var msg = m_ChatMessageFactory.Create("System", message, "system", DateTime.UtcNow);
-            if (messageScope == MessageScope.All)
-                Clients.All.SendAsync("newMessage", msg);
-            else
-                Clients.Caller.SendAsync("newMessage", msg);
+            Clients.Client(connectionId).SendAsync("newMessage", msg);
         }
 
         public void UpdateChannelMembership(string connectionId)
@@ -185,7 +182,7 @@ namespace ClearChat.Web.Hubs
         private MessageContext GetContext(string message, string channelName)
         {
             var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
-            return new MessageContext(message, user, channelName, this, DateTime.UtcNow);
+            return new MessageContext(message, user, Context.ConnectionId, channelName, this, DateTime.UtcNow);
         }
     }
 

@@ -20,11 +20,11 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
         public void Handle(MessageContext context, string arguments)
         {
             var colourStr = arguments.StartsWith("#") ? arguments.Substring(1) : arguments;
-            if(arguments.Length != 6) context.MessageHub.PublishSystemMessage("Must be a six character hex string", MessageScope.Caller);
+            if(arguments.Length != 6) context.MessageHub.PublishSystemMessage(context.ConnectionId, "Must be a six character hex string");
 
             if(!m_ColourGenerator.ValidColour(colourStr, out string errorMessage))
             {
-                context.MessageHub.PublishSystemMessage(errorMessage, MessageScope.Caller);
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, errorMessage);
                 return;
             }
 
