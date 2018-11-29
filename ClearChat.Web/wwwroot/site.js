@@ -104,8 +104,14 @@ $(function () {
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
             message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
-            userIdcss: { color: '#' + model.userIdToColour[chatItem.userId] }
+            userIdcss: { color: '#' + toColour(chatItem.userId) }
         };
+    }
+
+    function toColour(userId) {
+        var knownColour = model.userIdToColour[userId];
+        if (typeof (knownColour) === "undefined") return "000000";
+        return knownColour;
     }
 
     function send() {
