@@ -57,11 +57,6 @@ namespace ClearChat.Web.Hubs
                 var command = message.Substring(1).Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
                 switch (command)
                 {
-                    case "purge":
-                        var channel = s_ConnectionChannels[Context.ConnectionId];
-                        m_MessageRepository.ClearChannel(channel);
-                        Clients.Group(channel).SendAsync("initHistory", channel, new ChatMessage[0]);
-                        return;
                     case "whoishere":
                         Client[] clients;
                         lock (s_Clients)
@@ -172,6 +167,15 @@ namespace ClearChat.Web.Hubs
                 Groups.AddToGroupAsync(Context.ConnectionId, channel);
             }
             GetChannels();
+        }
+
+        public void ForceInitHistory(string channelName)
+        {
+            var messages = m_MessageRepository
+                           .ChannelMessages(channelName)
+                           .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
+                           .OrderBy(m => m.TimeStampUtc);
+            Clients.Caller.SendAsync("initHistory", channelName, messages);
         }
 
         private MessageContext GetContext(string message, string channelName)
