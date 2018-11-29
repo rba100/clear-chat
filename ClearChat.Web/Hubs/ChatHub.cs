@@ -16,8 +16,6 @@ namespace ClearChat.Web.Hubs
     public class ChatHub : Hub, IMessageHub
     {
         private static readonly List<Client> s_Clients = new List<Client>();
-        private static readonly IDictionary<string, string> s_ConnectionChannels
-            = new ConcurrentDictionary<string, string>();
 
         private readonly IMessageRepository m_MessageRepository;
         private readonly IConnectionManager m_ConnectionManager;
@@ -61,7 +59,7 @@ namespace ClearChat.Web.Hubs
                         Client[] clients;
                         lock (s_Clients)
                         {
-                            clients = s_Clients.ToArray();
+                            clients = s_Clients.Where(c => c.ConnectionCount > 0).ToArray();
                         }
                         var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
                         PublishSystemMessage(msg, MessageScope.Caller);
@@ -82,7 +80,7 @@ namespace ClearChat.Web.Hubs
         public void GetHistory(string channelName)
         {
             if (channelName != "default" &&
-                !m_MessageRepository.GetChannelMemberships(Context.User.Identity.Name).Contains(channelName))
+                !m_MessageRepository.GetChannelMembershipsForUser(Context.User.Identity.Name).Contains(channelName))
             {
                 return;
             }
@@ -101,7 +99,7 @@ namespace ClearChat.Web.Hubs
             }
 
             var userId = Context.User.Identity.Name;
-            var channelNames = new[] { "default" }.Concat(m_MessageRepository.GetChannelMemberships(userId));
+            var channelNames = new[] { "default" }.Concat(m_MessageRepository.GetChannelMembershipsForUser(userId));
             foreach (var channelName in channelNames)
             {
                 Groups.AddToGroupAsync(Context.ConnectionId, channelName);
@@ -115,7 +113,7 @@ namespace ClearChat.Web.Hubs
 
             if (name != null)
             {
-                m_ConnectionManager.RegisterConnection(Context.ConnectionId, name, "default");
+                m_ConnectionManager.RegisterConnection(Context.ConnectionId, name);
                 lock (s_Clients)
                 {
                     Client client = s_Clients.FirstOrDefault(c => c.Name == name);
@@ -141,7 +139,6 @@ namespace ClearChat.Web.Hubs
                 record.RemoveConnection(Context.ConnectionId);
             }
             m_ConnectionManager.RegisterDisconnection(Context.ConnectionId);
-            s_ConnectionChannels.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
 
@@ -161,7 +158,7 @@ namespace ClearChat.Web.Hubs
 
         public void UpdateChannelMembership()
         {
-            var channels = m_MessageRepository.GetChannelMemberships(Context.User.Identity.Name);
+            var channels = m_MessageRepository.GetChannelMembershipsForUser(Context.User.Identity.Name);
             foreach (var channel in channels)
             {
                 Groups.AddToGroupAsync(Context.ConnectionId, channel);
@@ -169,13 +166,13 @@ namespace ClearChat.Web.Hubs
             GetChannels();
         }
 
-        public void ForceInitHistory(string channelName)
+        public void ForceInitHistory(string connectionId, string channelName)
         {
             var messages = m_MessageRepository
                            .ChannelMessages(channelName)
                            .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
                            .OrderBy(m => m.TimeStampUtc);
-            Clients.Caller.SendAsync("initHistory", channelName, messages);
+            Clients.Client(connectionId).SendAsync("initHistory", channelName, messages);
         }
 
         private MessageContext GetContext(string message, string channelName)

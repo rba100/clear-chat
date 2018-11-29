@@ -32,14 +32,16 @@ $(function () {
             if (model.selectedChannel === chatItemRaw.channelName || chatItemRaw.channelName === "system") {
                 appendSingleMessage(chatItemRaw);
             } else {
-                var channelLink = channelList.children(":eq(" + model.channels.indexOf(chatItemRaw.channelName) + ")");
+                var channelLinkIndex = model.channels.indexOf(chatItemRaw.channelName);
+                if (channelLinkIndex < 0) return;
+                var channelLink = channelList.children(":eq(" + channelLinkIndex + ")");
                 channelLink.addClass('nav-section-channel-link-unread');
             }
         });
 
     connection.on("channelMembership",
         function (names) {
-            if (model.selectedChannel === "") {
+            if (names.indexOf(model.selectedChannel) === -1) {
                 model.selectedChannel = names[0];
             }
             model.channels = names;
@@ -47,10 +49,11 @@ $(function () {
             for (var i = 0; i < names.length; i++) {
                 var channelName = names[i];
                 var channelLink = instantiate('tmpt-nav-section-link', { channelName: channelName });
-                if (channelName === model.selectedChannel)
+                var handler = changeChannelHandler(channelName);
+                if (channelName === model.selectedChannel) {
                     channelLink.addClass('nav-section-channel-link-selected');
-                channelLink.click(changeChannelHandler(channelName));
-
+                }
+                channelLink.click(handler);
                 channelList.append(channelLink);
                 if (typeof (model.channelContentCache[channelName]) === "undefined") {
                     model.channelContentCache[channelName] = { items: [], lastAuthor: "" };
@@ -119,7 +122,7 @@ $(function () {
     }
 
     function changeChannelHandler(channelName) {
-        return function(e) {
+        return function() {
             var link = $(this);
             channelList.children().removeClass('nav-section-channel-link-selected');
             link.addClass('nav-section-channel-link-selected');

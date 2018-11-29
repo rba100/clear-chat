@@ -37,7 +37,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
-            var channels = m_MessageRepository.GetChannelMemberships(userId);
+            var channels = m_MessageRepository.GetChannelMembershipsForUser(userId);
             if (channels.Contains(channelName))
             {
                 context.MessageHub.PublishSystemMessage("Error: you are already a member of that channel.",
