@@ -16,9 +16,11 @@ can get information about the user in question, the channel they're in, etc. Add
 Front-end code will be discarded in favour of some framework, probably React. Hack away, in the mean time.
 
 ## TODO
-- Reconnection logic
+- JavaScript small tasks.
+  - DateTime formatter (i.e. iso date to "5:54 PM").
+  - Reconnection logic.
+  - per-channel unread messages count.
 - Direct messages.
-- Be in multiple channels or DMs at once.
 - Editable and deletable messages.
 - Emoji support.
 - Choose UI framework(s). Currently Bootstrap + jQuery.

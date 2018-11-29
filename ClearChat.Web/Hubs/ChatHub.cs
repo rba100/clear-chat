@@ -38,8 +38,10 @@ namespace ClearChat.Web.Hubs
             m_ChatMessageFactory = chatMessageFactory;
         }
 
-        public void Send(string message)
+        public void Send(SendEventBinding eventBinding)
         {
+            var channelName = eventBinding.Channel;
+            var message = eventBinding.Body;
             if (!Context.User.Identity.IsAuthenticated)
             {
                 Clients.Caller.SendAsync("newMessage",
@@ -47,7 +49,7 @@ namespace ClearChat.Web.Hubs
                 return;
             }
 
-            var context = GetContext(message);
+            var context = GetContext(message, channelName);
 
             // Commands not yet migrated
             if (message.StartsWith("/"))
@@ -55,14 +57,6 @@ namespace ClearChat.Web.Hubs
                 var command = message.Substring(1).Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
                 switch (command)
                 {
-                    case "reset":
-                        GetHistory();
-                        return;
-                    case "purge":
-                        var channel = s_ConnectionChannels[Context.ConnectionId];
-                        m_MessageRepository.ClearChannel(channel);
-                        Clients.Group(channel).SendAsync("initHistory", new ChatMessage[0]);
-                        return;
                     case "whoishere":
                         Client[] clients;
                         lock (s_Clients)
@@ -85,31 +79,39 @@ namespace ClearChat.Web.Hubs
             m_MessageHandler.Handle(context);
         }
 
-        public void GetHistory()
+        public void GetHistory(string channelName)
         {
-            var channelName = s_ConnectionChannels[Context.ConnectionId];
+            if (channelName != "default" &&
+                !m_MessageRepository.GetChannelMemberships(Context.User.Identity.Name).Contains(channelName))
+            {
+                return;
+            }
             var messages = m_MessageRepository
                            .ChannelMessages(channelName)
                            .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
                            .OrderBy(m => m.TimeStampUtc);
-            Clients.Caller.SendAsync("initHistory", messages);
+            Clients.Caller.SendAsync("initHistory", channelName, messages);
         }
 
-        public void GetClients()
+        public void GetChannels()
         {
-            lock (s_Clients)
+            if (!Context.User.Identity.IsAuthenticated)
             {
-                var items = s_Clients.ToArray();
-                Clients.Caller.SendAsync("initClients", items);
+                return;
             }
+
+            var userId = Context.User.Identity.Name;
+            var channelNames = new[] { "default" }.Concat(m_MessageRepository.GetChannelMemberships(userId));
+            foreach (var channelName in channelNames)
+            {
+                Groups.AddToGroupAsync(Context.ConnectionId, channelName);
+            }
+            Clients.Caller.SendAsync("channelMembership", channelNames);
         }
 
         public override Task OnConnectedAsync()
         {
-            var name = Context.User.Identity.IsAuthenticated? Context.User.Identity.Name : null;
-            s_ConnectionChannels[Context.ConnectionId] = "default";
-            Groups.AddToGroupAsync(Context.ConnectionId, "default");
-            Clients.Caller.SendAsync("updateChannelName", "default");
+            var name = Context.User.Identity.IsAuthenticated ? Context.User.Identity.Name : null;
 
             if (name != null)
             {
@@ -126,7 +128,7 @@ namespace ClearChat.Web.Hubs
                     client.AddConnection(Context.ConnectionId);
                 }
             }
-            
+
             return base.OnConnectedAsync();
         }
 
@@ -150,30 +152,43 @@ namespace ClearChat.Web.Hubs
 
         public void PublishSystemMessage(string message, MessageScope messageScope)
         {
-            var msg = m_ChatMessageFactory.Create("System", message, "", DateTime.UtcNow);
+            var msg = m_ChatMessageFactory.Create("System", message, "system", DateTime.UtcNow);
             if (messageScope == MessageScope.All)
                 Clients.All.SendAsync("newMessage", msg);
             else
                 Clients.Caller.SendAsync("newMessage", msg);
         }
 
-        public void ChangeChannel(string channel)
+        public void UpdateChannelMembership()
         {
-            var previousChannel = s_ConnectionChannels[Context.ConnectionId];
-            Groups.RemoveFromGroupAsync(Context.ConnectionId, previousChannel);
-            Groups.AddToGroupAsync(Context.ConnectionId, channel);
-            s_ConnectionChannels[Context.ConnectionId] = channel;
-            m_ConnectionManager.ChangeConnectionChannel(Context.ConnectionId, channel);
-            Clients.Caller.SendAsync("updateChannelName", channel);
-            GetHistory();
+            var channels = m_MessageRepository.GetChannelMemberships(Context.User.Identity.Name);
+            foreach (var channel in channels)
+            {
+                Groups.AddToGroupAsync(Context.ConnectionId, channel);
+            }
+            GetChannels();
         }
 
-        private MessageContext GetContext(string message)
+        public void ForceInitHistory(string channelName)
+        {
+            var messages = m_MessageRepository
+                           .ChannelMessages(channelName)
+                           .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
+                           .OrderBy(m => m.TimeStampUtc);
+            Clients.Caller.SendAsync("initHistory", channelName, messages);
+        }
+
+        private MessageContext GetContext(string message, string channelName)
         {
             var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
-            var channel = s_ConnectionChannels[Context.ConnectionId];
-            return new MessageContext(message, user, channel, this, DateTime.UtcNow);
+            return new MessageContext(message, user, channelName, this, DateTime.UtcNow);
         }
+    }
+
+    public class SendEventBinding
+    {
+        public string Channel { get; set; }
+        public string Body { get; set; }
     }
 
     internal class Client

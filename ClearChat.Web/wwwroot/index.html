@@ -3,192 +3,55 @@
 <head>
     <meta charset="utf-8" />
     <title>Clear Chat</title>
-    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="deps/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="site.css">
-    <script src="scripts/jquery-3.3.1.js"></script>
-    <script src="scripts/md5.js"></script>
-    <script src="scripts/showdown.js"></script>
-    <script src="scripts/signalr.min.js"></script>
+    <script src="deps/jquery-3.3.1.js"></script>
+    <script src="deps/dateformat.js"></script>
+    <script src="deps/md5.js"></script>
+    <script src="deps/showdown.js"></script>
+    <script src="deps/signalr.min.js"></script>
+    <script src="site.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/emojione@4.0.0/lib/js/emojione.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emojione@4.0.0/extras/css/emojione.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emojione@4.0.0/extras/css/emojione.min.css" />
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-text">
-                <span id="channel-name">default</span>
+    <!-- PAGE LAYOUT -->
+
+    <div class="main-container">
+        <div class="nav-section" id="nav-section">
+            <div class="nav-section-header">
+                <a href="changeIdentity" style="text-align: center; width: 100%">change identity</a>
             </div>
-            <div class="navbar-text"><a class="nav navbar-nav" href="changeIdentity">change identity</a></div>
+            <div class="nav-section-header"><!-- spacer--></div>
+            <div class="nav-section-header"><p>Channels</p></div>
+            <div id="nav-section-channels"></div>
         </div>
-    </div>
-    <div class="container" id="main-content">
-        <div id="output-container" class="row">
-            <div id="history"></div>
-        </div>
-        <div id="input-container" class="row">
-            <div id="input-form">
-                <div class="col-xs-12">
-                    <input type="text" id="text-input" class="form-control" />
-                </div>
-                <div class="col-xs-1" style="display: none;">
-                    <button class="btn btn-primary" id="send-button">Send</button>
-                </div>
-            </div>
+        <div class="message-section">
+            <div class="message-section-content" id="message-container" data-template="message-template"></div>
+            <div class="input-area"><input type="text" id="text-input"></div>
         </div>
     </div>
 
-    <script type="text/javascript">
-        var maxHistory = 400;
-        var chatHistory = $('#history');
-        var outputContainer = $('#output-container');
-        var channelNameLabel = $('#channel-name');
-        var converter = new showdown.Converter();
+    <!-- COMPONENT TEMPLATES -->
 
-        var lastAuthor = "";
-        var lastMessageSent = "";
+    <template id="message-template">
+        <div class="message">
+            <div class="message-gutter"><span data-from="timeStampUtc"></span></div>
+            <div class="message-content">
+                <div class="message-content-header" data-css="userIdcss"><b data-from="userId"></b></div>
+                <div class="message-content-body" data-from="message"></div>
+            </div>
+        </div>
+    </template>
 
-        connection = new signalR.HubConnectionBuilder()
-            .withUrl("/chatHub")
-            .build();
+    <template id="tmpt-nav-section-header">
+        <div class="nav-section-header">
+            <p data-from="label"></p>
+        </div>
+    </template>
 
-        var unreadMessages = 0;
-        var focused = true;
-        var channelName = "default";
-
-        window.onfocus = function () {
-            focused = true;
-            unreadMessages = 0;
-            SetWindowTitle();
-        };
-        window.onblur = function () {
-            focused = false;
-        };
-
-        function SetWindowTitle() {
-            if (focused || unreadMessages === 0) window.document.title = "Clear Chat - " + channelName;
-            else window.document.title = "Clear Chat - " + channelName + " (" + unreadMessages + ")";
-        }
-
-        connection.onclose(function (error) {
-            console.log("DEBUG: connection closed.");
-            if (error) console.log("DEBUG: " + error);
-        });
-
-        connection.on("newMessage",
-            function (chatItem) {
-                insertChatItem(chatItem);
-                if (!focused) {
-                    unreadMessages++;
-                    SetWindowTitle();
-                }
-            });
-
-        connection.on("updateChannelName",
-            function (name) {
-                var safeName = name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                channelName = safeName;
-                channelNameLabel.html(safeName);
-                SetWindowTitle();
-            });
-
-        connection.on("initHistory",
-            function (historyItems) {
-                chatHistory.empty();
-                lastAuthor = "";
-                for (var i = 0; i < historyItems.length; i++) {
-                    insertChatItem(historyItems[i]);
-                }
-            });
-
-        connection.start().then(function () {
-            $('#send-button').click(send);
-            $('#text-input').keypress(function (e) {
-                if (e.which === 13) { // ENTER KEY
-                    send();
-                }
-            });
-            $('#text-input').keydown(function(e) {
-                if (e.which === 38) { // UP ARROW
-                    $('#text-input').val(lastMessageSent);
-                }
-            });
-            $('#text-input').focus();
-            loadHistory();
-        });
-        
-        function send() {
-            var message = $('#text-input').val();
-            if (message === "") return;
-            lastMessageSent = message;
-            connection.send("send", message).catch(function (error) {
-                console.log(error);
-            });
-            $('#text-input').val("");
-        }
-
-        function loadHistory() {
-            connection.send("getHistory");
-        }
-
-        function insertChatItem(chatItem) {
-            var safeMessage = chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            var safeMessageWithEmoji = emojione.shortnameToImage(safeMessage);
-            var processedMessage = converter.makeHtml(safeMessageWithEmoji);
-            var row = $('<div class="chat-item">' +
-                '<p>' +
-                processedMessage +
-                '</p>' +
-                '</div>');
-            if (lastAuthor !== chatItem.userId) {
-                var nameElement = $('<span title="' +
-                    chatItem.timeStampUtc +
-                    '">' +
-                    '<b>' +
-                    chatItem.userId +
-                    '</b></span><br class="hide-for-wide" />' +
-                    '<span class="hide-for-small"> : </span>');
-                nameElement.find('b').css("color", '#' + chatItem.userIdColour);
-                row.prepend(nameElement);
-            }
-            lastAuthor = chatItem.userId;
-            chatHistory.append(row);
-            scrollToBottom();
-        }
-
-        function scrollToBottom() {
-            outputContainer.scrollTop(2000000000);
-        }
-
-        function getProfilePicElement(emailAddress) {
-            var hash = md5(emailAddress.trim().toLowerCase());
-            var element = $('<img class="profile-picture" src="https://www.gravatar.com/avatar/' +
-                hash +
-                '?d=retro&s=32" width="32" height="32"/>');
-            return element;
-        }
-
-        var crc32 = (function () {
-            var table = new Uint32Array(256);
-            for (var i = 256; i--;) {
-                var tmp = i;
-
-                for (var k = 8; k--;) {
-                    tmp = tmp & 1 ? 3988292384 ^ tmp >>> 1 : tmp >>> 1;
-                }
-
-                table[i] = tmp;
-            }
-            return function (data) {
-                var crc = -1; // Begin with all bits set ( 0xffffffff )
-
-                for (var i = 0, l = data.length; i < l; i++) {
-                    crc = crc >>> 8 ^ table[crc & 255 ^ data[i]];
-                }
-
-                return (crc ^ -1) >>> 0; // Apply binary NOT
-            };
-
-        })();
-    </script>
+    <template id="tmpt-nav-section-link">
+        <div class="nav-section-channel-link"><a href="#" data-from="channelName"></a></div>
+    </template>
 </body>
 </html>
