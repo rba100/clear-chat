@@ -8,14 +8,9 @@ var model = {
 };
 
 $(function () {
-    var workspace = $('#workspace');
-    var navSection = $('#nav-section');
     var channelList = $('#nav-section-channels');
-    var maxHistory = 400;
-    var chatHistory = $('#history');
     var outputContainer = $('#output-container');
     var messageContainer = $('#message-container');
-    var channelNameLabel = $('#channel-name');
     var converter = new showdown.Converter();
 
     var lastAuthor = "";
@@ -72,11 +67,10 @@ $(function () {
             if (!cacheEntry) return;
             model.channelContentCache[channelName].lastAuthor = "";
             model.channelContentCache[channelName].messages = historyItems;
-            if (model.selectedChannel === channelName) dataRefresh(messageContainer, historyItems.map(toChatItemDataBinding));
+            if (model.selectedChannel === channelName) dataRefresh(messageContainer, historyItems.map(toMessageControlDataBinding));
         });
 
     connection.start().then(function () {
-        $('#send-button').click(send);
         $('#text-input').keypress(function (e) {
             if (e.which === 13) { // ENTER KEY
                 send();
@@ -91,13 +85,14 @@ $(function () {
         connection.send('GetChannels');
     });
 
-    function toChatItemDataBinding(chatItem) {
+    // See message-template in index.html
+    function toMessageControlDataBinding(chatItem) {
         return {
             userId: chatItem.userId,
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
             message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
-            css: { color: '#' + chatItem.userIdColour }
+            userIdcss: { color: '#' + chatItem.userIdColour }
         };
     }
 
@@ -114,7 +109,7 @@ $(function () {
 
     function appendSingleMessage(chatItem) {
         var sameAuthor = lastAuthor === chatItem.userId;
-        var messageElement = instantiate('tmpt-message', toChatItemDataBinding(chatItem));
+        var messageElement = instantiate('message-template', toMessageControlDataBinding(chatItem));
         if (sameAuthor) {
             messageElement.find("b").first().hide();
         }
@@ -135,7 +130,7 @@ $(function () {
             if (model.selectedChannel === channelName)
                 dataRefresh(
                     messageContainer,
-                    cacheEntry.messages.map(toChatItemDataBinding));
+                    cacheEntry.messages.map(toMessageControlDataBinding));
         };
     }
 
