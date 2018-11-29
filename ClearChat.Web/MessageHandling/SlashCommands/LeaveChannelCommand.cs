@@ -9,10 +9,12 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
     class LeaveChannelCommand : ISlashCommand
     {
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IConnectionManager m_ConnectionManager;
 
-        public LeaveChannelCommand(IMessageRepository messageRepository)
+        public LeaveChannelCommand(IMessageRepository messageRepository, IConnectionManager connectionManager)
         {
             m_MessageRepository = messageRepository;
+            m_ConnectionManager = connectionManager;
         }
 
         public string CommandText => "leave";
@@ -37,6 +39,11 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             m_MessageRepository.RemoveChannelMembership(userId, channelName);
+            var connectionIds = m_ConnectionManager.GetConnectionsForUser(userId);
+            foreach (var connection in connectionIds)
+            {
+                context.MessageHub.ForceInitHistory(connection, channelName);
+            }
             context.MessageHub.UpdateChannelMembership();
         }
 

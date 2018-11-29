@@ -46,7 +46,7 @@ namespace ClearChat.Web
                     new ColourCommand(s.GetService<IUserRepository>(),s.GetService<IColourGenerator>()),
                     new JoinChannelCommand(s.GetService<IMessageRepository>()),
                     new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher),
-                    new LeaveChannelCommand(s.GetService<IMessageRepository>())
+                    new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>())
                 }),
                 new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo)
             }));
