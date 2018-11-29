@@ -44,7 +44,7 @@ namespace ClearChat.Core
             var messages = m_MessageRepository.ChannelMessages(channelName);
 
             var colouredMessages = messages.Select(m => new ChatMessage(m.UserId, m.ChannelName, m.Message,m.TimeStampUtc));
-            PublishUserDetails(connectionId, messages.Select(m => m.UserId)
+            var task = m_ChatContext.SignalConnection(connectionId, "userDetails", messages.Select(m => m.UserId)
                                                      .Distinct()
                                                      .Select(m_UserRepository.GetUserDetails)
                                                      .ToArray());

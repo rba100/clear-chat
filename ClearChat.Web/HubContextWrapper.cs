@@ -1,4 +1,5 @@
-﻿using ClearChat.Core;
+﻿using System.Threading.Tasks;
+using ClearChat.Core;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ClearChat.Web
@@ -12,14 +13,19 @@ namespace ClearChat.Web
             m_Context = context;
         }
 
-        public void SignalConnection(string connectionId, string method, params object[] arguments)
+        public Task SignalConnection(string connectionId, string method, object argument)
         {
-            m_Context.Clients.Client(connectionId).SendCoreAsync(method, arguments);
+            return m_Context.Clients.Client(connectionId).SendAsync(method, argument);
         }
 
-        public void SignalChannel(string channelName, string method, params object[] arguments)
+        public Task SignalConnection(string connectionId, string method, object arguments1, object arguments2)
         {
-            m_Context.Clients.Group(channelName).SendCoreAsync(method, arguments);
+            return m_Context.Clients.Client(connectionId).SendAsync(method, arguments1, arguments2);
+        }
+
+        public Task SignalChannel(string channelName, string method, params object[] arguments)
+        {
+            return m_Context.Clients.Group(channelName).SendCoreAsync(method, arguments);
         }
 
         public void AddToGroup(string connectionId, string channelName)

@@ -67,7 +67,8 @@ $(function () {
 
     connection.on("userDetails",
         function(users) {
-            for(var user in users) {
+            for (var index in users) {
+                var user = users[index];
                 model.userIdToColour[user.userId] = user.hexColour;
             }
         });

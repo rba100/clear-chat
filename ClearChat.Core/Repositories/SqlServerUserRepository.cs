@@ -14,10 +14,12 @@ namespace ClearChat.Core.Repositories
         private readonly IColourGenerator m_ColourGenerator;
 
         public SqlServerUserRepository(string connectionString, 
-                                       IStringHasher stringHasher)
+                                       IStringHasher stringHasher, 
+                                       IColourGenerator colourGenerator)
         {
             m_ConnectionString = connectionString;
             m_StringHasher = stringHasher;
+            m_ColourGenerator = colourGenerator;
         }
 
         private class DatabaseContext : DbContext
