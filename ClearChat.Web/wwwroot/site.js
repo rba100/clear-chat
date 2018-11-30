@@ -42,9 +42,7 @@ $(function () {
 
     connection.on("channelMembership",
         function (names) {
-            if (names.indexOf(model.selectedChannel) === -1) {
-                model.selectedChannel = names[0];
-            }
+            var shouldChangeChannel = names.indexOf(model.selectedChannel) === -1;
             model.channels = names;
             channelList.html("");
             for (var i = 0; i < names.length; i++) {
@@ -63,6 +61,7 @@ $(function () {
                     });
                 }
             }
+            if (shouldChangeChannel) changeChannelLocal(names[0]);
         });
 
     connection.on("userDetails",
@@ -145,14 +144,18 @@ $(function () {
             channelList.children().removeClass('nav-section-channel-link-selected');
             link.addClass('nav-section-channel-link-selected');
             link.removeClass('nav-section-channel-link-unread');
-            if (model.selectedChannel !== channelName) lastAuthor = "";
-            model.selectedChannel = channelName;
-            var cacheEntry = model.channelContentCache[channelName];
-            if (model.selectedChannel === channelName)
-                dataRefresh(
-                    messageContainer,
-                    cacheEntry.messages.map(toMessageControlDataBinding));
+            changeChannelLocal(channelName);
         };
+    }
+
+    function changeChannelLocal(channelName) {
+        if (model.selectedChannel !== channelName) lastAuthor = "";
+        model.selectedChannel = channelName;
+        var cacheEntry = model.channelContentCache[channelName];
+        if (model.selectedChannel === channelName)
+            dataRefresh(
+                messageContainer,
+                cacheEntry.messages.map(toMessageControlDataBinding));
     }
 
     function scrollToBottom() {
