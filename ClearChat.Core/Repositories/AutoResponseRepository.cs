@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using ClearChat.Core.Exceptions;
 using ClearChat.Core.Repositories.Bindings;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,7 +56,7 @@ namespace ClearChat.Core.Repositories
         }
     }
 
-    internal interface IAutoResponseRepository
+    public interface IAutoResponseRepository
     {
         /// <summary>
         /// Gets auto response for given message
@@ -63,7 +64,12 @@ namespace ClearChat.Core.Repositories
         /// <remarks>Can return null</remarks>
         string GetResponse(string message);
 
-
+        /// <summary>
+        /// Registers an auto response with the server
+        /// </summary>
+        /// <exception cref="DuplicateAutoResponseException">
+        /// Auto response for given phrase already exists
+        /// </exception>
         void AddResponse(string userId, string message, string response);
     }
 }

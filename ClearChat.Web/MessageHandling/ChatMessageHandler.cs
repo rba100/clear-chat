@@ -11,14 +11,24 @@ namespace ClearChat.Web.MessageHandling
         private readonly IChatMessageFactory m_ChatMessageFactory;
         private readonly IMessageRepository m_MessageRepository;
         private readonly IChatContext m_ChatContext;
+        private readonly IAutoResponseRepository m_AutoResponseRepository;
 
         public ChatMessageHandler(IChatMessageFactory chatMessageFactory, 
                                   IMessageRepository messageRepository,
-                                  IChatContext chatContext)
+                                  IChatContext chatContext,
+                                  IAutoResponseRepository autoResponseRepository)
         {
-            m_ChatMessageFactory = chatMessageFactory;
-            m_MessageRepository = messageRepository;
-            m_ChatContext = chatContext;
+            m_ChatMessageFactory = chatMessageFactory
+                ?? throw new ArgumentNullException(nameof(chatMessageFactory));
+
+            m_MessageRepository = messageRepository
+                ?? throw new ArgumentNullException(nameof(messageRepository));
+
+            m_ChatContext = chatContext
+                ?? throw new ArgumentNullException(nameof(chatContext));
+
+            m_AutoResponseRepository = autoResponseRepository
+                ?? throw new ArgumentNullException(nameof(autoResponseRepository));
         }
 
         public bool Handle(MessageContext context)
@@ -37,6 +47,12 @@ namespace ClearChat.Web.MessageHandling
             
             m_MessageRepository.WriteMessage(chatMessage);
             context.MessageHub.Publish(chatMessage);
+
+            var autoResponse = m_AutoResponseRepository.GetResponse(chatMessage.Message);
+            if (autoResponse != null)
+            {
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, autoResponse);
+            }
 
             return true;
         }

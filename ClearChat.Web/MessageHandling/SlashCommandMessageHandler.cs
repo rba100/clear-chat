@@ -12,7 +12,7 @@ namespace ClearChat.Web.MessageHandling
     {
         private readonly IDictionary<string, ISlashCommand> m_Commands;
 
-        public SlashCommandMessageHandler(ISlashCommand[] commands)
+        public SlashCommandMessageHandler(IEnumerable<ISlashCommand> commands)
         {
             m_Commands = commands.ToDictionary(c => c.CommandText.ToLowerInvariant(), c => c);
         }
