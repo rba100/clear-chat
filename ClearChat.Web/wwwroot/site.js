@@ -145,9 +145,9 @@ $(function () {
             channelList.children().removeClass('nav-section-channel-link-selected');
             link.addClass('nav-section-channel-link-selected');
             link.removeClass('nav-section-channel-link-unread');
+            if (model.selectedChannel !== channelName) lastAuthor = "";
             model.selectedChannel = channelName;
             var cacheEntry = model.channelContentCache[channelName];
-            model.channelContentCache[channelName].messages;
             if (model.selectedChannel === channelName)
                 dataRefresh(
                     messageContainer,
