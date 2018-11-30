@@ -13,6 +13,7 @@ $(function () {
     var outputContainer = $('#output-container');
     var messageContainer = $('#message-container');
     var converter = new showdown.Converter();
+    var typingNotifier = $('#typing-notifier');
 
     var lastAuthor = "";
     var lastMessageSent = "";
@@ -84,6 +85,7 @@ $(function () {
 
     connection.start().then(function () {
         $('#text-input').keypress(function (e) {
+            sendKeypressHeartbeat();
             if (e.which === 13) { // ENTER KEY
                 send();
             }
@@ -96,6 +98,12 @@ $(function () {
         $('#text-input').focus();
         connection.send('GetChannels');
     });
+
+    connection.on("isTyping",
+        function(typerName) {
+            typingNotifier.text(typerName + " is typing...");
+        }
+    );
 
     // See message-template in index.html
     function toMessageControlDataBinding(chatItem) {
@@ -153,6 +161,13 @@ $(function () {
                     messageContainer,
                     cacheEntry.messages.map(toMessageControlDataBinding));
         };
+    }
+
+    function sendKeypressHeartbeat() {
+        var eventData = { Channel: model.selectedChannel, Body: '' };
+        connection.send("typing", eventData).catch(function(error) {
+            console.log(error);
+        });
     }
 
     function scrollToBottom() {
