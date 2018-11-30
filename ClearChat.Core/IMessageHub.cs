@@ -1,4 +1,5 @@
-﻿using ClearChat.Core.Domain;
+﻿using System.Collections.Generic;
+using ClearChat.Core.Domain;
 
 namespace ClearChat.Core
 {
@@ -19,8 +20,13 @@ namespace ClearChat.Core
         /// Calling this method with MessageScope.Caller is not thread safe and must be called from
         /// the original worker thread handling an inbound request.
         /// </remarks>
-        void PublishSystemMessage(string message, MessageScope messageScope);
+        void PublishSystemMessage(string connectionId, string message);
 
-        void ChangeChannel(string channel);
+        void UpdateChannelMembership(string connectionId);
+        void RemoveChannelMembership(string connectionId, string channelName);
+        void SendChannelHistory(string connectionId, string channelName);
+        void SendChannelList(string connectionId);
+        void PublishUserDetails(string connectionId, IReadOnlyCollection<string> userIds);
+        void PublishUserDetails(IReadOnlyCollection<string> userIds);
     }
 }

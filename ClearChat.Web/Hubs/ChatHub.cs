@@ -1,212 +1,102 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+
 using ClearChat.Core;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.MessageHandling;
+
 using Microsoft.AspNetCore.SignalR;
 
 // ReSharper disable UnusedMember.Global
 
 namespace ClearChat.Web.Hubs
 {
-    public class ChatHub : Hub, IMessageHub
+    public class ChatHub : Hub
     {
-        private static readonly List<Client> s_Clients = new List<Client>();
-        private static readonly IDictionary<string, string> s_ConnectionChannels
-            = new ConcurrentDictionary<string, string>();
-
         private readonly IMessageRepository m_MessageRepository;
         private readonly IConnectionManager m_ConnectionManager;
-        private readonly IUserRepository m_UserRepository;
         private readonly IMessageHandler m_MessageHandler;
-        private readonly IChatMessageFactory m_ChatMessageFactory;
+        private readonly IMessageHub m_MessageHub;
 
         public ChatHub(IMessageRepository messageRepository,
                        IConnectionManager connectionManager,
-                       IUserRepository userRepository,
                        IMessageHandler messageHandler,
-                       IChatMessageFactory chatMessageFactory)
+                       IMessageHub messageHub)
         {
             m_MessageRepository = messageRepository;
             m_ConnectionManager = connectionManager;
-            m_UserRepository = userRepository;
             m_MessageHandler = messageHandler;
-            m_ChatMessageFactory = chatMessageFactory;
+            m_MessageHub = messageHub;
         }
 
-        public void Send(string message)
+        public void Send(SendEventBinding eventBinding)
         {
             if (!Context.User.Identity.IsAuthenticated)
             {
-                Clients.Caller.SendAsync("newMessage",
-                    m_ChatMessageFactory.Create("System", "You are not logged in.", "", DateTime.UtcNow));
+                m_MessageHub.PublishSystemMessage(Context.ConnectionId, "You are not logged in.");
                 return;
             }
+            m_MessageHandler.Handle(GetContext(eventBinding.Body, eventBinding.Channel));
+        }
 
-            var context = GetContext(message);
-
-            // Commands not yet migrated
-            if (message.StartsWith("/"))
+        public void GetHistory(string channelName)
+        {
+            if (channelName != "default" &&
+                !m_MessageRepository.GetChannelMembershipsForUser(Context.User.Identity.Name).Contains(channelName))
             {
-                var command = message.Substring(1).Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
-                switch (command)
-                {
-                    case "reset":
-                        GetHistory();
-                        return;
-                    case "purge":
-                        var channel = s_ConnectionChannels[Context.ConnectionId];
-                        m_MessageRepository.ClearChannel(channel);
-                        Clients.Group(channel).SendAsync("initHistory", new ChatMessage[0]);
-                        return;
-                    case "whoishere":
-                        Client[] clients;
-                        lock (s_Clients)
-                        {
-                            clients = s_Clients.ToArray();
-                        }
-                        var msg = clients.Length == 1 ? "You are alone." : $"{clients.Length} users are here:";
-                        PublishSystemMessage(msg, MessageScope.Caller);
-                        var sysMessage = m_ChatMessageFactory.Create("System", msg, "", DateTime.UtcNow);
-                        Clients.Caller.SendAsync("newMessage", sysMessage);
-
-                        foreach (var client in clients)
-                        {
-                            PublishSystemMessage(client.Name, MessageScope.Caller);
-                        }
-                        return;
-                }
+                return;
             }
-
-            m_MessageHandler.Handle(context);
+            m_MessageHub.SendChannelHistory(Context.ConnectionId, channelName);
         }
 
-        public void GetHistory()
+        public void GetUserDetails(string userId)
         {
-            var channelName = s_ConnectionChannels[Context.ConnectionId];
-            var messages = m_MessageRepository
-                           .ChannelMessages(channelName)
-                           .Select(m => m_ChatMessageFactory.Create(m.UserId, m.Message, m.ChannelName, m.TimeStampUtc))
-                           .OrderBy(m => m.TimeStampUtc);
-            Clients.Caller.SendAsync("initHistory", messages);
+            m_MessageHub.PublishUserDetails(Context.ConnectionId, new[] { userId });
         }
 
-        public void Typing()
+        public void GetChannels()
         {
-            var channel = s_ConnectionChannels[Context.ConnectionId];
-            m_MessageRepository.ClearChannel(channel);
-            Clients.Group(channel).SendAsync("isTyping", Context.User.Identity.Name);
-        }
-
-        public void GetClients()
-        {
-            lock (s_Clients)
+            if (!Context.User.Identity.IsAuthenticated)
             {
-                var items = s_Clients.ToArray();
-                Clients.Caller.SendAsync("initClients", items);
+                return;
             }
+            m_MessageHub.UpdateChannelMembership(Context.ConnectionId);
         }
 
         public override Task OnConnectedAsync()
         {
-            var name = Context.User.Identity.IsAuthenticated? Context.User.Identity.Name : null;
-            s_ConnectionChannels[Context.ConnectionId] = "default";
-            Groups.AddToGroupAsync(Context.ConnectionId, "default");
-            Clients.Caller.SendAsync("updateChannelName", "default");
+            var name = Context.User.Identity.IsAuthenticated ? Context.User.Identity.Name : null;
 
             if (name != null)
             {
-                m_ConnectionManager.RegisterConnection(Context.ConnectionId, name, "default");
-                lock (s_Clients)
-                {
-                    Client client = s_Clients.FirstOrDefault(c => c.Name == name);
-
-                    if (client == null)
-                    {
-                        client = new Client(name);
-                        s_Clients.Add(client);
-                    }
-                    client.AddConnection(Context.ConnectionId);
-                }
+                m_ConnectionManager.RegisterConnection(Context.ConnectionId, name);
             }
-            
+
             return base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            var name = Context.User.Identity.Name;
-            lock (s_Clients)
-            {
-                var record = s_Clients.First(c => c.Name == name);
-                record.RemoveConnection(Context.ConnectionId);
-            }
             m_ConnectionManager.RegisterDisconnection(Context.ConnectionId);
-            s_ConnectionChannels.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
 
-        public void Publish(ChatMessage message)
+        private MessageContext GetContext(string message, string channelName)
         {
-            Clients.Group(message.ChannelName).SendAsync("newMessage", message);
-        }
-
-        public void PublishSystemMessage(string message, MessageScope messageScope)
-        {
-            var msg = m_ChatMessageFactory.Create("System", message, "", DateTime.UtcNow);
-            if (messageScope == MessageScope.All)
-                Clients.All.SendAsync("newMessage", msg);
-            else
-                Clients.Caller.SendAsync("newMessage", msg);
-        }
-
-        public void ChangeChannel(string channel)
-        {
-            var previousChannel = s_ConnectionChannels[Context.ConnectionId];
-            Groups.RemoveFromGroupAsync(Context.ConnectionId, previousChannel);
-            Groups.AddToGroupAsync(Context.ConnectionId, channel);
-            s_ConnectionChannels[Context.ConnectionId] = channel;
-            m_ConnectionManager.ChangeConnectionChannel(Context.ConnectionId, channel);
-            Clients.Caller.SendAsync("updateChannelName", channel);
-            GetHistory();
-        }
-
-        private MessageContext GetContext(string message)
-        {
-            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
-            var channel = s_ConnectionChannels[Context.ConnectionId];
-            return new MessageContext(message, user, channel, this, DateTime.UtcNow);
+            return new MessageContext(message,
+                                      Context.User.Identity.Name,
+                                      Context.ConnectionId,
+                                      channelName,
+                                      m_MessageHub,
+                                      DateTime.UtcNow);
         }
     }
 
-    internal class Client
+    public class SendEventBinding
     {
-        public Client(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
-
-        public void AddConnection(string connectionId)
-        {
-            m_ConnectionIds[connectionId] = null;
-        }
-
-        public void RemoveConnection(string connectionId)
-        {
-            m_ConnectionIds.TryRemove(connectionId, out object _);
-        }
-
-        public int ConnectionCount => m_ConnectionIds.Count;
-
-        private readonly ConcurrentDictionary<string, object> m_ConnectionIds
-            = new ConcurrentDictionary<string, object>();
-
+        public string Channel { get; set; }
+        public string Body { get; set; }
     }
 }

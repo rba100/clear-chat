@@ -26,7 +26,6 @@ namespace ClearChat.Core.Domain
             return new ChatMessage(userId,
                                    channelName, 
                                    message, 
-                                   colour,
                                    timeStampUtc);
         }
     }
