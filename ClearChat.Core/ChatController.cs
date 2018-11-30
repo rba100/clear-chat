@@ -60,6 +60,11 @@ namespace ClearChat.Core
             m_ChatContext.SignalAll("userDetails", users);
         }
 
+        public void PublishMessageDeleted(int messageId)
+        {
+            m_ChatContext.SignalAll("deleteMessage", messageId);
+        }
+
         public void SendChannelList(string connectionId)
         {
             var userId = m_ConnectionManager.GetUserIdForConnection(connectionId);

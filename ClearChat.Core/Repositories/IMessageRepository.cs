@@ -18,5 +18,6 @@ namespace ClearChat.Core.Repositories
         /// Gets userId hashes for a channel.
         /// </summary>
         IReadOnlyCollection<byte[]> GetChannelMembershipsForChannel(string channelName);
+        void DeleteMessage(int messageId);
     }
 }

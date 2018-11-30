@@ -34,7 +34,7 @@ function dataRefresh(element, parameters) {
             var target = element.find("[data-from='" + key + "']")
                 .addBack("[data-from='" + key + "']");
             if (target.length) {
-                if (typeof (dataValue) === "string")
+                if (typeof (dataValue) === "string" || typeof (dataValue) === "number")
                     target.html(dataValue);
                 else if (typeof (dataValue) === "object") {
                     dataRefresh(target, dataValue);

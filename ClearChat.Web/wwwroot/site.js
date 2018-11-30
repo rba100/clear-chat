@@ -40,6 +40,19 @@ $(function () {
             }
         });
 
+    connection.on('deleteMessage',
+        function(messageId) {
+            for (var channel in model.channelContentCache) {
+                var cache = model.channelContentCache[channel];
+                var index = cache.messages.findIndex(function(item) { return item.id === messageId; });
+                if (index === -1) continue;
+                cache.messages.splice(index, 1);
+                if (channel === model.selectedChannel) dataRefresh(
+                    messageContainer,
+                    cache.messages.map(toMessageControlDataBinding()));
+            }
+        });
+
     connection.on("channelMembership",
         function (names) {
             var shouldChangeChannel = names.indexOf(model.selectedChannel) === -1;
@@ -55,7 +68,7 @@ $(function () {
                 channelLink.click(handler);
                 channelList.append(channelLink);
                 if (typeof (model.channelContentCache[channelName]) === "undefined") {
-                    model.channelContentCache[channelName] = { items: [], lastAuthor: "" };
+                    model.channelContentCache[channelName] = { messages: [], lastAuthor: "" };
                     connection.send("getHistory", channelName).catch(function (error) {
                         console.log(error);
                     });
@@ -99,6 +112,7 @@ $(function () {
     // See message-template in index.html
     function toMessageControlDataBinding(chatItem) {
         return {
+            id: chatItem.id,
             userId: chatItem.userId,
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),

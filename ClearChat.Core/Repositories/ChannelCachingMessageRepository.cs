@@ -93,5 +93,10 @@ namespace ClearChat.Core.Repositories
             }
             return m_MessageRepository.GetChannelMembershipsForChannel(channelName);
         }
+
+        public void DeleteMessage(int messageId)
+        {
+            m_MessageRepository.DeleteMessage(messageId);
+        }
     }
 }

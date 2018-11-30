@@ -183,6 +183,17 @@ namespace ClearChat.Core.Repositories
             }
         }
 
+        public void DeleteMessage(int messageId)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var message = db.Messages.FirstOrDefault(m => m.Id == messageId);
+                if (message == null) return;
+                db.Messages.Remove(message);
+                db.SaveChanges();
+            }
+        }
+
         class DatabaseContext : DbContext
         {
             public DatabaseContext(string connectionString)
