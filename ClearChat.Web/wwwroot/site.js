@@ -40,11 +40,22 @@ $(function () {
             }
         });
 
+    connection.on('deleteMessage',
+        function(messageId) {
+            for (var channel in model.channelContentCache) {
+                var cache = model.channelContentCache[channel];
+                var index = cache.messages.findIndex(function(item) { return item.id === messageId; });
+                if (index === -1) continue;
+                cache.messages.splice(index, 1);
+                if (channel === model.selectedChannel) dataRefresh(
+                    messageContainer,
+                    cache.messages.map(toMessageControlDataBinding));
+            }
+        });
+
     connection.on("channelMembership",
         function (names) {
-            if (names.indexOf(model.selectedChannel) === -1) {
-                model.selectedChannel = names[0];
-            }
+            var shouldChangeChannel = names.indexOf(model.selectedChannel) === -1;
             model.channels = names;
             channelList.html("");
             for (var i = 0; i < names.length; i++) {
@@ -57,12 +68,13 @@ $(function () {
                 channelLink.click(handler);
                 channelList.append(channelLink);
                 if (typeof (model.channelContentCache[channelName]) === "undefined") {
-                    model.channelContentCache[channelName] = { items: [], lastAuthor: "" };
+                    model.channelContentCache[channelName] = { messages: [], lastAuthor: "" };
                     connection.send("getHistory", channelName).catch(function (error) {
                         console.log(error);
                     });
                 }
             }
+            if (shouldChangeChannel) changeChannelLocal(names[0]);
         });
 
     connection.on("userDetails",
@@ -100,6 +112,7 @@ $(function () {
     // See message-template in index.html
     function toMessageControlDataBinding(chatItem) {
         return {
+            id: chatItem.id,
             userId: chatItem.userId,
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
@@ -145,14 +158,18 @@ $(function () {
             channelList.children().removeClass('nav-section-channel-link-selected');
             link.addClass('nav-section-channel-link-selected');
             link.removeClass('nav-section-channel-link-unread');
-            model.selectedChannel = channelName;
-            var cacheEntry = model.channelContentCache[channelName];
-            model.channelContentCache[channelName].messages;
-            if (model.selectedChannel === channelName)
-                dataRefresh(
-                    messageContainer,
-                    cacheEntry.messages.map(toMessageControlDataBinding));
+            changeChannelLocal(channelName);
         };
+    }
+
+    function changeChannelLocal(channelName) {
+        if (model.selectedChannel !== channelName) lastAuthor = "";
+        model.selectedChannel = channelName;
+        var cacheEntry = model.channelContentCache[channelName];
+        if (model.selectedChannel === channelName)
+            dataRefresh(
+                messageContainer,
+                cacheEntry.messages.map(toMessageControlDataBinding));
     }
 
     function scrollToBottom() {

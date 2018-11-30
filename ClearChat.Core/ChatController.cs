@@ -33,20 +33,19 @@ namespace ClearChat.Core
         {
             m_ChatContext.SignalConnection(connectionId,
                                            "newMessage",
-                                           new ChatMessage("System", "system", message, DateTime.UtcNow));
+                                           new ChatMessage(0, "System", "system", message, DateTime.UtcNow));
         }
 
         public void SendChannelHistory(string connectionId, string channelName)
         {
             var messages = m_MessageRepository.ChannelMessages(channelName);
 
-            var colouredMessages = messages.Select(m => new ChatMessage(m.UserId, m.ChannelName, m.Message, m.TimeStampUtc));
             var task = m_ChatContext.SignalConnection(connectionId, "userDetails", messages.Select(m => m.UserId)
                                                      .Distinct()
                                                      .Select(m_UserRepository.GetUserDetails)
                                                      .ToArray());
             task.ContinueWith(_ =>
-                m_ChatContext.SignalConnection(connectionId, "channelHistory", channelName, colouredMessages));
+                m_ChatContext.SignalConnection(connectionId, "channelHistory", channelName, messages));
         }
 
         public void PublishUserDetails(string connectionId, IReadOnlyCollection<string> userIds)
@@ -59,6 +58,11 @@ namespace ClearChat.Core
         {
             var users = userIds.Select(m_UserRepository.GetUserDetails).ToArray();
             m_ChatContext.SignalAll("userDetails", users);
+        }
+
+        public void PublishMessageDeleted(int messageId)
+        {
+            m_ChatContext.SignalAll("deleteMessage", messageId);
         }
 
         public void SendChannelList(string connectionId)

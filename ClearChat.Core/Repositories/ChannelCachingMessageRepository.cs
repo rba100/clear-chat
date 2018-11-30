@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using ClearChat.Core.Crypto;
@@ -6,7 +7,7 @@ using ClearChat.Core.Domain;
 
 namespace ClearChat.Core.Repositories
 {
-    public class CachingMessageRepository : IMessageRepository
+    public class ChannelCachingMessageRepository : IMessageRepository
     {
         private readonly ConcurrentDictionary<string, List<string>> m_UserToChannelCache
             = new ConcurrentDictionary<string, List<string>>();
@@ -17,7 +18,7 @@ namespace ClearChat.Core.Repositories
         private readonly IMessageRepository m_MessageRepository;
         private readonly IStringHasher m_StringHasher;
 
-        public CachingMessageRepository(IMessageRepository messageRepository, 
+        public ChannelCachingMessageRepository(IMessageRepository messageRepository, 
                                         IStringHasher stringHasher)
         {
             m_MessageRepository = messageRepository;
@@ -29,9 +30,9 @@ namespace ClearChat.Core.Repositories
             return m_MessageRepository.ChannelMessages(channelName);
         }
 
-        public void WriteMessage(ChatMessage message)
+        public ChatMessage WriteMessage(string userId, string channelName, string message, DateTime timeStampUtc)
         {
-            m_MessageRepository.WriteMessage(message);
+            return m_MessageRepository.WriteMessage(userId, channelName, message, timeStampUtc);
         }
 
         public void ClearChannel(string channelName)
@@ -91,6 +92,11 @@ namespace ClearChat.Core.Repositories
                     m_MessageRepository.GetChannelMembershipsForChannel(channelName).ToList();
             }
             return m_MessageRepository.GetChannelMembershipsForChannel(channelName);
+        }
+
+        public void DeleteMessage(int messageId)
+        {
+            m_MessageRepository.DeleteMessage(messageId);
         }
     }
 }

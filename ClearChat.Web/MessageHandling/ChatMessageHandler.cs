@@ -8,27 +8,18 @@ namespace ClearChat.Web.MessageHandling
 {
     internal class ChatMessageHandler : IMessageHandler
     {
-        private readonly IChatMessageFactory m_ChatMessageFactory;
         private readonly IMessageRepository m_MessageRepository;
-        private readonly IChatContext m_ChatContext;
         private readonly IAutoResponseRepository m_AutoResponseRepository;
 
-        public ChatMessageHandler(IChatMessageFactory chatMessageFactory, 
-                                  IMessageRepository messageRepository,
-                                  IChatContext chatContext,
-                                  IAutoResponseRepository autoResponseRepository)
+        public ChatMessageHandler(IMessageRepository messageRepository,
+                                  IAutoResponseRepository autoresponseRepository)
         {
-            m_ChatMessageFactory = chatMessageFactory
-                ?? throw new ArgumentNullException(nameof(chatMessageFactory));
-
             m_MessageRepository = messageRepository
                 ?? throw new ArgumentNullException(nameof(messageRepository));
 
-            m_ChatContext = chatContext
-                ?? throw new ArgumentNullException(nameof(chatContext));
+            m_AutoResponseRepository = autoresponseRepository
+                ?? throw new ArgumentNullException(nameof(autoresponseRepository));
 
-            m_AutoResponseRepository = autoResponseRepository
-                ?? throw new ArgumentNullException(nameof(autoResponseRepository));
         }
 
         public bool Handle(MessageContext context)
@@ -40,12 +31,11 @@ namespace ClearChat.Web.MessageHandling
                                                         $"Error: you are not in channel {context.ChannelName}.");
                 return true;
             }
-            var chatMessage = m_ChatMessageFactory.Create(context.UserId,
-                                                          context.Message, 
-                                                          context.ChannelName,
-                                                          DateTime.UtcNow);
             
-            m_MessageRepository.WriteMessage(chatMessage);
+            var chatMessage = m_MessageRepository.WriteMessage(context.UserId,
+                                                               context.ChannelName,
+                                                               context.Message,
+                                                               DateTime.UtcNow);
             context.MessageHub.Publish(chatMessage);
 
             var autoResponse = m_AutoResponseRepository.GetResponse(chatMessage.Message);
