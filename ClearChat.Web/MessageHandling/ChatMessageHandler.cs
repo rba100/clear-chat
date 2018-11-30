@@ -24,12 +24,11 @@ namespace ClearChat.Web.MessageHandling
                                                         $"Error: you are not in channel {context.ChannelName}.");
                 return true;
             }
-            var chatMessage = new ChatMessage(context.UserId,
-                                              context.Message, 
-                                              context.ChannelName,
-                                              DateTime.UtcNow);
             
-            m_MessageRepository.WriteMessage(chatMessage);
+            var chatMessage = m_MessageRepository.WriteMessage(context.UserId,
+                                                               context.ChannelName,
+                                                               context.Message,
+                                                               DateTime.UtcNow);
             context.MessageHub.Publish(chatMessage);
 
             return true;

@@ -24,7 +24,7 @@ namespace ClearChat.Web
         {
             var connString = Environment.GetEnvironmentVariable("ClearChat", EnvironmentVariableTarget.Machine);
             var hasher = new Sha256StringHasher();
-            var msgRepo = new CachingMessageRepository(new SqlServerMessageRepository(connString,
+            var msgRepo = new ChannelCachingMessageRepository(new SqlServerMessageRepository(connString,
                                                          new AesStringProtector(new byte[32]),
                                                          hasher), hasher);
 
