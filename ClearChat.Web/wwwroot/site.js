@@ -49,7 +49,7 @@ $(function () {
                 cache.messages.splice(index, 1);
                 if (channel === model.selectedChannel) dataRefresh(
                     messageContainer,
-                    cache.messages.map(toMessageControlDataBinding()));
+                    cache.messages.map(toMessageControlDataBinding));
             }
         });
 
