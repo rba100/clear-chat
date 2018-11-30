@@ -41,6 +41,22 @@ html, body {
     visibility: visible;
 }
 
+.message-section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    flex-grow: 1;
+    min-width: 1px;
+}
+
+.message-section-content {
+    width: 100%;
+    max-height: calc(100% - 60px);
+    flex-grow: 1;
+    overflow: auto;
+}
+
 .nav-section-header {
     padding: 0 12px 0 15px;
     margin: 0;
@@ -83,19 +99,10 @@ html, body {
         background-color: var(--nav-bg-color--selected);
     }
 
-.message-section {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    flex-grow: 1;
-    min-width: 1px;
-    padding-top: 10px;
-}
-
 .input-area {
     display: flex;
     width: 100%;
+    align-self: flex-end;
 }
 
     .input-area input {
@@ -103,7 +110,7 @@ html, body {
         font-family: NotoSans,appleLogo,sans-serif;
         font-size: 14px;
         height: 40px;
-        margin: 10px 10px 0 10px;
+        margin: 10px 10px 10px 10px;
         padding: 0 10px 0 10px;
         outline: none;
         border: none;

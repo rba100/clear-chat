@@ -29,5 +29,6 @@ namespace ClearChat.Core
         void PublishUserDetails(string connectionId, IReadOnlyCollection<string> userIds);
         void PublishUserDetails(IReadOnlyCollection<string> userIds);
         void PublishMessageDeleted(int messageId);
+        void SendChannelHistory(string channelName);
     }
 }

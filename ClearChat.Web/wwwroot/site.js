@@ -10,7 +10,7 @@ var model = {
 
 $(function () {
     var channelList = $('#nav-section-channels');
-    var outputContainer = $('#output-container');
+    var outputContainer = $('#message-section');
     var messageContainer = $('#message-container');
     var converter = new showdown.Converter();
 

@@ -53,6 +53,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             {
                 context.MessageHub.SendChannelHistory(connection, channelName);
             }
+            if(channelName == "default") context.MessageHub.SendChannelHistory(channelName);
         }
 
         public string HelpText => "Destroy all messages in a channel with: /purge channelName";

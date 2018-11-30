@@ -36,6 +36,12 @@ namespace ClearChat.Core
                                            new ChatMessage(0, "System", "system", message, DateTime.UtcNow));
         }
 
+        public void SendChannelHistory(string channelName)
+        {
+            var messages = m_MessageRepository.ChannelMessages(channelName);
+            m_ChatContext.SignalAll("channelHistory", channelName, messages);
+        }
+
         public void SendChannelHistory(string connectionId, string channelName)
         {
             var messages = m_MessageRepository.ChannelMessages(channelName);
