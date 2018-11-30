@@ -31,3 +31,10 @@ CREATE TABLE [dbo].[ChannelMembership]
     [userIdHash] [VARBINARY](256) NOT NULL,
     [channelName] [VARBINARY](MAX) NOT NULL
 );
+
+CREATE TABLE [dbo].[AutoResponses]
+(
+    [id] INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
+    [userMessage] [VARCHAR](1000) NOT NULL,
+    [response] [VARCHAR](1000) NOT NULL,
+);
