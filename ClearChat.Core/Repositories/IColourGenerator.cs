@@ -1,6 +1,4 @@
-﻿using System.Collections.Specialized;
-
-namespace ClearChat.Core.Repositories
+﻿namespace ClearChat.Core.Repositories
 {
     public interface IColourGenerator
     {

@@ -9,10 +9,17 @@ namespace ClearChat.Web.MessageHandling
     internal class ChatMessageHandler : IMessageHandler
     {
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IAutoResponseRepository m_AutoResponseRepository;
 
-        public ChatMessageHandler(IMessageRepository messageRepository)
+        public ChatMessageHandler(IMessageRepository messageRepository,
+                                  IAutoResponseRepository autoresponseRepository)
         {
-            m_MessageRepository = messageRepository;
+            m_MessageRepository = messageRepository
+                ?? throw new ArgumentNullException(nameof(messageRepository));
+
+            m_AutoResponseRepository = autoresponseRepository
+                ?? throw new ArgumentNullException(nameof(autoresponseRepository));
+
         }
 
         public bool Handle(MessageContext context)
@@ -30,6 +37,14 @@ namespace ClearChat.Web.MessageHandling
                                                                context.Message,
                                                                DateTime.UtcNow);
             context.MessageHub.Publish(chatMessage);
+
+            var autoResponse = m_AutoResponseRepository.GetResponse(chatMessage.Message);
+            if (autoResponse == null) return true;
+            var autoReponseChangeMessage = m_MessageRepository.WriteMessage("ClearBot",
+                                                                            context.ChannelName,
+                                                                            autoResponse,
+                                                                            DateTime.UtcNow);
+            context.MessageHub.Publish(autoReponseChangeMessage);
 
             return true;
         }

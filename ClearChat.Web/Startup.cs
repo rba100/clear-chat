@@ -31,11 +31,12 @@ namespace ClearChat.Web
             services.AddSignalR();
             services.AddSingleton<IChatContext>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
             services.AddSingleton<IMessageRepository>(sp => msgRepo);
+            services.AddSingleton<IAutoResponseRepository>(sp => new AutoResponseRepository(connString, hasher));
             services.AddSingleton<IColourGenerator, ColourGenerator>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(
                 new SqlServerUserRepository(connString, hasher, sp.GetService<IColourGenerator>())));
             services.AddSingleton<IConnectionManager, ConnectionManager>();
-            services.AddSingleton<IMessageHandler>(s=>new CompositeMessageHandler(new IMessageHandler[]
+            services.AddSingleton<IMessageHandler>(s => new CompositeMessageHandler(new IMessageHandler[]
             {
                 new SlashCommandMessageHandler(new ISlashCommand[]
                 {
@@ -43,9 +44,10 @@ namespace ClearChat.Web
                     new JoinChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
                     new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher),
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
-                    new DeleteMessageCommand(s.GetService<IMessageRepository>())
+                    new DeleteMessageCommand(s.GetService<IMessageRepository>()),
+                    new AutoResponseCommand(s.GetService<IMessageRepository>(), s.GetService<IAutoResponseRepository>())
                 }),
-                new ChatMessageHandler(msgRepo)
+                new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>())
             }));
 
             services.AddSingleton<IMessageHub, ChatController>();
