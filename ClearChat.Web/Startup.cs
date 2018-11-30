@@ -32,7 +32,6 @@ namespace ClearChat.Web
             services.AddSingleton<IChatContext>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
             services.AddSingleton<IMessageRepository>(sp => msgRepo);
             services.AddSingleton<IColourGenerator, ColourGenerator>();
-            services.AddSingleton<IChatMessageFactory, ChatMessageFactory>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(
                 new SqlServerUserRepository(connString, hasher, sp.GetService<IColourGenerator>())));
             services.AddSingleton<IConnectionManager, ConnectionManager>();
@@ -45,7 +44,7 @@ namespace ClearChat.Web
                     new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher),
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>())
                 }),
-                new ChatMessageHandler(s.GetService<IChatMessageFactory>(),msgRepo,s.GetService<IChatContext>())
+                new ChatMessageHandler(msgRepo)
             }));
 
             services.AddSingleton<IMessageHub, ChatController>();
