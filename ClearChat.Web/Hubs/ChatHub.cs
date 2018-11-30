@@ -62,7 +62,7 @@ namespace ClearChat.Web.Hubs
             {
                 return;
             }
-            m_MessageHub.SendChannelList(Context.ConnectionId);
+            m_MessageHub.UpdateChannelMembership(Context.ConnectionId);
         }
 
         public override Task OnConnectedAsync()
