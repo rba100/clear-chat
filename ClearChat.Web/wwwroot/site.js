@@ -8,6 +8,8 @@ var model = {
     userIdToColour: {}
 };
 
+var lastTypingMessage;
+
 $(function () {
     var channelList = $('#nav-section-channels');
     var outputContainer = $('#output-container');
@@ -100,8 +102,11 @@ $(function () {
     });
 
     connection.on("isTyping",
-        function(typerName) {
+        function (typerName) {
+            lastTypingMessage = Date.now();
+            console.log(lastTypingMessage);
             typingNotifier.text(typerName + " is typing...");
+            setTimeout(clearTypingNotifier, 1000);
         }
     );
 
@@ -172,5 +177,13 @@ $(function () {
 
     function scrollToBottom() {
         outputContainer.scrollTop(2000000000);
+    }
+
+    function clearTypingNotifier() {
+        if ((Date.now() - lastTypingMessage) > 4000)
+            typingNotifier.text("");
+
+        setTimeout(clearTypingNotifier(), 1000);
+
     }
 });

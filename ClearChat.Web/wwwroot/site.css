@@ -161,3 +161,14 @@ html, body {
     .hover-show:hover {
         color: inherit;
     }
+
+.typingnotifier {
+    width: 100%;
+    font-family: NotoSans,appleLogo,sans-serif;
+    font-size: 10px;
+    height: 18px;
+    margin: 0;
+    padding: 0 10px 0 10px;
+    outline: none;
+    border: none;
+}
