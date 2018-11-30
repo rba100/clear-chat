@@ -76,6 +76,7 @@ namespace ClearChat.Core
             {
                 m_ChatContext.AddToGroup(connectionId, channel);
             }
+            SendChannelList(connectionId);
         }
 
         public void RemoveChannelMembership(string connectionId, string channelName)
