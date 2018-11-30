@@ -166,10 +166,12 @@ $(function () {
         if (model.selectedChannel !== channelName) lastAuthor = "";
         model.selectedChannel = channelName;
         var cacheEntry = model.channelContentCache[channelName];
-        if (model.selectedChannel === channelName)
+        if (model.selectedChannel === channelName) {
             dataRefresh(
                 messageContainer,
                 cacheEntry.messages.map(toMessageControlDataBinding));
+            lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
+        }
     }
 
     function scrollToBottom() {
