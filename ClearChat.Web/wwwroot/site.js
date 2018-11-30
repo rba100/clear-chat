@@ -56,6 +56,7 @@ $(function () {
     connection.on("channelMembership",
         function (names) {
             var shouldChangeChannel = names.indexOf(model.selectedChannel) === -1;
+            if (shouldChangeChannel) model.selectedChannel = names[0];
             model.channels = names;
             channelList.html("");
             for (var i = 0; i < names.length; i++) {
