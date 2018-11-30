@@ -39,10 +39,12 @@ namespace ClearChat.Web.MessageHandling
             context.MessageHub.Publish(chatMessage);
 
             var autoResponse = m_AutoResponseRepository.GetResponse(chatMessage.Message);
-            if (autoResponse != null)
-            {
-                context.MessageHub.PublishSystemMessage(context.ConnectionId, autoResponse);
-            }
+            if (autoResponse == null) return true;
+            var autoReponseChangeMessage = m_MessageRepository.WriteMessage("ClearBot",
+                                                                            context.ChannelName,
+                                                                            autoResponse,
+                                                                            DateTime.UtcNow);
+            context.MessageHub.Publish(autoReponseChangeMessage);
 
             return true;
         }

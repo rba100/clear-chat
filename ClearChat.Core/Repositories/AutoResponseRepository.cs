@@ -1,26 +1,29 @@
 ﻿using System;
 using System.Linq;
+using ClearChat.Core.Crypto;
 using ClearChat.Core.Exceptions;
 using ClearChat.Core.Repositories.Bindings;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClearChat.Core.Repositories
 {
-    internal sealed class AutoResponseRepository : IAutoResponseRepository
+    public sealed class AutoResponseRepository : IAutoResponseRepository
     {
         private readonly string m_ConnectionString;
+        private readonly IStringHasher m_StringHasher;
 
-        public AutoResponseRepository(string connectionString)
+        public AutoResponseRepository(string connectionString, IStringHasher stringHasher)
         {
             m_ConnectionString = connectionString
                 ?? throw new ArgumentNullException(nameof(connectionString));
+            m_StringHasher = stringHasher ?? throw new ArgumentNullException(nameof(stringHasher));
         }
 
         public string GetResponse(string message)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                return db.AutoResponses.FirstOrDefault(m => m.Message == message)?.Response;
+                return db.AutoResponses.FirstOrDefault(m => message.Contains(m.Substring))?.Response;
             }
         }
 
@@ -28,15 +31,15 @@ namespace ClearChat.Core.Repositories
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                if (db.AutoResponses.Any(r => r.Message == message))
+                if (db.AutoResponses.Any(r => r.Substring == message))
                 {
                     throw new ArgumentException(nameof(message));
                 }
 
                 db.AutoResponses.Add(new AutoResponseBinding
                 {
-                    UserId = userId,
-                    Message = message,
+                    UserIdHash = m_StringHasher.Hash(userId),
+                    Substring = message,
                     Response = response
                 });
                 db.SaveChanges();

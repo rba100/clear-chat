@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ClearChat.Core.Repositories.Bindings
 {
-    [Table("autoresponses")]
+    [Table("AutoResponses")]
     internal sealed class AutoResponseBinding
     {
         [Key]
         public int Id { get; set; }
-        public string Message { get; set; }
+        public string Substring { get; set; }
         public string Response { get; set; }
-        public string UserId { get; set; }
+        public byte[] UserIdHash { get; set; }
     }
 }
