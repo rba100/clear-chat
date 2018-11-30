@@ -20,16 +20,10 @@ Front-end code will be discarded in favour of some framework, probably React. Ha
   - DateTime formatter (i.e. iso date to "5:54 PM").
   - Reconnection logic.
   - per-channel unread messages count.
+  - Make it work on Safari https://github.com/aspnet/SignalR-samples/blob/cd1e20844c47c5da5f51f74a5030c05a88152a8b/ChatSample/ChatSample/wwwroot/index.html#L75
 - Direct messages.
 - Editable and deletable messages.
-- Emoji support.
-- Choose UI framework(s). Currently Bootstrap + jQuery.
-  - UI component for login.
-  - UI component to manage current identity. I.e. you can be have more than one identity 'logged in' and you select one you wish to associate with your next message.
-  - UI component for messages.
-  - UI component for user name (in messages control).
-  - UI component for text entry.
-  - Auto-complete.
+- Auto-complete.
 - Add favicon.
 - Social justice warrior bot to ensure users repress any sentiment that could cause offence.
 - Ability to upload images, initiated by pasting from the clipboard to the input bar.
@@ -46,3 +40,4 @@ As things are now. Update here as decisions are made.
 - Static HTML files.
 - SignalR.
 - Home-made auth based on HTTP basic auth + salted hashes in DB.
+- Jism framework (HTML templating)
