@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using ClearChat.Core.Domain;
 
 namespace ClearChat.Core
 {
@@ -9,5 +11,6 @@ namespace ClearChat.Core
         Task SignalChannel(string channelName, string method, params object[] arguments);
         void AddToGroup(string connectionId, string channelName);
         void RemoveFromGroup(string connectionId, string channelName);
+        void SignalAll(string method, object argument);
     }
 }

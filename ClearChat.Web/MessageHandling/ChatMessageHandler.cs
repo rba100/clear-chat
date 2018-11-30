@@ -23,14 +23,14 @@ namespace ClearChat.Web.MessageHandling
 
         public bool Handle(MessageContext context)
         {
-            if (!m_MessageRepository.GetChannelMembershipsForUser(context.User.UserId).Contains(context.ChannelName))
+            if (!m_MessageRepository.GetChannelMembershipsForUser(context.UserId).Contains(context.ChannelName))
             {
 
                 context.MessageHub.PublishSystemMessage(context.ConnectionId,
                                                         $"Error: you are not in channel {context.ChannelName}.");
                 return true;
             }
-            var chatMessage = m_ChatMessageFactory.Create(context.User.UserId,
+            var chatMessage = m_ChatMessageFactory.Create(context.UserId,
                                                           context.Message, 
                                                           context.ChannelName,
                                                           DateTime.UtcNow);

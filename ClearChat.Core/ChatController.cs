@@ -12,19 +12,16 @@ namespace ClearChat.Core
         private readonly IMessageRepository m_MessageRepository;
         private readonly IChatContext m_ChatContext;
         private readonly IUserRepository m_UserRepository;
-        private readonly IColourGenerator m_ColourGenerator;
 
         public ChatController(IConnectionManager connectionManager,
                               IMessageRepository messageRepository,
                               IChatContext chatContext,
-                              IUserRepository userRepository,
-                              IColourGenerator colourGenerator)
+                              IUserRepository userRepository)
         {
             m_ConnectionManager = connectionManager;
             m_MessageRepository = messageRepository;
             m_ChatContext = chatContext;
             m_UserRepository = userRepository;
-            m_ColourGenerator = colourGenerator;
         }
 
         public void Publish(ChatMessage message)
@@ -52,9 +49,16 @@ namespace ClearChat.Core
                 m_ChatContext.SignalConnection(connectionId, "channelHistory", channelName, colouredMessages));
         }
 
-        public void PublishUserDetails(string connectionId, IReadOnlyCollection<User> users)
+        public void PublishUserDetails(string connectionId, IReadOnlyCollection<string> userIds)
         {
+            var users = userIds.Select(m_UserRepository.GetUserDetails);
             m_ChatContext.SignalConnection(connectionId, "userDetails", users);
+        }
+
+        public void PublishUserDetails(IReadOnlyCollection<string> userIds)
+        {
+            var users = userIds.Select(m_UserRepository.GetUserDetails).ToArray();
+            m_ChatContext.SignalAll("userDetails", users);
         }
 
         public void SendChannelList(string connectionId)
@@ -77,12 +81,6 @@ namespace ClearChat.Core
         public void RemoveChannelMembership(string connectionId, string channelName)
         {
             m_ChatContext.RemoveFromGroup(connectionId, channelName);
-        }
-
-        private string GetUserColour(string userId)
-        {
-            var chosenColour = m_UserRepository.GetUserDetails(userId).HexColour;
-            return chosenColour ?? m_ColourGenerator.GenerateFromString(userId);
         }
     }
 }

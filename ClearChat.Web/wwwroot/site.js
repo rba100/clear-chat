@@ -110,7 +110,10 @@ $(function () {
 
     function toColour(userId) {
         var knownColour = model.userIdToColour[userId];
-        if (typeof (knownColour) === "undefined") return "000000";
+        if (typeof (knownColour) === "undefined") {
+            connection.send('getUserDetails', userId);
+            return "000000";
+        }
         return knownColour;
     }
 

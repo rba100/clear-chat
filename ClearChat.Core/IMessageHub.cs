@@ -26,6 +26,7 @@ namespace ClearChat.Core
         void RemoveChannelMembership(string connectionId, string channelName);
         void SendChannelHistory(string connectionId, string channelName);
         void SendChannelList(string connectionId);
-        void PublishUserDetails(string connectionId, IReadOnlyCollection<User> users);
+        void PublishUserDetails(string connectionId, IReadOnlyCollection<string> userIds);
+        void PublishUserDetails(IReadOnlyCollection<string> userIds);
     }
 }

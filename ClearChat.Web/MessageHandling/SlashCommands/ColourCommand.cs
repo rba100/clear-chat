@@ -8,6 +8,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
     {
         private readonly IUserRepository m_UserRepository;
         private readonly IColourGenerator m_ColourGenerator;
+
         public ColourCommand(IUserRepository userRepository,
                              IColourGenerator colourGenerator)
         {
@@ -28,8 +29,9 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
-            var newUser = new User(context.User.UserId, colourStr);
+            var newUser = new User(context.UserId, colourStr);
             m_UserRepository.UpdateUser(newUser);
+            context.MessageHub.PublishUserDetails(new[]{ newUser.UserId });
         }
 
         public string HelpText => "changes your user name colour. Six character RGB hex string.";

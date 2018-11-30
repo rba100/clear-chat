@@ -21,7 +21,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
         public void Handle(MessageContext context, string arguments)
         {
-            var userId = context.User.UserId;
+            var userId = context.UserId;
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())
             {

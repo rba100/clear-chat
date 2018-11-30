@@ -45,6 +45,7 @@ namespace ClearChat.Core.Repositories
                              .Take(400)
                              .ToArray()
                              .Select(m => FromBinding(m, channelName))
+                             .Reverse()
                              .ToArray();
                 return msgs;
             }

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using ClearChat.Core;
+using ClearChat.Core.Domain;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ClearChat.Web
@@ -36,6 +38,11 @@ namespace ClearChat.Web
         public void RemoveFromGroup(string connectionId, string channelName)
         {
             m_Context.Groups.RemoveFromGroupAsync(connectionId, channelName);
+        }
+
+        public void SignalAll(string method, object argument)
+        {
+            m_Context.Clients.All.SendAsync(method, argument);
         }
     }
 }
