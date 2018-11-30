@@ -37,4 +37,5 @@ CREATE TABLE [dbo].[AutoResponses]
     [id] INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
     [userMessage] [VARCHAR](1000) NOT NULL,
     [response] [VARCHAR](1000) NOT NULL,
+    FOREIGN KEY userIdHash REFERENCES [dbo].[Users](userIdHash)
 );
