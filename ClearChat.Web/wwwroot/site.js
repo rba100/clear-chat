@@ -170,7 +170,8 @@ $(function () {
             dataRefresh(
                 messageContainer,
                 cacheEntry.messages.map(toMessageControlDataBinding));
-            lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
+            if (cacheEntry.messages.length)
+                lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
         }
     }
 
