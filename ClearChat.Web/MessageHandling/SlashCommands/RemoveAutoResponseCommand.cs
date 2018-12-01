@@ -35,7 +35,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             context.MessageHub.PublishSystemMessage(context.ConnectionId, $"Successfully removed auto response for '{parameterArray[0]}'.");
         }
 
-        public string HelpText => "Adds an automatic response, usage /autoresponse \"ping\" \"pong\"";
+        public string HelpText => "Removes an automatic response, usage /removeautoresponse \"ping\"";
 
         private static string[] SplitParameters(string input)
         {
