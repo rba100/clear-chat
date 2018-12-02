@@ -31,7 +31,9 @@ namespace ClearChat.Web
             services.AddSingleton<IChatContext>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
             services.AddSingleton<IMessageRepository>(sp => msgRepo);
             services.AddSingleton<IAutoResponseRepository>(sp => new RateLimitingAutoResponseRepository(
-                new AutoResponseRepository(connString, hasher), TimeSpan.FromMinutes(20)));
+                                                                     new CachingAutoResponseRepository(
+                                                                         new AutoResponseRepository(connString, hasher),
+                                                                         hasher), TimeSpan.FromMinutes(20)));
             services.AddSingleton<IColourGenerator, ColourGenerator>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(
                 new SqlServerUserRepository(connString, hasher, sp.GetService<IColourGenerator>())));
