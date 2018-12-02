@@ -11,6 +11,7 @@ var model = {
 $(function () {
     var channelList = $('#nav-section-channels');
     var messageContainer = $('#message-container');
+    var showNewMessageScrollWarning = $('#new-message-scroll-warning');
     var converter = new showdown.Converter();
 
     var lastAuthor = "";
@@ -32,6 +33,19 @@ $(function () {
         $('#text-input').focus();
     });
 
+    showNewMessageScrollWarning.click(function() {
+        showNewMessageScrollWarning.hide();
+        messageContainer.children().last()[0].scrollIntoView();
+    });
+    function isScrolledToBottom() {
+        return messageContainer[0].scrollHeight - messageContainer.scrollTop()
+            === messageContainer.outerHeight();
+    }
+
+    messageContainer.scroll(function() {
+        if (isScrolledToBottom()) showNewMessageScrollWarning.hide();
+    });
+
     connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")
         .build();
@@ -46,7 +60,10 @@ $(function () {
             var cacheEntry = model.channelContentCache[chatItemRaw.channelName];
             if (cacheEntry) cacheEntry.messages.push(chatItemRaw);
             if (model.selectedChannel === chatItemRaw.channelName || chatItemRaw.channelName === "system") {
-                appendSingleMessage(chatItemRaw).scrollIntoView();
+                var scrolled = isScrolledToBottom();
+                var newMessage = appendSingleMessage(chatItemRaw);
+                if (scrolled) newMessage.scrollIntoView();
+                else showNewMessageScrollWarning.show();
             } else {
                 var channelLinkIndex = model.channels.indexOf(chatItemRaw.channelName);
                 if (channelLinkIndex < 0) return;
@@ -181,8 +198,10 @@ $(function () {
         dataRefresh(
             messageContainer,
             cacheEntry.messages.map(toMessageControlDataBinding));
-        if (cacheEntry.messages.length)
+        if (cacheEntry.messages.length) {
             lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
-        messageContainer.children().last()[0].scrollIntoView();
+            messageContainer.children().last()[0].scrollIntoView();
+        }
+        showNewMessageScrollWarning.hide();
     }
 });

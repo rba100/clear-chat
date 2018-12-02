@@ -72,19 +72,19 @@ html, body {
     padding: 0 0 0 30px;
 }
 
-.nav-section-channel-link, .nav-section-channel-link a {
-    display: flex;
-    align-items: center;
-    height: 26px;
-    line-height: 26px;
-    cursor: pointer;
-    text-decoration: none;
-    color: var(--nav-fg-color);
-}
-
-    .nav-section-channel-link:hover {
-        background-color: #4e6d9b;
+    .nav-section-channel-link, .nav-section-channel-link a {
+        display: flex;
+        align-items: center;
+        height: 26px;
+        line-height: 26px;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--nav-fg-color);
     }
+
+        .nav-section-channel-link:hover {
+            background-color: #4e6d9b;
+        }
 
 .nav-section-channel-link-unread, .nav-section-channel-link-unread a {
     font-weight: 700;
@@ -93,8 +93,9 @@ html, body {
 
 .nav-section-channel-link-selected, .nav-section-channel-link-selected a {
     background-color: var(--nav-bg-color--selected);
-     color: var(--nav-fg-color--selected);
+    color: var(--nav-fg-color--selected);
 }
+
     .nav-section-channel-link-selected:hover {
         background-color: var(--nav-bg-color--selected);
     }
@@ -138,9 +139,9 @@ html, body {
     display: inline;
 }
 
-.message-content p {
-    display: inline;
-}
+    .message-content p {
+        display: inline;
+    }
 
 .message-gutter {
     float: left;
@@ -167,4 +168,21 @@ html, body {
 
     .hover-show:hover {
         color: inherit;
+    }
+
+#new-message-scroll-warning {
+    position: absolute;
+    bottom: 60px;
+    width: 100%;
+}
+
+    #new-message-scroll-warning p {
+        background-color: #cc3434;
+        margin: auto;
+        text-align: center;
+        width: fit-content;
+        padding: 1px 10px 1px 10px;
+        border-radius: 10px;
+        color: white;
+        cursor: pointer;
     }
