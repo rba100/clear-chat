@@ -15,13 +15,13 @@ $(function () {
     var converter = new showdown.Converter();
 
     var lastAuthor = "";
-    var lastMessageSent = "";
+    var inputHistoryIndex = 0;
+    var inputHistory = [];
 
     // Global key handler - focus text input if typing
     $(document).on('keydown', function(event) {
         if (event.target.id === 'text-input'
-            || event.shiftKey
-            || shiftKey.ctrlKey) return;
+            || event.ctrlKey) return;
         $('#text-input').focus();
     });
 
@@ -111,7 +111,13 @@ $(function () {
         });
         $('#text-input').keydown(function (e) {
             if (e.which === 38) { // UP ARROW
-                $('#text-input').val(lastMessageSent);
+                if (inputHistoryIndex < inputHistory.length) {
+                    $('#text-input').val(inputHistory[inputHistory.length - 1 - inputHistoryIndex++]);
+                }
+            } else if(e.which === 40) { // DOWN ARROW
+                if (inputHistoryIndex > 0) {
+                    $('#text-input').val(inputHistory[inputHistory.length - 1 - --inputHistoryIndex]);
+                }
             }
         });
         $('#text-input').focus();
@@ -142,7 +148,8 @@ $(function () {
     function send() {
         var message = $('#text-input').val();
         if (message === "") return;
-        lastMessageSent = message;
+        inputHistory.push(message);
+        inputHistoryIndex = 0;
         var eventData = { Channel: model.selectedChannel, Body: message };
         connection.send("send", eventData).catch(function (error) {
             console.log(error);
