@@ -17,6 +17,14 @@ $(function () {
     var lastAuthor = "";
     var lastMessageSent = "";
 
+    // Global key handler - focus text input if typing
+    $(document).on('keydown', function(event) {
+        if (event.target.id === 'text-input'
+            || event.shiftKey
+            || shiftKey.ctrlKey) return;
+        $('#text-input').focus();
+    });
+
     connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")
         .build();
