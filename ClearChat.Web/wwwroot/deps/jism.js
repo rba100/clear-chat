@@ -41,12 +41,6 @@ function dataRefresh(element, parameters) {
                 }
                 continue;
             }
-            var dataFieldTarget = element.find("[data-field='" + key + "']")
-                .addBack("[data-field='" + key + "']");
-            if (dataFieldTarget.length) {
-                dataFieldTarget.data(key, dataValue);
-                continue;
-            }
             var styleTarget = element.find("[data-css='" + key + "']");
             if (styleTarget.length) {
                 for (var cssKey in dataValue) {
