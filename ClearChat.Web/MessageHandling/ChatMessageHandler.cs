@@ -3,6 +3,7 @@ using System.Linq;
 using ClearChat.Core;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
+using ClearChat.Web.MessageHandling.MessageTransformers;
 
 namespace ClearChat.Web.MessageHandling
 {
@@ -31,12 +32,16 @@ namespace ClearChat.Web.MessageHandling
                                                         $"Error: you are not in channel {context.ChannelName}.");
                 return true;
             }
-            
+
+            var message = new ImageLinkMessageTransformer().Transform(context.Message);
+
             var chatMessage = m_MessageRepository.WriteMessage(context.UserId,
                                                                context.ChannelName,
-                                                               context.Message,
+                                                               message,
                                                                DateTime.UtcNow);
             context.MessageHub.Publish(chatMessage);
+
+            if (message != context.Message) return true;
 
             var autoResponse = m_AutoResponseRepository.GetResponse(chatMessage.Message);
             if (autoResponse == null) return true;
