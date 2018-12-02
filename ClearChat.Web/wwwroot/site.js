@@ -18,10 +18,18 @@ $(function () {
     var inputHistoryIndex = 0;
     var inputHistory = [];
 
-    // Global key handler - focus text input if typing
-    $(document).on('keydown', function(event) {
-        if (event.target.id === 'text-input'
-            || event.ctrlKey) return;
+    // Global key handler
+    $(document).on('keydown', function (e) {
+        if (e.which === 38) { // UP ARROW
+            if (inputHistoryIndex < inputHistory.length) {
+                $('#text-input').val(inputHistory[inputHistory.length - 1 - inputHistoryIndex++]);
+            }
+        } else if (e.which === 40) { // DOWN ARROW
+            if (inputHistoryIndex > 0) {
+                $('#text-input').val(inputHistory[inputHistory.length - 1 - --inputHistoryIndex]);
+            }
+        }
+        if (e.target.id === 'text-input' || e.ctrlKey) return;
         $('#text-input').focus();
     });
 
@@ -109,17 +117,6 @@ $(function () {
                 send();
             }
         });
-        $('#text-input').keydown(function (e) {
-            if (e.which === 38) { // UP ARROW
-                if (inputHistoryIndex < inputHistory.length) {
-                    $('#text-input').val(inputHistory[inputHistory.length - 1 - inputHistoryIndex++]);
-                }
-            } else if(e.which === 40) { // DOWN ARROW
-                if (inputHistoryIndex > 0) {
-                    $('#text-input').val(inputHistory[inputHistory.length - 1 - --inputHistoryIndex]);
-                }
-            }
-        });
         $('#text-input').focus();
         connection.send('GetChannels');
     });
@@ -137,18 +134,18 @@ $(function () {
     }
 
     function toColour(userId) {
-        var knownColour = model.userIdToColour[userId];
-        if (typeof (knownColour) === "undefined") {
+        if (typeof (model.userIdToColour[userId]) === "undefined") {
+            model.userIdToColour[userId] = "000000";
             connection.send('getUserDetails', userId);
-            return "000000";
         }
-        return knownColour;
+        return model.userIdToColour[userId];
     }
 
     function send() {
         var message = $('#text-input').val();
         if (message === "") return;
         inputHistory.push(message);
+        if (inputHistory.length > 40) inputHistory.shift();
         inputHistoryIndex = 0;
         var eventData = { Channel: model.selectedChannel, Body: message };
         connection.send("send", eventData).catch(function (error) {
