@@ -162,7 +162,7 @@ $(function () {
         }
         messageContainer.append(messageElement);
         lastAuthor = chatItem.userId;
-        scrollToBottom();
+        messageElement[0].scrollIntoView();
     }
 
     function changeChannelHandler(channelName) {
@@ -186,9 +186,5 @@ $(function () {
             if (cacheEntry.messages.length)
                 lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
         }
-    }
-
-    function scrollToBottom() {
-        outputContainer.scrollTop(2000000000);
     }
 });
