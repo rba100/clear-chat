@@ -39,12 +39,6 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
-            if (response.Contains(substringTrigger))
-            {
-                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: that is silly. Think about it.");
-                return;
-            }
-
             try
             {
                 m_AutoResponseRepository.AddResponse(context.UserId, substringTrigger, response);
