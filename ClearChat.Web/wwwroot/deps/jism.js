@@ -39,17 +39,28 @@ function dataRefresh(element, parameters) {
                 else if (typeof (dataValue) === "object") {
                     dataRefresh(target, dataValue);
                 }
+                continue;
             }
             var dataFieldTarget = element.find("[data-field='" + key + "']")
                 .addBack("[data-field='" + key + "']");
             if (dataFieldTarget.length) {
                 dataFieldTarget.data(key, dataValue);
+                continue;
             }
             var styleTarget = element.find("[data-css='" + key + "']");
             if (styleTarget.length) {
                 for (var cssKey in dataValue) {
                     styleTarget.css(cssKey, dataValue[cssKey]);
                 }
+                continue;
+            }
+            var attributeTarget = element.attr('data-attr') === key
+                ? element : element.find("[data-attr='" + key + "']");
+            if (attributeTarget.length) {
+                for (var attrKey in dataValue) {
+                    attributeTarget.attr(attrKey, dataValue[attrKey]);
+                }
+                continue;
             }
         }
     }
