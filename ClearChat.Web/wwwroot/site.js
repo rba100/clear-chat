@@ -10,8 +10,8 @@ var model = {
 
 $(function () {
     var channelList = $('#nav-section-channels');
-    var outputContainer = $('#message-section');
     var messageContainer = $('#message-container');
+    var showNewMessageScrollWarning = $('#new-message-scroll-warning');
     var converter = new showdown.Converter();
 
     var lastAuthor = "";
@@ -33,6 +33,19 @@ $(function () {
         $('#text-input').focus();
     });
 
+    showNewMessageScrollWarning.click(function() {
+        showNewMessageScrollWarning.hide();
+        messageContainer.children().last()[0].scrollIntoView();
+    });
+    function isScrolledToBottom() {
+        return messageContainer[0].scrollHeight - messageContainer.scrollTop()
+            === messageContainer.outerHeight();
+    }
+
+    messageContainer.scroll(function() {
+        if (isScrolledToBottom()) showNewMessageScrollWarning.hide();
+    });
+
     connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")
         .build();
@@ -47,7 +60,10 @@ $(function () {
             var cacheEntry = model.channelContentCache[chatItemRaw.channelName];
             if (cacheEntry) cacheEntry.messages.push(chatItemRaw);
             if (model.selectedChannel === chatItemRaw.channelName || chatItemRaw.channelName === "system") {
-                appendSingleMessage(chatItemRaw);
+                var scrolled = isScrolledToBottom();
+                var newMessage = appendSingleMessage(chatItemRaw);
+                if (scrolled) newMessage.scrollIntoView();
+                else showNewMessageScrollWarning.show();
             } else {
                 var channelLinkIndex = model.channels.indexOf(chatItemRaw.channelName);
                 if (channelLinkIndex < 0) return;
@@ -57,10 +73,10 @@ $(function () {
         });
 
     connection.on('deleteMessage',
-        function(messageId) {
+        function (messageId) {
             for (var channel in model.channelContentCache) {
                 var cache = model.channelContentCache[channel];
-                var index = cache.messages.findIndex(function(item) { return item.id === messageId; });
+                var index = cache.messages.findIndex(function (item) { return item.id === messageId; });
                 if (index === -1) continue;
                 cache.messages.splice(index, 1);
                 if (channel === model.selectedChannel) dataRefresh(
@@ -95,7 +111,7 @@ $(function () {
         });
 
     connection.on("userDetails",
-        function(users) {
+        function (users) {
             for (var index in users) {
                 var user = users[index];
                 model.userIdToColour[user.userId] = user.hexColour;
@@ -162,11 +178,11 @@ $(function () {
         }
         messageContainer.append(messageElement);
         lastAuthor = chatItem.userId;
-        messageElement[0].scrollIntoView();
+        return messageElement[0];
     }
 
     function changeChannelHandler(channelName) {
-        return function() {
+        return function () {
             var link = $(this);
             channelList.children().removeClass('nav-section-channel-link-selected');
             link.addClass('nav-section-channel-link-selected');
@@ -179,12 +195,13 @@ $(function () {
         if (model.selectedChannel !== channelName) lastAuthor = "";
         model.selectedChannel = channelName;
         var cacheEntry = model.channelContentCache[channelName];
-        if (model.selectedChannel === channelName) {
-            dataRefresh(
-                messageContainer,
-                cacheEntry.messages.map(toMessageControlDataBinding));
-            if (cacheEntry.messages.length)
-                lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
+        dataRefresh(
+            messageContainer,
+            cacheEntry.messages.map(toMessageControlDataBinding));
+        if (cacheEntry.messages.length) {
+            lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
+            messageContainer.children().last()[0].scrollIntoView();
         }
+        showNewMessageScrollWarning.hide();
     }
 });
