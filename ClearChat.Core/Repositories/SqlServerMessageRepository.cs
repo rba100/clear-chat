@@ -174,11 +174,9 @@ namespace ClearChat.Core.Repositories
 
         public IReadOnlyCollection<byte[]> GetChannelMembershipsForChannel(string channelName)
         {
-            var channelNameEnc = m_StringProtector.Protect(channelName);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var memberships = db.Memberships.Where(m => m.ChannelName == channelNameEnc).ToArray();
+                var memberships = db.Memberships.Where(m => m_StringProtector.Unprotect(m.ChannelName) == channelName).ToArray();
                 return memberships.Select(m => m.UserIdHash).ToArray();
             }
         }
