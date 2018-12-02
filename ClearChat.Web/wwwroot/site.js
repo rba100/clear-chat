@@ -140,12 +140,12 @@ $(function () {
     // See message-template in index.html
     function toMessageControlDataBinding(chatItem) {
         return {
-            id: chatItem.id,
             userId: chatItem.userId,
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
             message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
-            userIdcss: { color: '#' + toColour(chatItem.userId) }
+            userIdcss: { color: '#' + toColour(chatItem.userId) },
+            headerAttributes: { title: chatItem.id }
         };
     }
 
