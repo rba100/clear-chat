@@ -15,7 +15,23 @@ $(function () {
     var converter = new showdown.Converter();
 
     var lastAuthor = "";
-    var lastMessageSent = "";
+    var inputHistoryIndex = 0;
+    var inputHistory = [];
+
+    // Global key handler
+    $(document).on('keydown', function (e) {
+        if (e.which === 38) { // UP ARROW
+            if (inputHistoryIndex < inputHistory.length) {
+                $('#text-input').val(inputHistory[inputHistory.length - 1 - inputHistoryIndex++]);
+            }
+        } else if (e.which === 40) { // DOWN ARROW
+            if (inputHistoryIndex > 0) {
+                $('#text-input').val(inputHistory[inputHistory.length - 1 - --inputHistoryIndex]);
+            }
+        }
+        if (e.target.id === 'text-input' || e.ctrlKey) return;
+        $('#text-input').focus();
+    });
 
     connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")
@@ -101,11 +117,6 @@ $(function () {
                 send();
             }
         });
-        $('#text-input').keydown(function (e) {
-            if (e.which === 38) { // UP ARROW
-                $('#text-input').val(lastMessageSent);
-            }
-        });
         $('#text-input').focus();
         connection.send('GetChannels');
     });
@@ -123,18 +134,19 @@ $(function () {
     }
 
     function toColour(userId) {
-        var knownColour = model.userIdToColour[userId];
-        if (typeof (knownColour) === "undefined") {
+        if (typeof (model.userIdToColour[userId]) === "undefined") {
+            model.userIdToColour[userId] = "000000";
             connection.send('getUserDetails', userId);
-            return "000000";
         }
-        return knownColour;
+        return model.userIdToColour[userId];
     }
 
     function send() {
         var message = $('#text-input').val();
         if (message === "") return;
-        lastMessageSent = message;
+        inputHistory.push(message);
+        if (inputHistory.length > 40) inputHistory.shift();
+        inputHistoryIndex = 0;
         var eventData = { Channel: model.selectedChannel, Body: message };
         connection.send("send", eventData).catch(function (error) {
             console.log(error);
@@ -150,7 +162,7 @@ $(function () {
         }
         messageContainer.append(messageElement);
         lastAuthor = chatItem.userId;
-        scrollToBottom();
+        messageElement[0].scrollIntoView();
     }
 
     function changeChannelHandler(channelName) {
@@ -174,9 +186,5 @@ $(function () {
             if (cacheEntry.messages.length)
                 lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
         }
-    }
-
-    function scrollToBottom() {
-        outputContainer.scrollTop(2000000000);
     }
 });

@@ -19,7 +19,7 @@ namespace ClearChat.Core
 
         public void RegisterDisconnection(string connectionId)
         {
-            m_ConnectionToUserId.Remove(connectionId, out string userId);
+            if(!m_ConnectionToUserId.Remove(connectionId, out string userId)) return;
             if(m_UserIdToConnection.TryGetValue(userId, out var connectionList))
             {
                 lock (connectionList) connectionList.Remove(connectionId);
