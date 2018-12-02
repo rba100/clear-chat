@@ -47,8 +47,8 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             m_MessageRepository.ClearChannel(channelName);
             var userIdHashes = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
             var hashes = m_ConnectionManager.GetUsers().ToDictionary(u => m_StringHasher.Hash(u), u=>u);
-            var affectedUserHashes = userIdHashes.Intersect(hashes.Keys, new ArrayEqualityComparer<byte>());
-            var affectedUsers = hashes.Where(kvp => affectedUserHashes.Contains(kvp.Key, new ArrayEqualityComparer<byte>()));
+            var affectedUserHashes = userIdHashes.Intersect(hashes.Keys, ArrayEqualityComparer<byte>.Default);
+            var affectedUsers = hashes.Where(kvp => affectedUserHashes.Contains(kvp.Key, ArrayEqualityComparer<byte>.Default));
             var affectedConnections = affectedUsers.SelectMany(u => m_ConnectionManager.GetConnectionsForUser(u.Value));
             foreach (var connection in affectedConnections)
             {

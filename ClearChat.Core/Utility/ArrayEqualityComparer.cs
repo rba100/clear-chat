@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace ClearChat.Core.Utility
 {
-    public static class ArrayEqualityComparer
-    {
-        public static IEqualityComparer<T[]> Create<T>(
-            IEqualityComparer<T> comparer)
-        {
-            return new ArrayEqualityComparer<T>(comparer);
-        }
-    }
-
     public sealed class ArrayEqualityComparer<T> : IEqualityComparer<T[]>
     {
         private static readonly IEqualityComparer<T[]> defaultInstance = new
