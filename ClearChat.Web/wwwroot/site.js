@@ -124,7 +124,11 @@ $(function () {
             if (!cacheEntry) return;
             model.channelContentCache[channelName].lastAuthor = "";
             model.channelContentCache[channelName].messages = historyItems;
-            if (model.selectedChannel === channelName) dataRefresh(messageContainer, historyItems.map(toMessageControlDataBinding));
+            if (model.selectedChannel === channelName) {
+                dataRefresh(messageContainer, historyItems.map(toMessageControlDataBinding));
+                var last = messageContainer.children().last();
+                if(last.length) last[0].scrollIntoView();
+            }
         });
 
     connection.start().then(function () {

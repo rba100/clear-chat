@@ -172,7 +172,7 @@ html, body {
 
 #new-message-scroll-warning {
     position: absolute;
-    bottom: 60px;
+    bottom: 50px;
     width: 100%;
 }
 
@@ -182,7 +182,8 @@ html, body {
         text-align: center;
         width: fit-content;
         padding: 1px 10px 1px 10px;
-        border-radius: 10px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
         color: white;
         cursor: pointer;
     }
