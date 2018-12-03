@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ClearChat.Core.Crypto;
-using ClearChat.Core.Exceptions;
+using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories.Bindings;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,22 +28,47 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public void AddResponse(string userId, string message, string response)
+        public void AddResponse(string creatorId, string substring, string response)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                if (db.AutoResponses.Any(r => r.Substring == message))
+                if (db.AutoResponses.Any(r => r.Substring.Contains(substring)))
                 {
-                    throw new ArgumentException(nameof(message));
+                    throw new ArgumentException(
+                        $"There's is already an auto-response that will respond to '{substring}'", nameof(substring));
                 }
 
                 db.AutoResponses.Add(new AutoResponseBinding
                 {
-                    UserIdHash = m_StringHasher.Hash(userId),
-                    Substring = message,
+                    UserIdHash = m_StringHasher.Hash(creatorId),
+                    Substring = substring,
                     Response = response
                 });
                 db.SaveChanges();
+            }
+        }
+
+        public void RemoveResponse(string substring)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var existing = db.AutoResponses.FirstOrDefault(s => s.Substring.Contains(substring));
+                if (existing == null) return;
+                db.Remove(existing);
+                db.SaveChanges();
+            }
+        }
+
+        public IReadOnlyCollection<AutoResponseTemplate> GetAll()
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                return db.AutoResponses
+                         .ToArray()
+                         .Select(r => new AutoResponseTemplate(r.UserIdHash, 
+                                                               r.Substring, 
+                                                               r.Response))
+                         .ToArray();
             }
         }
 
@@ -57,22 +83,5 @@ namespace ClearChat.Core.Repositories
 
             public DbSet<AutoResponseBinding> AutoResponses { get; set; }
         }
-    }
-
-    public interface IAutoResponseRepository
-    {
-        /// <summary>
-        /// Gets auto response for given message
-        /// </summary>
-        /// <remarks>Can return null</remarks>
-        string GetResponse(string message);
-
-        /// <summary>
-        /// Registers an auto response with the server
-        /// </summary>
-        /// <exception cref="DuplicateAutoResponseException">
-        /// Auto response for given phrase already exists
-        /// </exception>
-        void AddResponse(string userId, string message, string response);
     }
 }

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 using ClearChat.Core.Crypto;
-using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
 using ClearChat.Web.Hubs;
@@ -31,7 +30,8 @@ namespace ClearChat.Web
             services.AddSignalR();
             services.AddSingleton<IChatContext>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
             services.AddSingleton<IMessageRepository>(sp => msgRepo);
-            services.AddSingleton<IAutoResponseRepository>(sp => new AutoResponseRepository(connString, hasher));
+            services.AddSingleton<IAutoResponseRepository>(sp => new RateLimitingAutoResponseRepository(
+                new AutoResponseRepository(connString, hasher), TimeSpan.FromMinutes(20)));
             services.AddSingleton<IColourGenerator, ColourGenerator>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(
                 new SqlServerUserRepository(connString, hasher, sp.GetService<IColourGenerator>())));
@@ -45,7 +45,9 @@ namespace ClearChat.Web
                     new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher),
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
                     new DeleteMessageCommand(s.GetService<IMessageRepository>()),
-                    new AutoResponseCommand(s.GetService<IMessageRepository>(), s.GetService<IAutoResponseRepository>())
+                    new AutoResponseCommand(s.GetService<IAutoResponseRepository>()),
+                    new RemoveAutoResponseCommand(s.GetService<IAutoResponseRepository>()),
+                    new ListAutoResponseCommand(s.GetService<IAutoResponseRepository>())
                 }),
                 new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>())
             }));
