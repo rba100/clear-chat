@@ -136,11 +136,11 @@ html, body {
     }
 
 .message-content {
-    display: inline;
+    display: inline-block;
 }
 
     .message-content p {
-        display: inline;
+        display: inline-block;
     }
 
 .message-gutter {
