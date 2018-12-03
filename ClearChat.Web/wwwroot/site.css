@@ -187,3 +187,8 @@ html, body {
         color: white;
         cursor: pointer;
     }
+
+
+img[alt="auto-image"] {
+    max-width: 400px;
+}
