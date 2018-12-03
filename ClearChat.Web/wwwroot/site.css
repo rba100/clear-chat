@@ -192,3 +192,9 @@ html, body {
 img[alt="auto-image"] {
     max-width: 400px;
 }
+
+.clear-bot-style {
+    background: linear-gradient(to right, red, orange, green, blue, purple);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

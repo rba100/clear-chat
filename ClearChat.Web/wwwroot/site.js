@@ -143,14 +143,20 @@ $(function () {
 
     // See message-template in index.html
     function toMessageControlDataBinding(chatItem) {
-        return {
+        var binding =  {
             userId: chatItem.userId,
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
             message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
-            userIdcss: { color: '#' + toColour(chatItem.userId) },
+            userIdCss: { color: '#' + toColour(chatItem.userId) },
             headerAttributes: { title: chatItem.id }
         };
+
+        if (chatItem.userId === 'ClearBot') {
+            binding.headerAttributes.class = "clear-bot-style";
+        }
+
+        return binding;
     }
 
     function toColour(userId) {

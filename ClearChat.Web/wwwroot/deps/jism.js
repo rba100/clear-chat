@@ -52,7 +52,8 @@ function dataRefresh(element, parameters) {
                 ? element : element.find("[data-attr='" + key + "']");
             if (attributeTarget.length) {
                 for (var attrKey in dataValue) {
-                    attributeTarget.attr(attrKey, dataValue[attrKey]);
+                    if (attrKey === 'class') attributeTarget.addClass(dataValue[attrKey]);
+                    else attributeTarget.attr(attrKey, dataValue[attrKey]);
                 }
                 continue;
             }
