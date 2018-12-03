@@ -154,6 +154,8 @@ $(function () {
 
         if (chatItem.userId === 'ClearBot') {
             binding.headerAttributes.class = "clear-bot-style";
+        } else if(chatItem.userId === 'System') {
+            binding.headerAttributes.class = "system-bot-style";
         }
 
         return binding;

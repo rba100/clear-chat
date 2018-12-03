@@ -173,20 +173,20 @@ html, body {
     position: absolute;
     bottom: 50px;
     width: 100%;
+    text-align: center;
 }
 
-    #new-message-scroll-warning p {
+    #new-message-scroll-warning div {
         background-color: #cc3434;
         margin: auto;
         text-align: center;
-        width: fit-content;
         padding: 1px 10px 1px 10px;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
         color: white;
+        display: inline-block;
         cursor: pointer;
     }
-
 
 img[alt="auto-image"] {
     max-width: 400px;
@@ -196,4 +196,22 @@ img[alt="auto-image"] {
     background: linear-gradient(to right, red, orange, green, blue, purple);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    -moz-background-clip: text;
+    -moz-text-fill-color: transparent;
+    -ms-background-clip: text;
+    -ms-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+.system-bot-style {
+    background: linear-gradient(to right, black, grey, black, grey, black);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -moz-background-clip: text;
+    -moz-text-fill-color: transparent;
+    -ms-background-clip: text;
+    -ms-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
 }
