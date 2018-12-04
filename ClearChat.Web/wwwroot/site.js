@@ -16,6 +16,7 @@ $(function () {
     var messageContainer = $('#message-container');
     var converter = new showdown.Converter();
     var typingNotifier = $('#typing-notifier');
+    setTimeout(typingNotifierPoll, 3000);
 
     var lastAuthor = "";
     var lastMessageSent = "";
@@ -104,9 +105,7 @@ $(function () {
     connection.on("isTyping",
         function (typerName) {
             lastTypingMessage = Date.now();
-            console.log(lastTypingMessage);
             typingNotifier.text(typerName + " is typing...");
-            setTimeout(clearTypingNotifier, 1000);
         }
     );
 
@@ -179,11 +178,10 @@ $(function () {
         outputContainer.scrollTop(2000000000);
     }
 
-    function clearTypingNotifier() {
+    function typingNotifierPoll() {
         if ((Date.now() - lastTypingMessage) > 4000)
             typingNotifier.text("");
 
-        setTimeout(clearTypingNotifier(), 1000);
-
+        setTimeout(typingNotifierPoll, 3000);
     }
 });
