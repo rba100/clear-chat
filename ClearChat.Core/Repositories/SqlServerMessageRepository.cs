@@ -96,6 +96,19 @@ namespace ClearChat.Core.Repositories
             }
         }
 
+        public bool IsChannelPrivate(string channelName)
+        {
+            if (channelName == "default") return false;
+
+            var channelNameHash = m_StringHasher.Hash(channelName);
+
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var channel = db.Channels.Single(c => c.ChannelNameHash == channelNameHash);
+                return m_StringHasher.HashMatch("", channel.PasswordHash, channel.PasswordSalt);
+            }
+        }
+
         public SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword)
         {
             if (channelName == "default") return SwitchChannelResult.Accepted;

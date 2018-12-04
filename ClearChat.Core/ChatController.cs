@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ClearChat.Core.Crypto;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
+using ClearChat.Core.Utility;
 
 namespace ClearChat.Core
 {
@@ -12,16 +14,19 @@ namespace ClearChat.Core
         private readonly IMessageRepository m_MessageRepository;
         private readonly IChatContext m_ChatContext;
         private readonly IUserRepository m_UserRepository;
+        private readonly IStringHasher m_StringHasher;
 
         public ChatController(IConnectionManager connectionManager,
                               IMessageRepository messageRepository,
                               IChatContext chatContext,
-                              IUserRepository userRepository)
+                              IUserRepository userRepository,
+                              IStringHasher stringHasher)
         {
             m_ConnectionManager = connectionManager;
             m_MessageRepository = messageRepository;
             m_ChatContext = chatContext;
             m_UserRepository = userRepository;
+            m_StringHasher = stringHasher;
         }
 
         public void Publish(ChatMessage message)
@@ -40,6 +45,23 @@ namespace ClearChat.Core
         {
             var messages = m_MessageRepository.ChannelMessages(channelName);
             m_ChatContext.SignalAll("channelHistory", channelName, messages);
+        }
+
+        public void SendChannelInformation(string connectionId, string channelName)
+        {
+            var usersOnline = m_ConnectionManager.GetUsers();
+            var memberships = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
+            var usersInChannel = usersOnline.Where(u => memberships.Contains(m_StringHasher.Hash(u),
+                                                            ArrayEqualityComparer<byte>.Default));
+
+            var isPrivate = m_MessageRepository.IsChannelPrivate(channelName);
+
+            var channelInfo = new ChannelInformation(channelName,
+                                                     isPrivate,
+                                                     usersInChannel.ToArray(),
+                                                     $"Welcome to {channelName}");
+
+            m_ChatContext.SignalConnection(connectionId, "channelInformation", channelInfo);
         }
 
         public void SendChannelHistory(string connectionId, string channelName)
