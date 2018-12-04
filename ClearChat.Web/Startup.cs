@@ -34,6 +34,7 @@ namespace ClearChat.Web
                                                                      new CachingAutoResponseRepository(
                                                                          new AutoResponseRepository(connString, hasher),
                                                                          hasher), TimeSpan.FromMinutes(20)));
+            services.AddSingleton<IStringHasher>(sp => hasher);
             services.AddSingleton<IColourGenerator, ColourGenerator>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(
                 new SqlServerUserRepository(connString, hasher, sp.GetService<IColourGenerator>())));

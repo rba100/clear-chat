@@ -8,11 +8,15 @@ var model = {
     userIdToColour: {}
 };
 
+var lastTypingMessage;
+
 $(function () {
     var channelList = $('#nav-section-channels');
     var messageContainer = $('#message-container');
     var showNewMessageScrollWarning = $('#new-message-scroll-warning');
     var converter = new showdown.Converter();
+    var typingNotifier = $('#typing-notifier');
+    setTimeout(typingNotifierPoll, 3000);
 
     var lastAuthor = "";
     var inputHistoryIndex = 0;
@@ -35,11 +39,18 @@ $(function () {
 
     showNewMessageScrollWarning.click(function() {
         showNewMessageScrollWarning.hide();
-        messageContainer.children().last()[0].scrollIntoView();
+        scrollToLastMessage();
     });
+
     function isScrolledToBottom() {
-        return messageContainer[0].scrollHeight - messageContainer.scrollTop()
-            === messageContainer.outerHeight();
+        var scrollHeight = messageContainer[0].scrollHeight;
+        var scrollTop = messageContainer[0].scrollTop;
+        var height = messageContainer.outerHeight();
+        return scrollHeight - scrollTop - height < 50;
+    }
+
+    function scrollToLastMessage() {
+        messageContainer[0].scrollTop = messageContainer[0].scrollHeight;
     }
 
     messageContainer.scroll(function() {
@@ -61,8 +72,8 @@ $(function () {
             if (cacheEntry) cacheEntry.messages.push(chatItemRaw);
             if (model.selectedChannel === chatItemRaw.channelName || chatItemRaw.channelName === "system") {
                 var scrolled = isScrolledToBottom();
-                var newMessage = appendSingleMessage(chatItemRaw);
-                if (scrolled) newMessage.scrollIntoView();
+                appendSingleMessage(chatItemRaw);
+                if (scrolled) scrollToLastMessage();
                 else showNewMessageScrollWarning.show();
             } else {
                 var channelLinkIndex = model.channels.indexOf(chatItemRaw.channelName);
@@ -133,6 +144,7 @@ $(function () {
 
     connection.start().then(function () {
         $('#text-input').keypress(function (e) {
+            sendKeypressHeartbeat();
             if (e.which === 13) { // ENTER KEY
                 send();
             }
@@ -140,6 +152,13 @@ $(function () {
         $('#text-input').focus();
         connection.send('GetChannels');
     });
+
+    connection.on("isTyping",
+        function (typerName) {
+            lastTypingMessage = Date.now();
+            typingNotifier.text(typerName + " is typing...");
+        }
+    );
 
     // See message-template in index.html
     function toMessageControlDataBinding(chatItem) {
@@ -203,6 +222,13 @@ $(function () {
         };
     }
 
+    function sendKeypressHeartbeat() {
+        var eventData = { Channel: model.selectedChannel, Body: '' };
+        connection.send("typing", eventData).catch(function (error) {
+            console.log(error);
+        });
+    }
+
     function changeChannelLocal(channelName) {
         if (model.selectedChannel !== channelName) lastAuthor = "";
         model.selectedChannel = channelName;
@@ -215,5 +241,12 @@ $(function () {
             messageContainer.children().last()[0].scrollIntoView();
         }
         showNewMessageScrollWarning.hide();
+    }
+
+    function typingNotifierPoll() {
+        if ((Date.now() - lastTypingMessage) > 4000)
+            typingNotifier.text("");
+
+        setTimeout(typingNotifierPoll, 3000);
     }
 });

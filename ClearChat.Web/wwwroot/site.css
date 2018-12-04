@@ -101,7 +101,6 @@ html, body {
     }
 
 .input-area {
-    display: flex;
     width: 100%;
     align-self: flex-end;
 }
@@ -135,7 +134,7 @@ html, body {
     }
 
 .message-content {
-    display: inline-block;
+    display: flex;
 }
 
     .message-content p {
@@ -152,13 +151,14 @@ html, body {
     margin-right: 16px;
 }
 
-.message-content-body {
-    display: inline;
-}
-
 .message-content-header {
     display: inline;
+    margin-right: 10px;
     color: rgb(56,90,134);
+}
+
+.message-content-body {
+    word-break: break-all;
 }
 
 .hover-show {
@@ -214,4 +214,15 @@ img[alt="auto-image"] {
     -ms-text-fill-color: transparent;
     background-clip: text;
     text-fill-color: transparent;
+}
+
+.typingnotifier {
+    width: 100%;
+    font-family: NotoSans,appleLogo,sans-serif;
+    font-size: 10px;
+    height: 18px;
+    margin: 0;
+    padding: 3px 20px 0 10px;
+    outline: none;
+    border: none;
 }
