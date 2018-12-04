@@ -234,13 +234,6 @@ $(function () {
             messageContainer.children().last()[0].scrollIntoView();
         }
         showNewMessageScrollWarning.hide();
-    function sendKeypressHeartbeat() {
-        var eventData = { Channel: model.selectedChannel, Body: '' };
-        connection.send("typing", eventData).catch(function(error) {
-            console.log(error);
-        });
-    }
-
     }
 
     function typingNotifierPoll() {
