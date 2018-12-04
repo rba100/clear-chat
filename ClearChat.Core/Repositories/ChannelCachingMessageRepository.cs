@@ -98,5 +98,10 @@ namespace ClearChat.Core.Repositories
         {
             m_MessageRepository.DeleteMessage(messageId);
         }
+
+        public bool IsChannelPrivate(string channelName)
+        {
+            return m_MessageRepository.IsChannelPrivate(channelName);
+        }
     }
 }

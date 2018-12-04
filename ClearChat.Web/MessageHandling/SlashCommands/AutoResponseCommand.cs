@@ -20,20 +20,48 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
         public string CommandText => "autoresponse";
 
+        public string HelpText => $"Configures auto responses. Use \"/{CommandText} help\" for usage.";
+
         public void Handle(MessageContext context, string arguments)
         {
             var parameters = SplitParameters(arguments);
 
-            if (parameters.Length != 2)
+            if (parameters.Length == 0 || parameters.First() == "help")
             {
-                context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: correct usage is /autoresponse \"ping\" \"pong\"");
+                ShowHelp(context);
                 return;
             }
 
-            var substringTrigger = parameters[0];
-            var response = parameters[1];
+            var command = parameters.First();
 
-            if (substringTrigger.Length < 4)
+            switch (command)
+            {
+                case "add":
+                    if(parameters.Length != 3) ShowHelp(context);
+                    else AddResponse(context, parameters[1], parameters[2]);
+                    return;
+                case "remove":
+                    if (parameters.Length != 2) ShowHelp(context);
+                    else RemoveResponse(context, parameters[1]);
+                    return;
+                case "list":
+                    ListResponses(context);
+                    return;
+            }
+
+            ShowHelp(context);
+        }
+
+        private void ShowHelp(MessageContext context)
+        {
+            context.MessageHub.PublishSystemMessage(context.ConnectionId, "/autoresponse add \"ping\" \"pong\"");
+            context.MessageHub.PublishSystemMessage(context.ConnectionId, "/autoresponse remove \"ping\"");
+            context.MessageHub.PublishSystemMessage(context.ConnectionId, "/autoresponse list");
+        }
+
+        private void AddResponse(MessageContext context, string substring, string response)
+        {
+            if (substring.Length < 4)
             {
                 context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: that's probably really annoying, so I'm gonna have to pass on that.");
                 return;
@@ -41,18 +69,36 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
             try
             {
-                m_AutoResponseRepository.AddResponse(context.UserId, substringTrigger, response);
+                m_AutoResponseRepository.AddResponse(context.UserId, substring, response);
             }
             catch (DuplicateAutoResponseException)
             {
-                context.MessageHub.PublishSystemMessage(context.ConnectionId, $"Error: Auto response already exists for {substringTrigger}");
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, $"Error: Auto response already exists for {substring}");
                 return;
             }
 
-            context.MessageHub.PublishSystemMessage(context.ConnectionId, $"Successfully registered auto response {response} for message {substringTrigger}");
+            context.MessageHub.PublishSystemMessage(context.ConnectionId, $"Successfully registered auto response {response} for message {substring}");
         }
 
-        public string HelpText => "Adds an automatic response, usage /autoresponse \"ping\" \"pong\"";
+        private void ListResponses(MessageContext context)
+        {
+            var autoResponses = m_AutoResponseRepository.GetAll();
+            foreach (var response in autoResponses)
+            {
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, $"\"{response.SubstringTrigger}\" => \"{response.Response}\"");
+            }
+
+            if (autoResponses.Count == 0)
+            {
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "There are none.");
+            }
+        }
+
+        private void RemoveResponse(MessageContext context, string substring)
+        {
+            m_AutoResponseRepository.RemoveResponse(substring);
+            context.MessageHub.PublishSystemMessage(context.ConnectionId, $"Successfully removed auto response for '{substring}'.");
+        }
 
         private static string[] SplitParameters(string input)
         {
