@@ -39,11 +39,18 @@ $(function () {
 
     showNewMessageScrollWarning.click(function() {
         showNewMessageScrollWarning.hide();
-        messageContainer.children().last()[0].scrollIntoView();
+        scrollToLastMessage();
     });
+
     function isScrolledToBottom() {
-        return messageContainer[0].scrollHeight - messageContainer.scrollTop()
-            === messageContainer.outerHeight();
+        var scrollHeight = messageContainer[0].scrollHeight;
+        var scrollTop = messageContainer[0].scrollTop;
+        var height = messageContainer.outerHeight();
+        return scrollHeight - scrollTop - height < 50;
+    }
+
+    function scrollToLastMessage() {
+        messageContainer[0].scrollTop = messageContainer[0].scrollHeight;
     }
 
     messageContainer.scroll(function() {
@@ -65,8 +72,8 @@ $(function () {
             if (cacheEntry) cacheEntry.messages.push(chatItemRaw);
             if (model.selectedChannel === chatItemRaw.channelName || chatItemRaw.channelName === "system") {
                 var scrolled = isScrolledToBottom();
-                var newMessage = appendSingleMessage(chatItemRaw);
-                if (scrolled) newMessage.scrollIntoView();
+                appendSingleMessage(chatItemRaw);
+                if (scrolled) scrollToLastMessage();
                 else showNewMessageScrollWarning.show();
             } else {
                 var channelLinkIndex = model.channels.indexOf(chatItemRaw.channelName);
