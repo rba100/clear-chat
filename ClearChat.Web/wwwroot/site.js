@@ -62,6 +62,19 @@ $(function () {
         .withUrl("/chatHub")
         .build();
 
+    connection.start().then(function () {
+        $('#text-input').keypress(function (e) {
+            if (e.which === 13) { // ENTER KEY
+                send();
+                sendKeypressHeartbeat(false);
+            } else {
+                sendKeypressHeartbeat(true);
+            }
+        });
+        $('#text-input').focus();
+        connection.send('GetChannels');
+    });
+
     connection.onclose(function (error) {
         console.log("DEBUG: connection closed.");
         if (error) console.log("DEBUG: " + error);
@@ -143,17 +156,6 @@ $(function () {
             }
         });
 
-    connection.start().then(function () {
-        $('#text-input').keypress(function (e) {
-            sendKeypressHeartbeat();
-            if (e.which === 13) { // ENTER KEY
-                send();
-            }
-        });
-        $('#text-input').focus();
-        connection.send('GetChannels');
-    });
-
     connection.on("isTyping",
         function (userId, channelName) {
             var cache = model.channelContentCache[channelName];
@@ -164,6 +166,18 @@ $(function () {
                 cache.isTyping[index].last = Date.now();
             }
             updateTypingCue();
+        }
+    );
+
+    connection.on("stoppedTyping",
+        function (userId, channelName) {
+            var cache = model.channelContentCache[channelName];
+            if (!cache) return;
+            var index = cache.isTyping.findIndex(function (e) { return e.userId === userId; });
+            if (index !== -1) {
+                cache.isTyping.splice(index, 1);
+                updateTypingCue();
+            }
         }
     );
 
@@ -241,15 +255,16 @@ $(function () {
             names = names + typistsArray[i].userId;
         }
         if (names) {
-            names = names + " is typing...";
+            names = names + " is typing";
         }
         typingNotifier.text(names);
     }
 
-    function sendKeypressHeartbeat() {
+    function sendKeypressHeartbeat(isTyping) {
         var now = Date.now();
-        if (now - model.lastKeyPressHeartbeat > 1000)
-            connection.send("typing", model.selectedChannel).catch(function (error) {
+        var method = isTyping ? "typing" : "stoppedTyping";
+        if (now - model.lastKeyPressHeartbeat > 1000 || !isTyping)
+            connection.send(method, model.selectedChannel).catch(function (error) {
                 console.log(error);
             });
         model.lastKeyPressHeartbeat = now;

@@ -67,7 +67,15 @@ namespace ClearChat.Web.Hubs
 
         public void Typing(string channelName)
         {
-            Clients.Group(channelName).SendAsync("isTyping", Context.User.Identity.Name, channelName);
+            Clients.GroupExcept(channelName, Context.ConnectionId)
+                   .SendAsync("isTyping", Context.User.Identity.Name, channelName);
+
+        }
+
+        public void StoppedTyping(string channelName)
+        {
+            Clients.GroupExcept(channelName, Context.ConnectionId)
+                   .SendAsync("stoppedTyping", Context.User.Identity.Name, channelName);
         }
 
         public override Task OnConnectedAsync()

@@ -102,7 +102,7 @@ html, body {
 
 .input-area {
     width: 100%;
-    align-self: flex-end;
+    display: flex;
 }
 
     .input-area input {
@@ -110,7 +110,7 @@ html, body {
         font-family: NotoSans,appleLogo,sans-serif;
         font-size: 14px;
         height: 40px;
-        margin: 10px 10px 10px 10px;
+        margin: 10px 10px 20px 10px;
         padding: 0 10px 0 10px;
         outline: none;
         border: none;
@@ -222,7 +222,9 @@ img[alt="auto-image"] {
     font-size: 10px;
     height: 18px;
     margin: 0;
-    padding: 3px 20px 0 10px;
+    position: absolute;
+    bottom: 0px;
+    padding: 3px 20px 0 30px;
     outline: none;
     border: none;
 }
