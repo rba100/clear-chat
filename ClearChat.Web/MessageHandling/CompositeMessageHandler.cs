@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ClearChat.Core.Domain;
 
 namespace ClearChat.Web.MessageHandling
@@ -14,9 +15,16 @@ namespace ClearChat.Web.MessageHandling
 
         public bool Handle(MessageContext context)
         {
-            foreach (var messageHandler in m_InnerHandlers)
+            try
             {
-                if (messageHandler.Handle(context)) return true;
+                foreach (var messageHandler in m_InnerHandlers)
+                {
+                    if (messageHandler.Handle(context)) return true;
+                }
+            }
+            catch (Exception exception)
+            {
+                context.MessageHub.PublishSystemMessage(context.ConnectionId, "BOOM: " + exception.Message);
             }
 
             return false;

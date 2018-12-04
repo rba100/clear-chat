@@ -4,6 +4,7 @@ using ClearChat.Core;
 using ClearChat.Core.Crypto;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
+using ClearChat.Core.Utility;
 
 namespace ClearChat.Web.MessageHandling.SlashCommands
 {
@@ -46,13 +47,14 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             m_MessageRepository.ClearChannel(channelName);
             var userIdHashes = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
             var hashes = m_ConnectionManager.GetUsers().ToDictionary(u => m_StringHasher.Hash(u), u=>u);
-            var affectedUserHashes = userIdHashes.Intersect(hashes.Keys).ToHashSet();
-            var affectedUsers = hashes.Where(kvp => affectedUserHashes.Contains(kvp.Key));
+            var affectedUserHashes = userIdHashes.Intersect(hashes.Keys, ArrayEqualityComparer<byte>.Default);
+            var affectedUsers = hashes.Where(kvp => affectedUserHashes.Contains(kvp.Key, ArrayEqualityComparer<byte>.Default));
             var affectedConnections = affectedUsers.SelectMany(u => m_ConnectionManager.GetConnectionsForUser(u.Value));
             foreach (var connection in affectedConnections)
             {
                 context.MessageHub.SendChannelHistory(connection, channelName);
             }
+            if(channelName == "default") context.MessageHub.SendChannelHistory(channelName);
         }
 
         public string HelpText => "Destroy all messages in a channel with: /purge channelName";

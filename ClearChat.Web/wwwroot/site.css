@@ -41,6 +41,22 @@ html, body {
     visibility: visible;
 }
 
+.message-section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    flex-grow: 1;
+    min-width: 1px;
+}
+
+.message-section-content {
+    width: 100%;
+    max-height: calc(100% - 60px);
+    flex-grow: 1;
+    overflow: auto;
+}
+
 .nav-section-header {
     padding: 0 12px 0 15px;
     margin: 0;
@@ -56,19 +72,19 @@ html, body {
     padding: 0 0 0 30px;
 }
 
-.nav-section-channel-link, .nav-section-channel-link a {
-    display: flex;
-    align-items: center;
-    height: 26px;
-    line-height: 26px;
-    cursor: pointer;
-    text-decoration: none;
-    color: var(--nav-fg-color);
-}
-
-    .nav-section-channel-link:hover {
-        background-color: #4e6d9b;
+    .nav-section-channel-link, .nav-section-channel-link a {
+        display: flex;
+        align-items: center;
+        height: 26px;
+        line-height: 26px;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--nav-fg-color);
     }
+
+        .nav-section-channel-link:hover {
+            background-color: #4e6d9b;
+        }
 
 .nav-section-channel-link-unread, .nav-section-channel-link-unread a {
     font-weight: 700;
@@ -77,25 +93,17 @@ html, body {
 
 .nav-section-channel-link-selected, .nav-section-channel-link-selected a {
     background-color: var(--nav-bg-color--selected);
-     color: var(--nav-fg-color--selected);
+    color: var(--nav-fg-color--selected);
 }
+
     .nav-section-channel-link-selected:hover {
         background-color: var(--nav-bg-color--selected);
     }
 
-.message-section {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    flex-grow: 1;
-    min-width: 1px;
-    padding-top: 10px;
-}
-
 .input-area {
     display: flex;
     width: 100%;
+    align-self: flex-end;
 }
 
     .input-area input {
@@ -103,7 +111,7 @@ html, body {
         font-family: NotoSans,appleLogo,sans-serif;
         font-size: 14px;
         height: 40px;
-        margin: 10px 10px 0 10px;
+        margin: 10px 10px 10px 10px;
         padding: 0 10px 0 10px;
         outline: none;
         border: none;
@@ -118,9 +126,8 @@ html, body {
 }
 
 .message {
-    padding-top: 3px;
-    padding-right: 40px;
-    padding-bottom: 6px;
+    padding-top: 5px;
+    padding-right: 20px;
 }
 
     .message:hover {
@@ -128,12 +135,12 @@ html, body {
     }
 
 .message-content {
-    display: inline;
+    display: inline-block;
 }
 
-.message-content p {
-    display: inline;
-}
+    .message-content p {
+        display: inline;
+    }
 
 .message-gutter {
     float: left;
@@ -161,6 +168,53 @@ html, body {
     .hover-show:hover {
         color: inherit;
     }
+
+#new-message-scroll-warning {
+    position: absolute;
+    bottom: 50px;
+    width: 100%;
+    text-align: center;
+}
+
+    #new-message-scroll-warning div {
+        background-color: #cc3434;
+        margin: auto;
+        text-align: center;
+        padding: 1px 10px 1px 10px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        color: white;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+img[alt="auto-image"] {
+    max-width: 400px;
+}
+
+.clear-bot-style {
+    background: linear-gradient(to right, red, orange, green, blue, purple);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -moz-background-clip: text;
+    -moz-text-fill-color: transparent;
+    -ms-background-clip: text;
+    -ms-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+.system-bot-style {
+    background: linear-gradient(to right, black, grey, black, grey, black);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -moz-background-clip: text;
+    -moz-text-fill-color: transparent;
+    -ms-background-clip: text;
+    -ms-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
 
 .typingnotifier {
     width: 100%;

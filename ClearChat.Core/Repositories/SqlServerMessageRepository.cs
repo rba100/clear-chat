@@ -13,7 +13,6 @@ namespace ClearChat.Core.Repositories
     public class SqlServerMessageRepository : IMessageRepository
     {
         private readonly string m_ConnectionString;
-        private readonly IColourGenerator m_ColourGenerator = new ColourGenerator();
 
         private readonly IStringProtector m_StringProtector;
         private readonly IStringHasher m_StringHasher;
@@ -54,30 +53,31 @@ namespace ClearChat.Core.Repositories
         private ChatMessage FromBinding(MessageBinding arg, string channelName)
         {
             var userId = m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId));
-
-            return new ChatMessage(m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId)),
+            return new ChatMessage(arg.Id,
+                                   userId,
                                    channelName,
                                    m_StringProtector.Unprotect(arg.Message),
                                    DateTime.SpecifyKind(arg.TimeStampUtc, DateTimeKind.Utc));
         }
 
-        public void WriteMessage(ChatMessage message)
+        public ChatMessage WriteMessage(string userId, string channelName, string message, DateTime timeStampUtc)
         {
-            var isDefaultChannel = message.ChannelName == "default";
-            var channelNameHash = isDefaultChannel ? null : m_StringHasher.Hash(message.ChannelName);
+            var isDefaultChannel = channelName == "default";
+            var channelNameHash = isDefaultChannel ? null : m_StringHasher.Hash(channelName);
             using (var db = new DatabaseContext(m_ConnectionString))
             {
                 var channel = db.Channels.SingleOrDefault(c => c.ChannelNameHash == channelNameHash);
                 var channelId = isDefaultChannel ? 0 : channel.ChannelId;
                 var messageBinding = new MessageBinding
                 {
-                    UserId = Convert.ToBase64String(m_StringProtector.Protect(message.UserId)),
+                    UserId = Convert.ToBase64String(m_StringProtector.Protect(userId)),
                     ChannelId = channelId,
-                    Message = m_StringProtector.Protect(message.Message),
-                    TimeStampUtc = message.TimeStampUtc
+                    Message = m_StringProtector.Protect(message),
+                    TimeStampUtc = timeStampUtc
                 };
                 db.Messages.Add(messageBinding);
                 db.SaveChanges();
+                return FromBinding(messageBinding, channelName);
             }
         }
 
@@ -174,12 +174,21 @@ namespace ClearChat.Core.Repositories
 
         public IReadOnlyCollection<byte[]> GetChannelMembershipsForChannel(string channelName)
         {
-            var channelNameEnc = m_StringProtector.Protect(channelName);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var memberships = db.Memberships.Where(m => m.ChannelName == channelNameEnc).ToArray();
+                var memberships = db.Memberships.Where(m => m_StringProtector.Unprotect(m.ChannelName) == channelName).ToArray();
                 return memberships.Select(m => m.UserIdHash).ToArray();
+            }
+        }
+
+        public void DeleteMessage(int messageId)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var message = db.Messages.FirstOrDefault(m => m.Id == messageId);
+                if (message == null) return;
+                db.Messages.Remove(message);
+                db.SaveChanges();
             }
         }
 

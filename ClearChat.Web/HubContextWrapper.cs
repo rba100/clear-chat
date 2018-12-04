@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using ClearChat.Core;
-using ClearChat.Core.Domain;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ClearChat.Web
@@ -43,6 +41,11 @@ namespace ClearChat.Web
         public void SignalAll(string method, object argument)
         {
             m_Context.Clients.All.SendAsync(method, argument);
+        }
+
+        public void SignalAll(string method, object argument1, object argument2)
+        {
+            m_Context.Clients.All.SendAsync(method, argument1, argument2);
         }
     }
 }

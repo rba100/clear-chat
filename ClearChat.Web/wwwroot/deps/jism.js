@@ -34,22 +34,28 @@ function dataRefresh(element, parameters) {
             var target = element.find("[data-from='" + key + "']")
                 .addBack("[data-from='" + key + "']");
             if (target.length) {
-                if (typeof (dataValue) === "string")
+                if (typeof (dataValue) === "string" || typeof (dataValue) === "number")
                     target.html(dataValue);
                 else if (typeof (dataValue) === "object") {
                     dataRefresh(target, dataValue);
                 }
-            }
-            var dataFieldTarget = element.find("[data-field='" + key + "']")
-                .addBack("[data-field='" + key + "']");
-            if (dataFieldTarget.length) {
-                dataFieldTarget.data(key, dataValue);
+                continue;
             }
             var styleTarget = element.find("[data-css='" + key + "']");
             if (styleTarget.length) {
                 for (var cssKey in dataValue) {
                     styleTarget.css(cssKey, dataValue[cssKey]);
                 }
+                continue;
+            }
+            var attributeTarget = element.attr('data-attr') === key
+                ? element : element.find("[data-attr='" + key + "']");
+            if (attributeTarget.length) {
+                for (var attrKey in dataValue) {
+                    if (attrKey === 'class') attributeTarget.addClass(dataValue[attrKey]);
+                    else attributeTarget.attr(attrKey, dataValue[attrKey]);
+                }
+                continue;
             }
         }
     }

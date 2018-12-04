@@ -9,6 +9,8 @@ namespace ClearChat.Core.Repositories
 {
     public class SqlServerUserRepository : IUserRepository
     {
+        private readonly static string[] s_BuiltInUsers = {"System", "ClearBot"};
+
         private readonly string m_ConnectionString;
         private readonly IStringHasher m_StringHasher;
         private readonly IColourGenerator m_ColourGenerator;
@@ -79,6 +81,7 @@ namespace ClearChat.Core.Repositories
 
         public User GetUserDetails(string userId)
         {
+            if(s_BuiltInUsers.Contains(userId)) return new User(userId, "000000");
             var userIdHashed = m_StringHasher.Hash(userId, new byte[0]);
 
             using (var db = new DatabaseContext(m_ConnectionString))
