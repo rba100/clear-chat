@@ -65,10 +65,9 @@ namespace ClearChat.Web.Hubs
             m_MessageHub.UpdateChannelMembership(Context.ConnectionId);
         }
 
-        public void Typing(SendEventBinding eventBinding)
+        public void Typing(string channelName)
         {
-            var channel = eventBinding.Channel;
-            Clients.Group(channel).SendAsync("isTyping", Context.User.Identity.Name);
+            Clients.Group(channelName).SendAsync("isTyping", Context.User.Identity.Name, channelName);
         }
 
         public override Task OnConnectedAsync()

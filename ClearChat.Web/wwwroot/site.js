@@ -5,7 +5,8 @@ var model = {
     channels: [""],
     channelContentCache: {
     },
-    userIdToColour: {}
+    userIdToColour: {},
+    lastKeyPressHeartbeat: 0
 };
 
 var lastTypingMessage;
@@ -104,7 +105,7 @@ $(function () {
             channelList.html("");
             for (var i = 0; i < names.length; i++) {
                 var channelName = names[i];
-                var channelLink = instantiate('tmpt-nav-section-link', { channelName: channelName });
+                var channelLink = instantiate('nav-link-template', { channelName: channelName });
                 var handler = changeChannelHandler(channelName);
                 if (channelName === model.selectedChannel) {
                     channelLink.addClass('nav-section-channel-link-selected');
@@ -112,7 +113,7 @@ $(function () {
                 channelLink.click(handler);
                 channelList.append(channelLink);
                 if (typeof (model.channelContentCache[channelName]) === "undefined") {
-                    model.channelContentCache[channelName] = { messages: [], lastAuthor: "" };
+                    model.channelContentCache[channelName] = { messages: [], lastAuthor: "", isTyping: [] };
                     connection.send("getHistory", channelName).catch(function (error) {
                         console.log(error);
                     });
@@ -154,9 +155,15 @@ $(function () {
     });
 
     connection.on("isTyping",
-        function (typerName) {
-            lastTypingMessage = Date.now();
-            typingNotifier.text(typerName + " is typing...");
+        function (userId, channelName) {
+            var cache = model.channelContentCache[channelName];
+            if (!cache) return;
+            var index = cache.isTyping.findIndex(function (e) { return e.userId === userId; });
+            if (index === -1) cache.isTyping.push({ userId: userId, last: Date.now() });
+            else {
+                cache.isTyping[index].last = Date.now();
+            }
+            updateTypingCue();
         }
     );
 
@@ -222,11 +229,30 @@ $(function () {
         };
     }
 
+    function updateTypingCue() {
+        var names = "";
+        var now = Date.now();
+        var typistsArray = model.channelContentCache[model.selectedChannel].isTyping;
+        for (var i = typistsArray.length; i > 0; i--) {
+            if (now - typistsArray[i - 1].last > 2000) typistsArray.splice(i - 1, 1);
+        }
+        for (var i = 0; i < typistsArray.length; i++) {
+            if (i > 0) names = names + ", ";
+            names = names + typistsArray[i].userId;
+        }
+        if (names) {
+            names = names + " is typing...";
+        }
+        typingNotifier.text(names);
+    }
+
     function sendKeypressHeartbeat() {
-        var eventData = { Channel: model.selectedChannel, Body: '' };
-        connection.send("typing", eventData).catch(function (error) {
-            console.log(error);
-        });
+        var now = Date.now();
+        if (now - model.lastKeyPressHeartbeat > 1000)
+            connection.send("typing", model.selectedChannel).catch(function (error) {
+                console.log(error);
+            });
+        model.lastKeyPressHeartbeat = now;
     }
 
     function changeChannelLocal(channelName) {
@@ -244,9 +270,7 @@ $(function () {
     }
 
     function typingNotifierPoll() {
-        if ((Date.now() - lastTypingMessage) > 4000)
-            typingNotifier.text("");
-
-        setTimeout(typingNotifierPoll, 3000);
+        updateTypingCue();
+        setTimeout(typingNotifierPoll, 1000);
     }
 });

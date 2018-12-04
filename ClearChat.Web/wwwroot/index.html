@@ -29,7 +29,7 @@
         </div>
         <div class="message-section">
             <div class="message-section-content" id="message-container" data-template="message-template"></div>
-            <div class="typingnotifier" id="typing-notifier"></div>
+            <div class="typing-notifier" id="typing-notifier"></div>
             <div class="input-area"><input type="text" id="text-input"></div>
             <div id="new-message-scroll-warning" style="display: none;"><div>New messages 🡇</div></div>
         </div>
@@ -47,13 +47,7 @@
         </div>
     </template>
 
-    <template id="tmpt-nav-section-header">
-        <div class="nav-section-header">
-            <p data-from="label"></p>
-        </div>
-    </template>
-
-    <template id="tmpt-nav-section-link">
+    <template id="nav-link-template">
         <div class="nav-section-channel-link"><span>#&nbsp;</span><a href="#" data-from="channelName"></a></div>
     </template>
 </body>
