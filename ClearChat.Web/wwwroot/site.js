@@ -6,7 +6,8 @@ var model = {
     channelContentCache: {
     },
     userIdToColour: {},
-    lastKeyPressHeartbeat: 0
+    lastKeyPressHeartbeat: 0,
+    pageHasFocus: true
 };
 
 var lastTypingMessage;
@@ -58,6 +59,22 @@ $(function () {
         if (isScrolledToBottom()) showNewMessageScrollWarning.hide();
     });
 
+    window.onblur = function() {
+        model.pageHasFocus = false;
+    };
+
+    window.onfocus = function () {
+        model.pageHasFocus = true;
+        setWindowTitleNewMessages(false);
+    };
+
+    function setWindowTitleNewMessages(newMessages) {
+        if (newMessages)
+            document.title = "* " + model.selectedChannel + " | Clear Chat";
+        else
+            document.title = model.selectedChannel + " | Clear Chat";
+    }
+
     connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")
         .build();
@@ -94,6 +111,9 @@ $(function () {
                 if (channelLinkIndex < 0) return;
                 var channelLink = channelList.children(":eq(" + channelLinkIndex + ")");
                 channelLink.addClass('nav-section-channel-link-unread');
+            }
+            if (!model.pageHasFocus) {
+                setWindowTitleNewMessages(true);
             }
         });
 
@@ -226,7 +246,8 @@ $(function () {
         var sameAuthor = lastAuthor === chatItem.userId;
         var messageElement = instantiate('message-template', toMessageControlDataBinding(chatItem));
         if (sameAuthor) {
-            messageElement.find("b").first().hide();
+            // Jamie doesn't like this. But I do, so will make it better at some point.
+            //messageElement.find("b").first().hide();
         }
         messageContainer.append(messageElement);
         lastAuthor = chatItem.userId;
@@ -263,7 +284,7 @@ $(function () {
     function sendKeypressHeartbeat(isTyping) {
         var now = Date.now();
         var method = isTyping ? "typing" : "stoppedTyping";
-        if (now - model.lastKeyPressHeartbeat > 1000 || !isTyping)
+        if (now - model.lastKeyPressHeartbeat > 500 || !isTyping)
             connection.send(method, model.selectedChannel).catch(function (error) {
                 console.log(error);
             });
@@ -282,6 +303,7 @@ $(function () {
             messageContainer.children().last()[0].scrollIntoView();
         }
         showNewMessageScrollWarning.hide();
+        setWindowTitleNewMessages(false);
     }
 
     function typingNotifierPoll() {
