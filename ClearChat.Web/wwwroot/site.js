@@ -269,7 +269,7 @@ $(function () {
         var now = Date.now();
         var typistsArray = model.channelContentCache[model.selectedChannel].isTyping;
         for (var i = typistsArray.length; i > 0; i--) {
-            if (now - typistsArray[i - 1].last > 2000) typistsArray.splice(i - 1, 1);
+            if (now - typistsArray[i - 1].last > 4000) typistsArray.splice(i - 1, 1);
         }
         for (var i = 0; i < typistsArray.length; i++) {
             if (i > 0) names = names + ", ";
@@ -284,7 +284,7 @@ $(function () {
     function sendKeypressHeartbeat(isTyping) {
         var now = Date.now();
         var method = isTyping ? "typing" : "stoppedTyping";
-        if (now - model.lastKeyPressHeartbeat > 500 || !isTyping)
+        if (now - model.lastKeyPressHeartbeat > 1000 || !isTyping)
             connection.send(method, model.selectedChannel).catch(function (error) {
                 console.log(error);
             });
