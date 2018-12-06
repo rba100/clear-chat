@@ -1,17 +1,29 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Linq;
+using ClearChat.Core.Crypto;
 
 namespace ClearChat.Core.Repositories
 {
     public class ColourGenerator : IColourGenerator
     {
+        private readonly IStringHasher m_StringHasher;
+
+        public ColourGenerator(IStringHasher stringHasher)
+        {
+            m_StringHasher = stringHasher;
+        }
+
         public string GenerateFromString(string input)
         {
             if (input == "System") return "000000";
-            var random = new Random(input.GetStableHashCode());
+            var hash = m_StringHasher.Hash(input);
+            var seed = BitConverter.ToInt32(hash, 0);
+            var random = new Random(seed);
 
             var rgb = ColourHelper.HlsToRgb(h: random.NextDouble() * 360,
-                                            l: random.NextDouble() * 0.3 + 0.2,
-                                            s: random.NextDouble() * 0.2 + 0.6);
+                                            l: random.NextDouble() * 0.2 + 0.2,
+                                            s: random.NextDouble() * 0.2 + 0.65);
 
             return rgb.red.ToString("X").PadLeft(2, '0').ToUpperInvariant() +
                    rgb.green.ToString("X").PadLeft(2, '0').ToUpperInvariant() +

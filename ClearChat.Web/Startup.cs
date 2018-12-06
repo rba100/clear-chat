@@ -57,6 +57,8 @@ namespace ClearChat.Web
             
             services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme)
                     .AddBasic<BasicAuthenticationService>(o => o.Realm = "ClearChat");
+
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -80,6 +82,7 @@ namespace ClearChat.Web
                 }
             });
             app.UseSignalR(routes => routes.MapHub<ChatHub>("/chatHub"));
+            app.UseMvc();
         }
     }
 }
