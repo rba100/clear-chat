@@ -96,14 +96,13 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public void AddAttachment(int messageId, ContentEncoding encoding, string contentType, byte[] content)
+        public void AddAttachment(int messageId, string contentType, byte[] content)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
                 var binding = new MessageAttachmentBinding
                 {
                     MessageId = messageId,
-                    Encoding = (int) encoding,
                     Content = content,
                     ContentType = contentType,
                 };
@@ -246,7 +245,6 @@ namespace ClearChat.Core.Repositories
         {
             return new MessageAttachment(binding.Id, 
                                          binding.MessageId,
-                                         (ContentEncoding) binding.Encoding,
                                          binding.Content, 
                                          binding.ContentType);
         }

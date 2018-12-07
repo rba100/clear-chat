@@ -40,9 +40,9 @@ namespace ClearChat.Core.Repositories
             m_MessageRepository.ClearChannel(channelName);
         }
 
-        public void AddAttachment(int messageId, ContentEncoding encoding, string contentType, byte[] content)
+        public void AddAttachment(int messageId, string contentType, byte[] content)
         {
-            m_MessageRepository.AddAttachment(messageId, encoding, contentType, content);
+            m_MessageRepository.AddAttachment(messageId, contentType, content);
         }
 
         public IReadOnlyCollection<MessageAttachment> GetAttachments(IReadOnlyCollection<int> messageIds)
