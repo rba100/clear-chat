@@ -7,7 +7,8 @@ namespace ClearChat.Core.Domain
         public ChatMessage(int id,
                            string userId,
                            string channelName, 
-                           string message,
+                           string message, 
+                           int[] attachmentIds,
                            DateTime timeStampUtc)
         {
             Id = id;
@@ -15,12 +16,15 @@ namespace ClearChat.Core.Domain
             ChannelName = channelName;
             Message = message;
             TimeStampUtc = timeStampUtc;
+            AttachmentIds = attachmentIds;
         }
 
         public int Id { get; }
         public string UserId { get; }
         public string ChannelName { get; }
         public string Message { get; }
+
+        public int[] AttachmentIds { get; }
         public DateTime TimeStampUtc { get; }
     }
 }

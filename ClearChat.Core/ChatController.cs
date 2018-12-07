@@ -38,7 +38,7 @@ namespace ClearChat.Core
         {
             m_ChatContext.SignalConnection(connectionId,
                                            "newMessage",
-                                           new ChatMessage(0, "System", "system", message, DateTime.UtcNow));
+                                           new ChatMessage(0, "System", "system", message, new int[0], DateTime.UtcNow));
         }
 
         public void SendChannelHistory(string channelName)

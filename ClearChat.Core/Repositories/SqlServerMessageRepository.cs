@@ -43,20 +43,33 @@ namespace ClearChat.Core.Repositories
                              .OrderByDescending(m => m.TimeStampUtc)
                              .Take(400)
                              .ToArray()
-                             .Select(m => FromBinding(m, channelName))
                              .Reverse()
                              .ToArray();
-                return msgs;
+
+                var mIds = msgs.Select(m => m.Id).ToArray();
+
+                var attachments = db.MessageAttachments.Where(a => mIds.Contains(a.MessageId))
+                                    .Select(m => new { m.MessageId, m.Id })
+                                    .GroupBy(a => a.MessageId)
+                                    .ToDictionary(g => g.Key, g => g.Select(a => a.Id).ToArray());
+
+                return msgs.Select(m => FromBinding(m, attachments, channelName)).ToArray();
             }
         }
 
-        private ChatMessage FromBinding(MessageBinding arg, string channelName)
+        private ChatMessage FromBinding(MessageBinding arg,
+                                        Dictionary<int, int[]> attachments,
+                                        string channelName)
         {
             var userId = m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId));
+
+            var attachmentIds = attachments != null && attachments.ContainsKey(arg.Id) ? attachments[arg.Id] : new int[0];
+
             return new ChatMessage(arg.Id,
                                    userId,
                                    channelName,
                                    m_StringProtector.Unprotect(arg.Message),
+                                   attachmentIds,
                                    DateTime.SpecifyKind(arg.TimeStampUtc, DateTimeKind.Utc));
         }
 
@@ -77,7 +90,7 @@ namespace ClearChat.Core.Repositories
                 };
                 db.Messages.Add(messageBinding);
                 db.SaveChanges();
-                return FromBinding(messageBinding, channelName);
+                return FromBinding(messageBinding, null, channelName);
             }
         }
 
@@ -243,9 +256,9 @@ namespace ClearChat.Core.Repositories
 
         private static MessageAttachment FromBinding(MessageAttachmentBinding binding)
         {
-            return new MessageAttachment(binding.Id, 
+            return new MessageAttachment(binding.Id,
                                          binding.MessageId,
-                                         binding.Content, 
+                                         binding.Content,
                                          binding.ContentType);
         }
 
