@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ClearChat.Core.Crypto;
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
@@ -29,9 +30,9 @@ namespace ClearChat.Core
             m_StringHasher = stringHasher;
         }
 
-        public void Publish(ChatMessage message)
+        public Task Publish(ChatMessage message)
         {
-            m_ChatContext.SignalChannel(message.ChannelName, "newMessage", message);
+            return m_ChatContext.SignalChannel(message.ChannelName, "newMessage", message);
         }
 
         public void PublishSystemMessage(string connectionId, string message)

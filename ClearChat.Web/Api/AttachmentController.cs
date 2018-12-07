@@ -24,7 +24,7 @@ namespace ClearChat.Web.Api
         [Route("{attachmentId}")]
         public void Get(int attachmentId)
         {
-            var attachment = m_MessageRepository.GetAttachments(new[] { attachmentId }).SingleOrDefault();
+            var attachment = m_MessageRepository.GetAttachment(attachmentId);
             if (attachment == null)
             {
                 Response.StatusCode = 404;

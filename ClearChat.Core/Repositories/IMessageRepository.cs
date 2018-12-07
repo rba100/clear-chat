@@ -9,8 +9,9 @@ namespace ClearChat.Core.Repositories
         IReadOnlyCollection<ChatMessage> ChannelMessages(string channelName);
         ChatMessage WriteMessage(string userId, string channelName, string message, DateTime timeStampUtc);
         void ClearChannel(string channelName);
-        void AddAttachment(int messageId, string contentType, byte[] content);
+        int AddAttachment(int messageId, string contentType, byte[] content);
         IReadOnlyCollection<MessageAttachment> GetAttachments(IReadOnlyCollection<int> messageIds);
+        MessageAttachment GetAttachment(int attachmentId);
         void DeleteAttachment(int messageAttachmentId);
         SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword);
         void AddChannelMembership(string userId, string channelName);

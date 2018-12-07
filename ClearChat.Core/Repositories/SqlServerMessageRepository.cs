@@ -111,7 +111,7 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public void AddAttachment(int messageId, string contentType, byte[] content)
+        public int AddAttachment(int messageId, string contentType, byte[] content)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
@@ -123,6 +123,7 @@ namespace ClearChat.Core.Repositories
                 };
                 db.MessageAttachments.Add(binding);
                 db.SaveChanges();
+                return binding.Id;
             }
         }
 
@@ -134,6 +135,18 @@ namespace ClearChat.Core.Repositories
                          .ToArray()
                          .Select(FromBinding)
                          .ToArray();
+            }
+        }
+
+        public MessageAttachment GetAttachment(int attachmentId)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                return db.MessageAttachments
+                         .Where(a => a.Id == attachmentId)
+                         .AsEnumerable()
+                         .Select(FromBinding)
+                         .FirstOrDefault();
             }
         }
 

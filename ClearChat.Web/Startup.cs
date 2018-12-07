@@ -23,9 +23,10 @@ namespace ClearChat.Web
         {
             var connString = Environment.GetEnvironmentVariable("ClearChat", EnvironmentVariableTarget.Machine);
             var hasher = new Sha256StringHasher();
-            var msgRepo = new ChannelCachingMessageRepository(new SqlServerMessageRepository(connString,
-                                                         new AesStringProtector(new byte[32]),
-                                                         hasher), hasher);
+            var msgRepo = new ChannelCachingMessageRepository(new SqlServerMessageRepository(
+                 connString,
+                 new AesStringProtector(new byte[32]),
+                 hasher), hasher);
 
             services.AddSignalR();
             services.AddSingleton<IChatContext>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
@@ -48,7 +49,8 @@ namespace ClearChat.Web
                     new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher),
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
                     new DeleteMessageCommand(s.GetService<IMessageRepository>()),
-                    new AutoResponseCommand(s.GetService<IAutoResponseRepository>())
+                    new AutoResponseCommand(s.GetService<IAutoResponseRepository>()),
+                    new UploadSlashCommand(s.GetService<IMessageRepository>())
                 }),
                 new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>())
             }));
