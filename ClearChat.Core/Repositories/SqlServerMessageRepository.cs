@@ -96,6 +96,43 @@ namespace ClearChat.Core.Repositories
             }
         }
 
+        public void AddAttachment(int messageId, ContentEncoding encoding, string contentType, byte[] content)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var binding = new MessageAttachmentBinding
+                {
+                    MessageId = messageId,
+                    Encoding = (int) encoding,
+                    Content = content,
+                    ContentType = contentType,
+                };
+                db.MessageAttachments.Add(binding);
+                db.SaveChanges();
+            }
+        }
+
+        public IReadOnlyCollection<MessageAttachment> GetAttachments(IReadOnlyCollection<int> messageIds)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                return db.MessageAttachments.Where(a => messageIds.Contains(a.MessageId))
+                         .ToArray()
+                         .Select(FromBinding)
+                         .ToArray();
+            }
+        }
+
+        public void DeleteAttachment(int messageAttachmentId)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var binding = db.MessageAttachments.Single(a => a.Id == messageAttachmentId);
+                db.Remove(binding);
+                db.SaveChanges();
+            }
+        }
+
         public bool IsChannelPrivate(string channelName)
         {
             if (channelName == "default") return false;
@@ -205,6 +242,15 @@ namespace ClearChat.Core.Repositories
             }
         }
 
+        private static MessageAttachment FromBinding(MessageAttachmentBinding binding)
+        {
+            return new MessageAttachment(binding.Id, 
+                                         binding.MessageId,
+                                         (ContentEncoding) binding.Encoding,
+                                         binding.Content, 
+                                         binding.ContentType);
+        }
+
         class DatabaseContext : DbContext
         {
             public DatabaseContext(string connectionString)
@@ -217,6 +263,7 @@ namespace ClearChat.Core.Repositories
             // ReSharper disable UnusedMember.Local
             // ReSharper disable UnusedAutoPropertyAccessor.Local
             public DbSet<MessageBinding> Messages { get; set; }
+            public DbSet<MessageAttachmentBinding> MessageAttachments { get; set; }
             public DbSet<ChannelBinding> Channels { get; set; }
             public DbSet<ChannelMembershipBinding> Memberships { get; set; }
             // ReSharper restore UnusedAutoPropertyAccessor.Local
