@@ -251,6 +251,7 @@ namespace ClearChat.Core.Repositories
             {
                 var message = db.Messages.FirstOrDefault(m => m.Id == messageId);
                 if (message == null) return;
+
                 var ids = db.MessageAttachments
                             .Where(a => a.MessageId == messageId)
                             .Select(a => a.Id);
@@ -261,6 +262,8 @@ namespace ClearChat.Core.Repositories
                       .Attach(new MessageAttachmentBinding { Id = id, MessageId = messageId })
                       .State = EntityState.Deleted;
                 }
+
+                db.Messages.Remove(message);
                 db.SaveChanges();
             }
         }
