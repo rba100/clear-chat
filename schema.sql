@@ -1,8 +1,6 @@
-﻿-- TODO: Normalisation
-
-CREATE TABLE [dbo].[Messages]
+﻿CREATE TABLE [dbo].[Messages]
 (
-    [id] [INT] IDENTITY(1, 1) NOT NULL,
+    [id] [INT] IDENTITY(1, 1) NOT NULL PRIMARY KEY,
     [userId] [VARCHAR](1000) NOT NULL,
     [channelId] INT NOT NULL,
     [message] [VARBINARY](MAX) NOT NULL,
@@ -40,3 +38,12 @@ CREATE TABLE [dbo].[AutoResponses]
     [response] [VARCHAR](1000) NOT NULL,
     FOREIGN KEY (userIdHash) REFERENCES [dbo].[Users](userIdHash)
 );
+
+CREATE TABLE [dbo].MessageAttachments
+(
+	Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	MessageId INT NOT NULL,
+	ContentType NVARCHAR(50) NOT NULL,
+	Content VARBINARY(max) NOT NULL
+)
+ALTER TABLE dbo.MessageAttachments ADD CONSTRAINT FK_MessageId FOREIGN KEY(MessageId) REFERENCES Messages(id)
