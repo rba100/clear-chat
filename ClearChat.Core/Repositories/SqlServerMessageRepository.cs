@@ -33,13 +33,14 @@ namespace ClearChat.Core.Repositories
 
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channel = db.Channels.SingleOrDefault(c => c.ChannelNameHash == channelNameHash);
-                var channelId = isDefaultChannel ? 0 : channel?.ChannelId ?? -1;
+                var channelId = isDefaultChannel ? 0 : db.Channels
+                                                         .SingleOrDefault(c => c.ChannelNameHash == channelNameHash)
+                                                         ?.ChannelId;
 
-                if (!isDefaultChannel && channel == null) return new ChatMessage[0];
+                if (!channelId.HasValue) return new ChatMessage[0];
 
                 var msgs = db.Messages
-                             .Where(m => m.ChannelId == channelId)
+                             .Where(m => m.ChannelId == channelId.Value)
                              .OrderByDescending(m => m.TimeStampUtc)
                              .Take(400)
                              .ToArray()
@@ -79,8 +80,9 @@ namespace ClearChat.Core.Repositories
             var channelNameHash = isDefaultChannel ? null : m_StringHasher.Hash(channelName);
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channel = db.Channels.SingleOrDefault(c => c.ChannelNameHash == channelNameHash);
-                var channelId = isDefaultChannel ? 0 : channel.ChannelId;
+                var channelId = isDefaultChannel ? 0 : db.Channels
+                                                         .Single(c => c.ChannelNameHash == channelNameHash)
+                                                         .ChannelId;
                 var messageBinding = new MessageBinding
                 {
                     UserId = Convert.ToBase64String(m_StringProtector.Protect(userId)),
@@ -249,7 +251,16 @@ namespace ClearChat.Core.Repositories
             {
                 var message = db.Messages.FirstOrDefault(m => m.Id == messageId);
                 if (message == null) return;
-                db.Messages.Remove(message);
+                var ids = db.MessageAttachments
+                            .Where(a => a.MessageId == messageId)
+                            .Select(a => a.Id);
+
+                foreach (var id in ids)
+                {
+                    db.MessageAttachments
+                      .Attach(new MessageAttachmentBinding { Id = id, MessageId = messageId })
+                      .State = EntityState.Deleted;
+                }
                 db.SaveChanges();
             }
         }

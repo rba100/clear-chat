@@ -23,7 +23,6 @@ namespace ClearChat.Core.Domain
         public string UserId { get; }
         public string ChannelName { get; }
         public string Message { get; }
-
         public int[] AttachmentIds { get; }
         public DateTime TimeStampUtc { get; }
     }
