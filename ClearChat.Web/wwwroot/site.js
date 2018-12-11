@@ -92,14 +92,24 @@ $(function () {
         });
         $('#text-input').focus();
         connection.send('GetChannels');
-    });
+    }, reconnect);
 
-    connection.onclose(function (error) {
-        dataRefresh(pageUnavailableOverlay, { message: 'Disconnected. Game over.' });
+    connection.onclose(reconnect);
+
+    var reconnectCount = 0;
+    function reconnect() {
+        var message = reconnectCount > 5 ? 'Something is up...' : 'Connecting...';
+        dataRefresh(pageUnavailableOverlay, { message: message });
         pageUnavailableOverlay.show();
-        console.log("DEBUG: connection closed.");
-        if (error) console.log("DEBUG: " + error);
-    });
+        connection.start().then(function () {
+            pageUnavailableOverlay.hide();
+            reconnectCount = 0;
+            connection.send('GetChannels');
+        }, function() {
+            reconnectCount++;
+            setTimeout(reconnect, 5000); // Restart connection after 5 seconds.
+        });
+    }
 
     connection.on("newMessage",
         function (chatItemRaw) {
