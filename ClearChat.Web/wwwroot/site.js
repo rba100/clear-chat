@@ -52,6 +52,11 @@ $(function () {
         return scrollHeight - scrollTop - height < 50;
     }
 
+    function showOverlayMessage(message) {
+        dataRefresh(pageUnavailableOverlay, { message: message });
+        pageUnavailableOverlay.show();
+    }
+
     function scrollToLastMessage() {
         messageContainer[0].scrollTop = messageContainer[0].scrollHeight;
     }
@@ -81,7 +86,7 @@ $(function () {
         .build();
 
     connection.start().then(function () {
-        dataRefresh(pageUnavailableOverlay, { message: 'Loading channels...' });
+        showOverlayMessage('Loading channels...');
         $('#text-input').keypress(function (e) {
             if (e.which === 13) { // ENTER KEY
                 send();
@@ -99,8 +104,7 @@ $(function () {
     var reconnectCount = 0;
     function reconnect() {
         var message = reconnectCount > 5 ? 'Something is up...' : 'Connecting...';
-        dataRefresh(pageUnavailableOverlay, { message: message });
-        pageUnavailableOverlay.show();
+        showOverlayMessage(message);
         connection.start().then(function () {
             pageUnavailableOverlay.hide();
             reconnectCount = 0;
