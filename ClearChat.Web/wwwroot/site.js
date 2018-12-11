@@ -16,6 +16,7 @@ $(function () {
     var channelList = $('#nav-section-channels');
     var messageContainer = $('#message-container');
     var showNewMessageScrollWarning = $('#new-message-scroll-warning');
+    var pageUnavailableOverlay = $('#page-unavailable-overlay');
     var converter = new showdown.Converter();
     var typingNotifier = $('#typing-notifier');
     setTimeout(typingNotifierPoll, 3000);
@@ -80,6 +81,7 @@ $(function () {
         .build();
 
     connection.start().then(function () {
+        dataRefresh(pageUnavailableOverlay, { message: 'Loading channels...' });
         $('#text-input').keypress(function (e) {
             if (e.which === 13) { // ENTER KEY
                 send();
@@ -93,6 +95,8 @@ $(function () {
     });
 
     connection.onclose(function (error) {
+        dataRefresh(pageUnavailableOverlay, { message: 'Disconnected. Game over.' });
+        pageUnavailableOverlay.show();
         console.log("DEBUG: connection closed.");
         if (error) console.log("DEBUG: " + error);
     });
@@ -153,6 +157,7 @@ $(function () {
                 }
             }
             if (shouldChangeChannel) changeChannelLocal(names[0]);
+            pageUnavailableOverlay.hide();
         });
 
     connection.on("userDetails",
