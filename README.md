@@ -18,18 +18,14 @@ Front-end code will be discarded in favour of some framework, probably React. Ha
 ## TODO
 - JavaScript small tasks.
   - DateTime formatter (i.e. iso date to "5:54 PM").
-  - Reconnection logic.
-  - per-channel unread messages count.
+  - Channel header information bar.
   - Make it work on Safari https://github.com/aspnet/SignalR-samples/blob/cd1e20844c47c5da5f51f74a5030c05a88152a8b/ChatSample/ChatSample/wwwroot/index.html#L75
+- Reactions.
+- Message popup-on-hover control (with buttons for, edit, delete, react to, etc).
 - Direct messages.
-- Editable and deletable messages.
+- Editable messages.
 - Auto-complete.
-- Add favicon.
-- Social justice warrior bot to ensure users repress any sentiment that could cause offence.
 - Ability to upload images, initiated by pasting from the clipboard to the input bar.
-- 'chap is typing...' system.
-- more /slash commands for all the fun.
-- server and SSL certificates
 
 ## Tech stack
 As things are now. Update here as decisions are made.
