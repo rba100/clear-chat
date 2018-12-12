@@ -5,16 +5,6 @@
 - Participation requires acceptance that all communications are private in perpetuity.
 - A place to express yourself when the modern world denies you your nature.
 
-## Architecture
-
-### Backend
-When a user sends a chat message, this will get processed by some handlers to see if it's actually a /slash command or just a chat message.
-`ChatContext` is a POCO containing references to everything specific to the request, and this is passed to handlers as well so they
-can get information about the user in question, the channel they're in, etc. Add stuff to `ChatContext` that relates to a single 'send message' from the UI.
-
-### Frontend
-Front-end code will be discarded in favour of some framework, probably React. Hack away, in the mean time.
-
 ## TODO
 - JavaScript small tasks.
   - DateTime formatter (i.e. iso date to "5:54 PM").
