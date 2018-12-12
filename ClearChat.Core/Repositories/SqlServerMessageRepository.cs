@@ -33,30 +33,44 @@ namespace ClearChat.Core.Repositories
 
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channel = db.Channels.SingleOrDefault(c => c.ChannelNameHash == channelNameHash);
-                var channelId = isDefaultChannel ? 0 : channel?.ChannelId ?? -1;
+                var channelId = isDefaultChannel ? 0 : db.Channels
+                                                         .SingleOrDefault(c => c.ChannelNameHash == channelNameHash)
+                                                         ?.ChannelId;
 
-                if (!isDefaultChannel && channel == null) return new ChatMessage[0];
+                if (!channelId.HasValue) return new ChatMessage[0];
 
                 var msgs = db.Messages
-                             .Where(m => m.ChannelId == channelId)
+                             .Where(m => m.ChannelId == channelId.Value)
                              .OrderByDescending(m => m.TimeStampUtc)
                              .Take(400)
                              .ToArray()
-                             .Select(m => FromBinding(m, channelName))
                              .Reverse()
                              .ToArray();
-                return msgs;
+
+                var mIds = msgs.Select(m => m.Id).ToArray();
+
+                var attachments = db.MessageAttachments.Where(a => mIds.Contains(a.MessageId))
+                                    .Select(m => new { m.MessageId, m.Id })
+                                    .GroupBy(a => a.MessageId)
+                                    .ToDictionary(g => g.Key, g => g.Select(a => a.Id).ToArray());
+
+                return msgs.Select(m => FromBinding(m, attachments, channelName)).ToArray();
             }
         }
 
-        private ChatMessage FromBinding(MessageBinding arg, string channelName)
+        private ChatMessage FromBinding(MessageBinding arg,
+                                        Dictionary<int, int[]> attachments,
+                                        string channelName)
         {
             var userId = m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId));
+
+            var attachmentIds = attachments != null && attachments.ContainsKey(arg.Id) ? attachments[arg.Id] : new int[0];
+
             return new ChatMessage(arg.Id,
                                    userId,
                                    channelName,
                                    m_StringProtector.Unprotect(arg.Message),
+                                   attachmentIds,
                                    DateTime.SpecifyKind(arg.TimeStampUtc, DateTimeKind.Utc));
         }
 
@@ -66,8 +80,9 @@ namespace ClearChat.Core.Repositories
             var channelNameHash = isDefaultChannel ? null : m_StringHasher.Hash(channelName);
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channel = db.Channels.SingleOrDefault(c => c.ChannelNameHash == channelNameHash);
-                var channelId = isDefaultChannel ? 0 : channel.ChannelId;
+                var channelId = isDefaultChannel ? 0 : db.Channels
+                                                         .Single(c => c.ChannelNameHash == channelNameHash)
+                                                         .ChannelId;
                 var messageBinding = new MessageBinding
                 {
                     UserId = Convert.ToBase64String(m_StringProtector.Protect(userId)),
@@ -77,7 +92,7 @@ namespace ClearChat.Core.Repositories
                 };
                 db.Messages.Add(messageBinding);
                 db.SaveChanges();
-                return FromBinding(messageBinding, channelName);
+                return FromBinding(messageBinding, null, channelName);
             }
         }
 
@@ -92,6 +107,55 @@ namespace ClearChat.Core.Repositories
                 var channelId = isDefaultChannel ? 0 : channel.ChannelId;
                 var messagesToRemove = db.Messages.Where(m => m.ChannelId == channelId);
                 db.Messages.RemoveRange(messagesToRemove);
+                db.SaveChanges();
+            }
+        }
+
+        public int AddAttachment(int messageId, string contentType, byte[] content)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var binding = new MessageAttachmentBinding
+                {
+                    MessageId = messageId,
+                    Content = content,
+                    ContentType = contentType,
+                };
+                db.MessageAttachments.Add(binding);
+                db.SaveChanges();
+                return binding.Id;
+            }
+        }
+
+        public IReadOnlyCollection<MessageAttachment> GetAttachments(IReadOnlyCollection<int> messageIds)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                return db.MessageAttachments.Where(a => messageIds.Contains(a.MessageId))
+                         .ToArray()
+                         .Select(FromBinding)
+                         .ToArray();
+            }
+        }
+
+        public MessageAttachment GetAttachment(int attachmentId)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                return db.MessageAttachments
+                         .Where(a => a.Id == attachmentId)
+                         .AsEnumerable()
+                         .Select(FromBinding)
+                         .FirstOrDefault();
+            }
+        }
+
+        public void DeleteAttachment(int messageAttachmentId)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var binding = db.MessageAttachments.Single(a => a.Id == messageAttachmentId);
+                db.Remove(binding);
                 db.SaveChanges();
             }
         }
@@ -200,9 +264,29 @@ namespace ClearChat.Core.Repositories
             {
                 var message = db.Messages.FirstOrDefault(m => m.Id == messageId);
                 if (message == null) return;
+
+                var ids = db.MessageAttachments
+                            .Where(a => a.MessageId == messageId)
+                            .Select(a => a.Id);
+
+                foreach (var id in ids)
+                {
+                    db.MessageAttachments
+                      .Attach(new MessageAttachmentBinding { Id = id, MessageId = messageId })
+                      .State = EntityState.Deleted;
+                }
+
                 db.Messages.Remove(message);
                 db.SaveChanges();
             }
+        }
+
+        private static MessageAttachment FromBinding(MessageAttachmentBinding binding)
+        {
+            return new MessageAttachment(binding.Id,
+                                         binding.MessageId,
+                                         binding.Content,
+                                         binding.ContentType);
         }
 
         class DatabaseContext : DbContext
@@ -217,6 +301,7 @@ namespace ClearChat.Core.Repositories
             // ReSharper disable UnusedMember.Local
             // ReSharper disable UnusedAutoPropertyAccessor.Local
             public DbSet<MessageBinding> Messages { get; set; }
+            public DbSet<MessageAttachmentBinding> MessageAttachments { get; set; }
             public DbSet<ChannelBinding> Channels { get; set; }
             public DbSet<ChannelMembershipBinding> Memberships { get; set; }
             // ReSharper restore UnusedAutoPropertyAccessor.Local

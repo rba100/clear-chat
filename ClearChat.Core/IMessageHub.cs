@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using ClearChat.Core.Domain;
 
 namespace ClearChat.Core
@@ -11,7 +12,7 @@ namespace ClearChat.Core
         /// <summary>
         /// Publish a message.
         /// </summary>
-        void Publish(ChatMessage message);
+        Task Publish(ChatMessage message);
 
         /// <summary>
         /// Publish a transient message that is displayed to user(s) but not persisted.

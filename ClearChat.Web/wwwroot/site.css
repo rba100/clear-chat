@@ -136,6 +136,7 @@ html, body {
 .message {
     padding-top: 5px;
     padding-right: 20px;
+    display: table;
 }
 
     .message:hover {
@@ -143,7 +144,8 @@ html, body {
     }
 
 .message-content {
-    display: flex;
+    display: table-cell;
+    padding-left: 20px;
 }
 
     .message-content p {
@@ -151,11 +153,10 @@ html, body {
     }
 
 .message-gutter {
-    float: left;
     text-align: right;
     font-size: 12px;
     color: grey;
-    display: inline;
+    display: table-cell;
     width: 64px;
     margin-right: 16px;
     padding-top: 2px;
@@ -163,12 +164,13 @@ html, body {
 
 .message-content-header {
     display: inline;
-    margin-right: 10px;
+    margin-left: -5px;
     color: rgb(56,90,134);
+    white-space: nowrap;
 }
 
 .message-content-body {
-    word-break: break-all;
+    display: initial;
 }
 
 .hover-show {
@@ -237,4 +239,33 @@ img[alt="auto-image"] {
     padding: 3px 20px 0 30px;
     outline: none;
     border: none;
+}
+
+
+#page-unavailable-overlay {
+    z-index: 9999;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    background: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) 10px, rgba(0, 0, 0, 0.3) 10px, rgba(0, 0, 0, 0.3) 20px);
+    -ms-align-items: center;
+    -o-align-items: center;
+    -webkit-align-items: center;
+    align-items: center;
+    -o-justify-content: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+#page-unavailable-overlay-box {
+    background: #cccccc;
+    border: #4d5250;
+    border-style: solid;
+    border-width: 2px;
+    -ms-border-radius: 20px;
+    border-radius: 20px;
+    padding: 50px;
 }

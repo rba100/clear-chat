@@ -16,6 +16,7 @@ $(function () {
     var channelList = $('#nav-section-channels');
     var messageContainer = $('#message-container');
     var showNewMessageScrollWarning = $('#new-message-scroll-warning');
+    var pageUnavailableOverlay = $('#page-unavailable-overlay');
     var converter = new showdown.Converter();
     var typingNotifier = $('#typing-notifier');
     setTimeout(typingNotifierPoll, 3000);
@@ -51,6 +52,11 @@ $(function () {
         return scrollHeight - scrollTop - height < 50;
     }
 
+    function showOverlayMessage(message) {
+        dataRefresh(pageUnavailableOverlay, { message: message });
+        pageUnavailableOverlay.show();
+    }
+
     function scrollToLastMessage() {
         messageContainer[0].scrollTop = messageContainer[0].scrollHeight;
     }
@@ -80,6 +86,7 @@ $(function () {
         .build();
 
     connection.start().then(function () {
+        showOverlayMessage('Loading channels...');
         $('#text-input').keypress(function (e) {
             if (e.which === 13) { // ENTER KEY
                 send();
@@ -90,12 +97,23 @@ $(function () {
         });
         $('#text-input').focus();
         connection.send('GetChannels');
-    });
+    }, reconnect);
 
-    connection.onclose(function (error) {
-        console.log("DEBUG: connection closed.");
-        if (error) console.log("DEBUG: " + error);
-    });
+    connection.onclose(reconnect);
+
+    var reconnectCount = 0;
+    function reconnect() {
+        var message = reconnectCount > 5 ? 'Something is up...' : 'Connecting...';
+        showOverlayMessage(message);
+        connection.start().then(function () {
+            pageUnavailableOverlay.hide();
+            reconnectCount = 0;
+            connection.send('GetChannels');
+        }, function() {
+            reconnectCount++;
+            setTimeout(reconnect, 5000); // Restart connection after 5 seconds.
+        });
+    }
 
     connection.on("newMessage",
         function (chatItemRaw) {
@@ -153,6 +171,7 @@ $(function () {
                 }
             }
             if (shouldChangeChannel) changeChannelLocal(names[0]);
+            pageUnavailableOverlay.hide();
         });
 
     connection.on("userDetails",
