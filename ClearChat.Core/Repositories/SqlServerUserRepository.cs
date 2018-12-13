@@ -9,19 +9,22 @@ namespace ClearChat.Core.Repositories
 {
     public class SqlServerUserRepository : IUserRepository
     {
-        private readonly static string[] s_BuiltInUsers = {"System", "ClearBot"};
+        private static readonly string[] s_BuiltInUsers = { "System", "ClearBot" };
 
         private readonly string m_ConnectionString;
         private readonly IStringHasher m_StringHasher;
+        private readonly IStringProtector m_StringProtector;
         private readonly IColourGenerator m_ColourGenerator;
 
-        public SqlServerUserRepository(string connectionString, 
-                                       IStringHasher stringHasher, 
-                                       IColourGenerator colourGenerator)
+        public SqlServerUserRepository(string connectionString,
+                                       IStringHasher stringHasher,
+                                       IColourGenerator colourGenerator,
+                                       IStringProtector stringProtector)
         {
             m_ConnectionString = connectionString;
             m_StringHasher = stringHasher;
             m_ColourGenerator = colourGenerator;
+            m_StringProtector = stringProtector;
         }
 
         private class DatabaseContext : DbContext
@@ -49,7 +52,8 @@ namespace ClearChat.Core.Repositories
 
         public void SaveUser(string userId, string password)
         {
-            var userIdHashed = m_StringHasher.Hash(userId, new byte[0]);
+            var userIdProtected = m_StringProtector.Protect(userId);
+            var userIdHash = m_StringHasher.Hash(userId);
             var salt = Guid.NewGuid().ToByteArray();
             var passwordHashed = m_StringHasher.Hash(password, salt);
 
@@ -57,7 +61,8 @@ namespace ClearChat.Core.Repositories
             {
                 var user = new UserBinding
                 {
-                    UserIdHash = userIdHashed,
+                    UserIdProtected = userIdProtected,
+                    UserIdHash = userIdHash,
                     PasswordHash = passwordHashed,
                     PasswordSalt = salt
                 };
@@ -73,7 +78,7 @@ namespace ClearChat.Core.Repositories
             using (var db = new DatabaseContext(m_ConnectionString))
             {
                 var user = db.Users.FirstOrDefault(u => u.UserIdHash == userIdHashed);
-                return user != null && m_StringHasher.HashMatch(password, 
+                return user != null && m_StringHasher.HashMatch(password,
                                                                 user.PasswordHash,
                                                                 user.PasswordSalt);
             }
@@ -81,7 +86,7 @@ namespace ClearChat.Core.Repositories
 
         public User GetUserDetails(string userId)
         {
-            if(s_BuiltInUsers.Contains(userId)) return new User(userId, "000000");
+            if (s_BuiltInUsers.Contains(userId)) return new User(userId, "000000");
             var userIdHashed = m_StringHasher.Hash(userId, new byte[0]);
 
             using (var db = new DatabaseContext(m_ConnectionString))

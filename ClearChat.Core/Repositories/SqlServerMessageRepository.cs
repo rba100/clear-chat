@@ -62,7 +62,7 @@ namespace ClearChat.Core.Repositories
                                         Dictionary<int, int[]> attachments,
                                         string channelName)
         {
-            var userId = m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId));
+            var userId = arg.User == null ? "System" : m_StringProtector.Unprotect(arg.User.UserIdProtected);
 
             var attachmentIds = attachments != null && attachments.ContainsKey(arg.Id) ? attachments[arg.Id] : new int[0];
 
@@ -74,7 +74,7 @@ namespace ClearChat.Core.Repositories
                                    DateTime.SpecifyKind(arg.TimeStampUtc, DateTimeKind.Utc));
         }
 
-        public ChatMessage WriteMessage(string userId, string channelName, string message, DateTime timeStampUtc)
+        public ChatMessage WriteMessage(int userId, string channelName, string message, DateTime timeStampUtc)
         {
             var isDefaultChannel = channelName == "default";
             var channelNameHash = isDefaultChannel ? null : m_StringHasher.Hash(channelName);
@@ -85,7 +85,7 @@ namespace ClearChat.Core.Repositories
                                                          .ChannelId;
                 var messageBinding = new MessageBinding
                 {
-                    UserId = Convert.ToBase64String(m_StringProtector.Protect(userId)),
+                    UserId = userId,
                     ChannelId = channelId,
                     Message = m_StringProtector.Protect(message),
                     TimeStampUtc = timeStampUtc

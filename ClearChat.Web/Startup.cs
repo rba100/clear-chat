@@ -23,14 +23,16 @@ namespace ClearChat.Web
         {
             var connString = Environment.GetEnvironmentVariable("ClearChat", EnvironmentVariableTarget.Machine);
             var hasher = new Sha256StringHasher();
+            var protector = new AesStringProtector(new byte[32]);
             var msgRepo = new ChannelCachingMessageRepository(new SqlServerMessageRepository(
                  connString,
-                 new AesStringProtector(new byte[32]),
+                 protector,
                  hasher), hasher);
 
             services.AddSignalR();
             services.AddSingleton<IChatContext>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
             services.AddSingleton<IMessageRepository>(sp => msgRepo);
+            services.AddSingleton<IStringProtector>(sp => protector);
             services.AddSingleton<IAutoResponseRepository>(sp => new RateLimitingAutoResponseRepository(
                                                                      new CachingAutoResponseRepository(
                                                                          new AutoResponseRepository(connString, hasher),
@@ -38,7 +40,7 @@ namespace ClearChat.Web
             services.AddSingleton<IStringHasher>(sp => hasher);
             services.AddSingleton<IColourGenerator, ColourGenerator>();
             services.AddSingleton<IUserRepository>(sp => new CachingUserRepository(
-                new SqlServerUserRepository(connString, hasher, sp.GetService<IColourGenerator>())));
+                new SqlServerUserRepository(connString, hasher, sp.GetService<IColourGenerator>(), sp.GetService<IStringProtector>())));
             services.AddSingleton<IConnectionManager, ConnectionManager>();
             services.AddSingleton<IMessageHandler>(s => new CompositeMessageHandler(new IMessageHandler[]
             {
@@ -53,7 +55,7 @@ namespace ClearChat.Web
                     new AutoResponseCommand(s.GetService<IAutoResponseRepository>()),
                     new UploadSlashCommand(s.GetService<IMessageRepository>())
                 }),
-                new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>())
+                new ChatMessageHandler(s.GetService<IMessageRepository>(), s.GetService<IAutoResponseRepository>())
             }));
 
             services.AddSingleton<IMessageHub, ChatController>();

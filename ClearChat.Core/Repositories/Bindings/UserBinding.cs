@@ -7,6 +7,8 @@ namespace ClearChat.Core.Repositories.Bindings
     public class UserBinding
     {
         [Key]
+        public int Id { get; set; }
+        public byte[] UserIdProtected { get; set; }
         public byte[] UserIdHash { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }

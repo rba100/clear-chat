@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [dbo].[Messages]
 (
     [id] [INT] IDENTITY(1, 1) NOT NULL PRIMARY KEY,
-    [userId] [VARCHAR](1000) NOT NULL,
+    [userId] INT NOT NULL,
     [channelId] INT NOT NULL,
     [message] [VARBINARY](MAX) NOT NULL,
     [TimeStampUtc] [DATETIME2](7) NOT NULL
@@ -9,7 +9,8 @@
 
 CREATE TABLE [dbo].[Users]
 (
-    [userIdHash] [VARBINARY](256) NOT NULL PRIMARY KEY,
+	[id] INT IDENTITY (1,1) PRIMARY KEY,
+    [userIdProtected] [VARBINARY](2000) NOT NULL,
     [passwordHash] [VARBINARY](256) NOT NULL,
     [passwordSalt] [VARBINARY](256) NOT NULL,
     [hexColour] [VARCHAR](6) NULL
@@ -26,14 +27,14 @@ CREATE TABLE [dbo].[Channels]
 CREATE TABLE [dbo].[ChannelMembership]
 (
     [id] INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
-    [userIdHash] [VARBINARY](256) NOT NULL,
+    [userId] INT NOT NULL,
     [channelName] [VARBINARY](MAX) NOT NULL
 );
 
 CREATE TABLE [dbo].[AutoResponses]
 (
     [id] INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
-	[userIdHash] [VARBINARY](256) NOT NULL,
+	[authorUserId] INT NOT NULL,
     [substring] [VARCHAR](1000) NOT NULL,
     [response] [VARCHAR](1000) NOT NULL,
     FOREIGN KEY (userIdHash) REFERENCES [dbo].[Users](userIdHash)

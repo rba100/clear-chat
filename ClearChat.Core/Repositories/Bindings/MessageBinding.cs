@@ -9,7 +9,9 @@ namespace ClearChat.Core.Repositories.Bindings
     {
         [Key]
         public int Id { get; set; }
-        public string UserId { get; set; }
+        public int UserId { get; set; }
+
+        public virtual UserBinding User { get; set; }
         public int ChannelId { get; set; }
         public byte[] Message { get; set; }
         public DateTime TimeStampUtc { get; set; }
