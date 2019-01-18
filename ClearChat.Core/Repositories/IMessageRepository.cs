@@ -20,5 +20,6 @@ namespace ClearChat.Core.Repositories
         IReadOnlyCollection<byte[]> GetChannelMembershipsForChannel(string channelName);
         void DeleteMessage(int messageId);
         bool IsChannelPrivate(string channelName);
+        IReadOnlyCollection<byte[]> GetUsersInChannel(string channelName);
     }
 }

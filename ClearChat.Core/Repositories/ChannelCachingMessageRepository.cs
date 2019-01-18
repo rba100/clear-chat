@@ -123,5 +123,10 @@ namespace ClearChat.Core.Repositories
         {
             return m_MessageRepository.IsChannelPrivate(channelName);
         }
+
+        public IReadOnlyCollection<byte[]> GetUsersInChannel(string channelName)
+        {
+            return m_MessageRepository.GetUsersInChannel(channelName);
+        }
     }
 }

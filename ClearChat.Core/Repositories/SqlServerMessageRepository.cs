@@ -173,6 +173,20 @@ namespace ClearChat.Core.Repositories
             }
         }
 
+        public IReadOnlyCollection<byte[]> GetUsersInChannel(string channelName)
+        {
+            var channelNameHash = m_StringHasher.Hash(channelName);
+
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var membershipsForChannel = db.Memberships.Where(m => m.ChannelName == channelNameHash);
+
+                return membershipsForChannel.Any()
+                    ? membershipsForChannel.Select(m => m.UserIdHash).ToArray()
+                    : null;
+            }
+        }
+
         public SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword)
         {
             if (channelName == "default") return SwitchChannelResult.Accepted;
