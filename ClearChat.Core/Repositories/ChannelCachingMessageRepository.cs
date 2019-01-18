@@ -19,7 +19,7 @@ namespace ClearChat.Core.Repositories
         private readonly IStringHasher m_StringHasher;
 
         public ChannelCachingMessageRepository(IMessageRepository messageRepository, 
-                                        IStringHasher stringHasher)
+                                               IStringHasher stringHasher)
         {
             m_MessageRepository = messageRepository;
             m_StringHasher = stringHasher;
@@ -40,9 +40,9 @@ namespace ClearChat.Core.Repositories
             m_MessageRepository.ClearChannel(channelName);
         }
 
-        public SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword)
+        public SwitchChannelResult GetOrCreateChannel(string userId, string channelName, string channelPassword)
         {
-            return m_MessageRepository.GetOrCreateChannel(channelName, channelPassword);
+            return m_MessageRepository.GetOrCreateChannel(userId, channelName, channelPassword);
         }
 
         public void AddChannelMembership(string userId, string channelName)

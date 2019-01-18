@@ -109,7 +109,33 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword)
+        public void AddPermission(string userId, string channelName, string permissionName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasPermission(string userId, string channelName, string permissionName)
+        {
+            var userIdHash = m_StringHasher.Hash(userId);
+            var channelNameHash = m_StringHasher.Hash(channelName);
+
+
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var channel = db.Channels.FirstOrDefault(c => c.ChannelNameHash == channelNameHash);
+                if(channel == null)
+                    throw new ArgumentException(nameof(channelName));
+
+                var permission = db.Permissions.FirstOrDefault
+                    (p => p.UserIdHash == userIdHash
+                          && p.ChannelId == channel.ChannelId
+                          && p.PermissionName == permissionName);
+
+                return permission != null;
+            }
+        }
+
+        public SwitchChannelResult GetOrCreateChannel(string userId, string channelName, string channelPassword)
         {
             if (channelName == "default") return SwitchChannelResult.Accepted;
 
@@ -219,6 +245,7 @@ namespace ClearChat.Core.Repositories
             public DbSet<MessageBinding> Messages { get; set; }
             public DbSet<ChannelBinding> Channels { get; set; }
             public DbSet<ChannelMembershipBinding> Memberships { get; set; }
+            public DbSet<ChannelPermissionsBinding> Permissions { get; set; }
             // ReSharper restore UnusedAutoPropertyAccessor.Local
             // ReSharper restore UnusedMember.Local
         }

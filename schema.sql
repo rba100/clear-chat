@@ -40,3 +40,13 @@ CREATE TABLE [dbo].[AutoResponses]
     [response] [VARCHAR](1000) NOT NULL,
     FOREIGN KEY (userIdHash) REFERENCES [dbo].[Users](userIdHash)
 );
+
+CREATE TABLE [dbo].[ChannelPermissions]
+(
+    [id] INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
+    [userIdHash] [VARBINARY](256) NOT NULL,
+    [channelId] INT IDENTITY(1, 1) NOT NULL,
+    [permissionName] VARCHAR(1000) NOT NULL,
+    FOREIGN KEY (userIdHash) REFERENCES [dbo].[Users](userIdHash)
+    FOREIGN KEY (channelId) REFERENCES [dbo].[Channels](channelId)
+);

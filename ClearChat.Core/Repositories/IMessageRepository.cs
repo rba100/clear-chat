@@ -9,7 +9,7 @@ namespace ClearChat.Core.Repositories
         IReadOnlyCollection<ChatMessage> ChannelMessages(string channelName);
         ChatMessage WriteMessage(string userId, string channelName, string message, DateTime timeStampUtc);
         void ClearChannel(string channelName);
-        SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword);
+        SwitchChannelResult GetOrCreateChannel(string userId, string channelName, string channelPassword);
         void AddChannelMembership(string userId, string channelName);
         void RemoveChannelMembership(string userId, string channelName);
         IReadOnlyCollection<string> GetChannelMembershipsForUser(string userId);
@@ -20,5 +20,7 @@ namespace ClearChat.Core.Repositories
         IReadOnlyCollection<byte[]> GetChannelMembershipsForChannel(string channelName);
         void DeleteMessage(int messageId);
         bool IsChannelPrivate(string channelName);
+        void AddPermission(string userId, string channelName, string permissionName);
+        bool HasPermission(string userId, string channelName, string permissionName);
     }
 }
