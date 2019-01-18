@@ -52,7 +52,7 @@ namespace ClearChat.Web
                     new DeleteMessageCommand(s.GetService<IMessageRepository>()),
                     new AutoResponseCommand(s.GetService<IAutoResponseRepository>()),
                     new UploadSlashCommand(s.GetService<IMessageRepository>()),
-                    new WhoSlashCommand(s.GetService<IMessageRepository>()) 
+                    new WhoSlashCommand(s.GetService<IMessageRepository>())
                 }),
                 new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>())
             }));
