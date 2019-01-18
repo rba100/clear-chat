@@ -51,7 +51,8 @@ namespace ClearChat.Web
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
                     new DeleteMessageCommand(s.GetService<IMessageRepository>()),
                     new AutoResponseCommand(s.GetService<IAutoResponseRepository>()),
-                    new UploadSlashCommand(s.GetService<IMessageRepository>())
+                    new UploadSlashCommand(s.GetService<IMessageRepository>()),
+                    new WhoSlashCommand(s.GetService<IMessageRepository>())
                 }),
                 new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>())
             }));
