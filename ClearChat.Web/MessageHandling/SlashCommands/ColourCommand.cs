@@ -27,8 +27,11 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 context.MessageHub.PublishSystemMessage(context.ConnectionId, errorMessage);
                 return;
             }
-
-            var newUser = new User(context.UserId, colourStr);
+            
+            var oldUser = m_UserRepository.GetUserDetails(context.UserId);
+            var newUser = new User(context.UserId,
+                                   colourStr,
+                                   oldUser.VerifiedPublicIdentity);
             m_UserRepository.UpdateUser(newUser);
             context.MessageHub.PublishUserDetails(new[]{ newUser.UserId });
         }

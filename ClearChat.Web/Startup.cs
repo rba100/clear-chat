@@ -53,6 +53,7 @@ namespace ClearChat.Web
                     new AutoResponseCommand(s.GetService<IAutoResponseRepository>()),
                     new UploadSlashCommand(s.GetService<IMessageRepository>())
                 }),
+                new ChannelPermissionHandler(s.GetService<IUserRepository>()),
                 new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>())
             }));
 

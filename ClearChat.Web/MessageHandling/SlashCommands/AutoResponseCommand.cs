@@ -45,7 +45,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                     else RemoveResponse(context, parameters[1]);
                     return;
                 case "list":
-                    ListResponses(context);
+                    //ListResponses(context);
                     return;
             }
 
@@ -56,7 +56,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
         {
             context.MessageHub.PublishSystemMessage(context.ConnectionId, "/autoresponse add \"ping\" \"pong\"");
             context.MessageHub.PublishSystemMessage(context.ConnectionId, "/autoresponse remove \"ping\"");
-            context.MessageHub.PublishSystemMessage(context.ConnectionId, "/autoresponse list");
+            //context.MessageHub.PublishSystemMessage(context.ConnectionId, "/autoresponse list");
         }
 
         private void AddResponse(MessageContext context, string substring, string response)
