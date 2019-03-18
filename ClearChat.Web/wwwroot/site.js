@@ -294,6 +294,7 @@ $(function () {
     }
 
     function updateTypingCue() {
+        if (!model.selectedChannel) return;
         var names = "";
         var now = Date.now();
         var typistsArray = model.channelContentCache[model.selectedChannel].isTyping;
