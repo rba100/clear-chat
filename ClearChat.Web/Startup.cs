@@ -12,16 +12,30 @@ using ClearChat.Web.Hubs;
 using ClearChat.Web.MessageHandling;
 using ClearChat.Web.MessageHandling.SlashCommands;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 
 namespace ClearChat.Web
 {
     public class Startup
     {
+
+        private readonly IConfiguration m_Configuration;
+
+        public Startup(IConfiguration configuration)
+        {
+            m_Configuration = configuration;
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            var connString = Environment.GetEnvironmentVariable("ClearChat", EnvironmentVariableTarget.Machine);
+            var configurationConnectionString = m_Configuration.GetConnectionString("clear-chat");
+
+            var connString = string.IsNullOrWhiteSpace(configurationConnectionString)
+                ? Environment.GetEnvironmentVariable("ClearChat", EnvironmentVariableTarget.Machine)
+                : configurationConnectionString;
+
             var hasher = new Sha256StringHasher();
             var msgRepo = new ChannelCachingMessageRepository(new SqlServerMessageRepository(
                  connString,

@@ -9,7 +9,7 @@ namespace ClearChat.Core.Repositories
 {
     public class SqlServerUserRepository : IUserRepository
     {
-        private readonly static string[] s_BuiltInUsers = {"System", "ClearBot"};
+        private static readonly string[] s_BuiltInUsers = {"System", "ClearBot"};
 
         private readonly string m_ConnectionString;
         private readonly IStringHasher m_StringHasher;
