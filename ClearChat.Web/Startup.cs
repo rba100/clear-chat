@@ -18,7 +18,6 @@ namespace ClearChat.Web
 {
     public class Startup
     {
-
         private readonly IConfiguration m_Configuration;
 
         public Startup(IConfiguration configuration)

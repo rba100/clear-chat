@@ -36,6 +36,6 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             context.MessageHub.PublishUserDetails(new[]{ newUser.UserId });
         }
 
-        public string HelpText => "changes your user name colour. Six character RGB hex string.";
+        public string HelpText => "changes your username colour. Six character RGB hex string.";
     }
 }

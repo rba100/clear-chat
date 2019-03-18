@@ -222,14 +222,19 @@ $(function () {
 
     // See message-template in index.html
     function toMessageControlDataBinding(chatItem) {
-        var binding =  {
+        var binding = {
             userId: chatItem.userId,
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
-            message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
+            message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
             userIdCss: { color: '#' + toColour(chatItem.userId) },
-            headerAttributes: { title: chatItem.id }
-        };
+            headerAttributes: { title: chatItem.id },
+            attachmentSources: chatItem.attachmentIds.map(function(id) {
+                    return { 'imageAttributes': { 'src': '/api/attachment/' + id } };
+                }
+            )
+    };
 
         if (chatItem.userId === 'ClearBot') {
             binding.headerAttributes.class = "clear-bot-style";
@@ -265,10 +270,15 @@ $(function () {
         var sameAuthor = lastAuthor === chatItem.userId;
         var messageElement = instantiate('message-template', toMessageControlDataBinding(chatItem));
         if (sameAuthor) {
-            // Jamie doesn't like this. But I do, so will make it better at some point.
-            //messageElement.find("b").first().hide();
+            // maybe hide username for subsequent messages.
         }
         messageContainer.append(messageElement);
+        var attachmentIds = chatItem.attachmentIds;
+        for (var i = 0; i < attachmentIds.length; i++) {
+            var attachmentElement = instantiate('message-attachment-img-template',
+                { 'imageAttributes': { 'src': '/api/attachment/' + attachmentIds[i] } });
+            messageContainer.append(attachmentElement);
+        }
         lastAuthor = chatItem.userId;
         return messageElement[0];
     }
