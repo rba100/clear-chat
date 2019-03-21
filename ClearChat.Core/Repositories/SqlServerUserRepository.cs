@@ -45,7 +45,7 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public void SaveUser(User user, string password)
+        public User SaveUser(User user, string password)
         {
             var salt = Guid.NewGuid().ToByteArray();
             var passwordHashed = m_StringHasher.Hash(password, salt);
@@ -60,6 +60,11 @@ namespace ClearChat.Core.Repositories
                 };
                 db.Users.Add(binding);
                 db.SaveChanges();
+
+                return new User(binding.Id, 
+                                user.UserName,
+                                user.HexColour,
+                                user.VerifiedPublicIdentity);
             }
         }
 

@@ -45,11 +45,12 @@ namespace ClearChat.Core.Repositories
             return user;
         }
 
-        public void SaveUser(User user, string password)
+        public User SaveUser(User user, string password)
         {
-            m_UserRepository.SaveUser(user, password);
-            m_IdCache.Add(user.Id, user);
-            m_NameCache.Add(user.UserName, user);
+            var userWithId = m_UserRepository.SaveUser(user, password);
+            m_IdCache.Add(userWithId.Id, userWithId);
+            m_NameCache.Add(userWithId.UserName, userWithId);
+            return userWithId;
         }
 
         public void UpdateUser(User user)

@@ -15,12 +15,12 @@
         public bool VerifiedPublicIdentity { get; }
 
 
-        public User(int id,
+        public User(int? id,
                     string userName, 
                     string hexColour, 
                     bool verifiedPublicIdentity)
         {
-            Id = id;
+            Id = id ?? -1;
             UserName = userName;
             HexColour = hexColour;
             VerifiedPublicIdentity = verifiedPublicIdentity;

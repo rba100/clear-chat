@@ -7,7 +7,7 @@ namespace ClearChat.Core.Repositories
         bool UserNameExists(string userName);
         User GetUserDetails(string userName);
         User GetUserDetails(int userId);
-        void SaveUser(User user, string password);
+        User SaveUser(User user, string password);
         void UpdateUser(User user);
         bool ValidateUser(string userName, string password);
     }
