@@ -219,18 +219,13 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public ChannelInformation GetChannelInformation(string channelName)
+        public Channel GetChannelInformation(string channelName)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
                 var channel = db.Channels.Single(u => u.ChannelName == channelName);
                 var members = db.Memberships.Where(m => m.ChannelId == channel.Id).Select(m=>m.UserId).ToArray();
-                var userNames = db.Users.Where(u => members.Contains(u.Id)).Select(u=>u.UserName).ToArray();
-                return new ChannelInformation(channel.Id,
-                                              channelName,
-                                              channelName == "default",
-                                              userNames,
-                                              $"Welcome to {channelName}");
+                return new Channel(channel.Id,channelName);
             }
         }
 
@@ -252,6 +247,15 @@ namespace ClearChat.Core.Repositories
                 var channelId = db.Channels.Single(u => u.ChannelName == channelName).Id;
                 var memberships = db.Memberships.Where(m => m.ChannelId == channelId).ToArray();
                 return memberships.Select(m=>m.UserId).ToArray();
+            }
+        }
+
+        public bool UserIsInChannel(User user, Channel channel)
+        {
+            if (channel.IsDefault) return true;
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                return db.Memberships.Any(m => m.ChannelId == channel.Id && m.UserId == user.Id);
             }
         }
 

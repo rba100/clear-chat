@@ -6,8 +6,8 @@ namespace ClearChat.Core.Domain
     {
         public ChannelInformation(int id,
                                   string name,
-                                  bool isPrivate, 
-                                  IReadOnlyCollection<string> members, 
+                                  bool isPrivate,
+                                  IReadOnlyCollection<string> members,
                                   string messageOfTheDay)
         {
             Id = id;
@@ -16,6 +16,7 @@ namespace ClearChat.Core.Domain
             Members = members;
             MessageOfTheDay = messageOfTheDay;
         }
+
         public int Id { get; }
         public string Name { get; }
         public bool IsPrivate { get; }

@@ -92,7 +92,7 @@ namespace ClearChat.Core.Repositories
             m_MessageRepository.RemoveChannelMembership(userId, channelName);
         }
 
-        public ChannelInformation GetChannelInformation(string channelName)
+        public Channel GetChannelInformation(string channelName)
         {
             return m_MessageRepository.GetChannelInformation(channelName);
         }
@@ -125,6 +125,16 @@ namespace ClearChat.Core.Repositories
         public bool IsChannelPrivate(string channelName)
         {
             return m_MessageRepository.IsChannelPrivate(channelName);
+        }
+
+        public bool UserIsInChannel(User user, Channel channel)
+        {
+            if(m_UserToChannelCache.TryGetValue(user.Id, out var values))
+            {
+                if (values.Contains(channel.Name)) return true;
+            }
+
+            return m_MessageRepository.UserIsInChannel(user, channel);
         }
     }
 }

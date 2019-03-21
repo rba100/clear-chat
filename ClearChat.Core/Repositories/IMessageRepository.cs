@@ -16,10 +16,11 @@ namespace ClearChat.Core.Repositories
         SwitchChannelResult GetOrCreateChannel(string channelName, string channelPassword);
         void AddChannelMembership(int userId, string channelName);
         void RemoveChannelMembership(int userId, string channelName);
-        ChannelInformation GetChannelInformation(string channelName);
+        Channel GetChannelInformation(string channelName);
         IReadOnlyCollection<string> GetChannelMembershipsForUser(int userId);
         IReadOnlyCollection<int> GetChannelMembershipsForChannel(string channelName);
         void DeleteMessage(int messageId);
         bool IsChannelPrivate(string channelName);
+        bool UserIsInChannel(User user, Channel channel);
     }
 }
