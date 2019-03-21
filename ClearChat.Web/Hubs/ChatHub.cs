@@ -104,10 +104,11 @@ namespace ClearChat.Web.Hubs
         private MessageContext GetContext(string message, string channelName)
         {
             var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
+            var channel = m_MessageRepository.GetChannel(channelName);
             return new MessageContext(message,
                                       user,
                                       Context.ConnectionId,
-                                      channelName,
+                                      channel,
                                       m_MessageHub,
                                       DateTime.UtcNow);
         }

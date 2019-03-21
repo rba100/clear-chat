@@ -56,7 +56,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             var chatMessage = m_MessageRepository.WriteMessage(context.User.Id,
-                                                               context.ChannelName,
+                                                               context.Channel.Name,
                                                                "",
                                                                context.MessageTime);
 

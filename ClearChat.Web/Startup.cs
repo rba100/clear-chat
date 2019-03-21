@@ -39,7 +39,7 @@ namespace ClearChat.Web
             var msgRepo = new ChannelCachingMessageRepository(new SqlServerMessageRepository(
                  connString,
                  new AesStringProtector(new byte[32]),
-                 hasher), hasher);
+                 hasher));
 
             services.AddSignalR();
             services.AddSingleton<IChatContext>(sp => new HubContextWrapper<ChatHub>(sp.GetService<IHubContext<ChatHub>>()));
@@ -63,7 +63,7 @@ namespace ClearChat.Web
                     new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher, s.GetService<IUserRepository>()),
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
                     new DeleteMessageCommand(s.GetService<IMessageRepository>()),
-                    new AutoResponseCommand(s.GetService<IAutoResponseRepository>(), s.GetService<IMessageRepository>()),
+                    new AutoResponseCommand(s.GetService<IAutoResponseRepository>()),
                     new UploadSlashCommand(s.GetService<IMessageRepository>())
                 }),
                 new ChannelPermissionHandler(),

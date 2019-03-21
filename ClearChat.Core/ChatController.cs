@@ -51,7 +51,7 @@ namespace ClearChat.Core
         public void SendChannelInformation(string connectionId, string channelName)
         {
             var usersOnline = m_ConnectionManager.GetUsers();
-            var channel = m_MessageRepository.GetChannelInformation(channelName);
+            var channel = m_MessageRepository.GetChannel(channelName);
             var memberships = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
 
             var usersInChannelAndOnline = usersOnline.Select(m_UserRepository.GetUserDetails)

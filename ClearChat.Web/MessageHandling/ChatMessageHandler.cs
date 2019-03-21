@@ -28,30 +28,29 @@ namespace ClearChat.Web.MessageHandling
 
         public bool Handle(MessageContext context)
         {
-            if (!m_MessageRepository.GetChannelMembershipsForUser(context.User.Id).Contains(context.ChannelName))
+            if (!m_MessageRepository.GetChannelMembershipsForUser(context.User.Id).Contains(context.Channel.Name))
             {
-
                 context.MessageHub.PublishSystemMessage(context.ConnectionId,
-                                                        $"Error: you are not in channel {context.ChannelName}.");
+                                                        $"Error: you are not in channel {context.Channel.Name}.");
                 return true;
             }
 
             var message = new ImageLinkMessageTransformer().Transform(context.Message);
 
             var chatMessage = m_MessageRepository.WriteMessage(context.User.Id,
-                                                               context.ChannelName,
+                                                               context.Channel.Name,
                                                                message,
                                                                DateTime.UtcNow);
             context.MessageHub.Publish(chatMessage);
 
             if (message != context.Message) return true;
 
-            var channel = m_MessageRepository.GetChannelInformation(context.ChannelName);
+            var channel = m_MessageRepository.GetChannel(context.Channel.Name);
             var autoResponse = m_AutoResponseRepository.GetResponse(channel.Id, chatMessage.Message);
             if (autoResponse == null) return true;
             var botAccount = m_UserRepository.GetUserDetails("ClearBot");
             var autoReponseChangeMessage = m_MessageRepository.WriteMessage(botAccount.Id,
-                                                                            context.ChannelName,
+                                                                            context.Channel.Name,
                                                                             autoResponse,
                                                                             DateTime.UtcNow);
             context.MessageHub.Publish(autoReponseChangeMessage);

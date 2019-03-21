@@ -11,7 +11,7 @@ namespace ClearChat.Core.Domain
 
         public string ConnectionId { get; }
 
-        public string ChannelName { get; }
+        public Channel Channel { get; }
 
         public IMessageHub MessageHub { get; }
 
@@ -22,12 +22,12 @@ namespace ClearChat.Core.Domain
         public MessageContext(string message,
                               User user,
                               string connectionId,
-                              string currentChannel,
+                              Channel currentChannel,
                               IMessageHub messageHub,
                               DateTime messageTime)
         {
             User = user ?? throw new ArgumentNullException(nameof(user));
-            ChannelName = currentChannel ?? throw new ArgumentNullException(nameof(currentChannel));
+            Channel = currentChannel ?? throw new ArgumentNullException(nameof(currentChannel));
             MessageHub = messageHub ?? throw new ArgumentNullException(nameof(messageHub));
             MessageTime = messageTime;
             ConnectionId = connectionId;

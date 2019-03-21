@@ -219,7 +219,7 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public Channel GetChannelInformation(string channelName)
+        public Channel GetChannel(string channelName)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {

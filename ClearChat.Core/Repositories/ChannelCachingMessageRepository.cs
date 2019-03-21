@@ -16,13 +16,10 @@ namespace ClearChat.Core.Repositories
             = new ConcurrentDictionary<string, List<int>>();
 
         private readonly IMessageRepository m_MessageRepository;
-        private readonly IStringHasher m_StringHasher;
 
-        public ChannelCachingMessageRepository(IMessageRepository messageRepository, 
-                                        IStringHasher stringHasher)
+        public ChannelCachingMessageRepository(IMessageRepository messageRepository)
         {
             m_MessageRepository = messageRepository;
-            m_StringHasher = stringHasher;
         }
 
         public IReadOnlyCollection<ChatMessage> ChannelMessages(string channelName)
@@ -92,9 +89,9 @@ namespace ClearChat.Core.Repositories
             m_MessageRepository.RemoveChannelMembership(userId, channelName);
         }
 
-        public Channel GetChannelInformation(string channelName)
+        public Channel GetChannel(string channelName)
         {
-            return m_MessageRepository.GetChannelInformation(channelName);
+            return m_MessageRepository.GetChannel(channelName);
         }
 
         public IReadOnlyCollection<string> GetChannelMembershipsForUser(int userId)
@@ -120,11 +117,6 @@ namespace ClearChat.Core.Repositories
         public void DeleteMessage(int messageId)
         {
             m_MessageRepository.DeleteMessage(messageId);
-        }
-
-        public bool IsChannelPrivate(string channelName)
-        {
-            return m_MessageRepository.IsChannelPrivate(channelName);
         }
 
         public bool UserIsInChannel(User user, Channel channel)
