@@ -10,11 +10,15 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
     class InviteSlashCommand : ISlashCommand
     {
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IUserRepository m_UserRepository;
         private readonly IConnectionManager m_ConnectionManager;
 
-        public InviteSlashCommand(IMessageRepository messageRepository, IConnectionManager connectionManager)
+        public InviteSlashCommand(IMessageRepository messageRepository, 
+                                  IUserRepository userRepository,
+                                  IConnectionManager connectionManager)
         {
             m_MessageRepository = messageRepository;
+            m_UserRepository = userRepository;
             m_ConnectionManager = connectionManager;
         }
 
@@ -22,7 +26,6 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
         public void Handle(MessageContext context, string arguments)
         {
-            var intiverUserId = context.UserId;
             var parts = SplitParameters(arguments);
             if (parts.Length != 2)
             {
@@ -30,7 +33,8 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
-            var inviteeUserId = parts[0];
+            var inviteeUserName = parts[0];
+            var inviteeUserId = m_UserRepository.GetUserDetails(inviteeUserName).Id;
             var channelName = parts[1];
 
             if (channelName.StartsWith("@"))
@@ -39,7 +43,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
-            var inviterChannels = m_MessageRepository.GetChannelMembershipsForUser(intiverUserId);
+            var inviterChannels = m_MessageRepository.GetChannelMembershipsForUser(context.User.Id);
             var inviteeChannels = m_MessageRepository.GetChannelMembershipsForUser(inviteeUserId);
 
             if (!inviterChannels.Contains(channelName))
@@ -56,7 +60,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             m_MessageRepository.AddChannelMembership(inviteeUserId, channelName);
-            var connectionIds = m_ConnectionManager.GetConnectionsForUser(inviteeUserId);
+            var connectionIds = m_ConnectionManager.GetConnectionsForUser(inviteeUserName);
             foreach (var connectionId in connectionIds) context.MessageHub.UpdateChannelMembership(connectionId);
             context.MessageHub.PublishSystemMessage(context.ConnectionId,
                                                     $"{inviteeUserId} is now a member of {channelName}.");

@@ -8,8 +8,9 @@ namespace ClearChat.Core.Repositories.Bindings
     {
         [Key]
         public int Id { get; set; }
+        public int AuthorUserId { get; set; }
+        public int ChannelId { get; set; }
         public string Substring { get; set; }
         public string Response { get; set; }
-        public byte[] UserIdHash { get; set; }
     }
 }

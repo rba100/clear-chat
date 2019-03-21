@@ -9,7 +9,7 @@ namespace ClearChat.Core.Repositories
 {
     public class SqlServerUserRepository : IUserRepository
     {
-        private static readonly string[] s_BuiltInUsers = {"System", "ClearBot"};
+        private static readonly string[] s_BuiltInUsers = {"System"};
 
         private readonly string m_ConnectionString;
         private readonly IStringHasher m_StringHasher;
@@ -37,70 +37,76 @@ namespace ClearChat.Core.Repositories
             // ReSharper restore UnusedMember.Local
         }
 
-        public bool UserIdExists(string userId)
+        public bool UserNameExists(string userName)
         {
-            var userIdHashed = m_StringHasher.Hash(userId, new byte[0]);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                return db.Users.Any(u => u.UserIdHash == userIdHashed);
+                return db.Users.Any(u => u.UserName == userName);
             }
         }
 
-        public void SaveUser(string userId, string password)
+        public void SaveUser(User user, string password)
         {
-            var userIdHashed = m_StringHasher.Hash(userId, new byte[0]);
             var salt = Guid.NewGuid().ToByteArray();
             var passwordHashed = m_StringHasher.Hash(password, salt);
 
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var user = new UserBinding
+                var binding = new UserBinding
                 {
-                    UserIdHash = userIdHashed,
+                    UserName = user.UserName,
                     PasswordHash = passwordHashed,
                     PasswordSalt = salt
                 };
-                db.Users.Add(user);
+                db.Users.Add(binding);
                 db.SaveChanges();
             }
         }
 
-        public bool ValidateUser(string userId, string password)
+        public bool ValidateUser(string userName, string password)
         {
-            var userIdHashed = m_StringHasher.Hash(userId, new byte[0]);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var user = db.Users.FirstOrDefault(u => u.UserIdHash == userIdHashed);
+                var user = db.Users.FirstOrDefault(u => u.UserName == userName);
                 return user != null && m_StringHasher.HashMatch(password, 
                                                                 user.PasswordHash,
                                                                 user.PasswordSalt);
             }
         }
 
-        public User GetUserDetails(string userId)
+        public User GetUserDetails(string userName)
         {
-            if(s_BuiltInUsers.Contains(userId)) return new User(userId, "000000", true);
-            var userIdHashed = m_StringHasher.Hash(userId, new byte[0]);
+            if(s_BuiltInUsers.Contains(userName)) return new User(-1, userName, "000000", true);
 
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var user = db.Users.FirstOrDefault(u => u.UserIdHash == userIdHashed);
-                if (user == null) return null;
-                return user == null ? null : new User(userId, 
-                                                      user.HexColour ?? m_ColourGenerator.GenerateFromString(userId),
-                                                      IsVerifiedPublicIdentity(userId));
+                var userBinding = db.Users.FirstOrDefault(u => u.UserName == userName);
+                if (userBinding == null) return null;
+                return new User(userBinding.Id,
+                                userName,
+                                userBinding.HexColour ?? m_ColourGenerator.GenerateFromString(userName),
+                                IsVerifiedPublicIdentity(userName));
+            }
+        }
+
+        public User GetUserDetails(int userId)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var userBinding = db.Users.Find(userId);
+                if (userBinding == null) return null;
+                return new User(userBinding.Id,
+                                userBinding.UserName,
+                                userBinding.HexColour ?? m_ColourGenerator.GenerateFromString(userBinding.UserName),
+                                IsVerifiedPublicIdentity(userBinding.UserName));
             }
         }
 
         public void UpdateUser(User user)
         {
-            var userIdHashed = m_StringHasher.Hash(user.UserId, new byte[0]);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var userBinding = db.Users.FirstOrDefault(u => u.UserIdHash == userIdHashed);
+                var userBinding = db.Users.FirstOrDefault(u => u.UserName == user.UserName);
                 userBinding.HexColour = user.HexColour;
                 db.SaveChanges();
             }

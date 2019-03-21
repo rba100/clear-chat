@@ -20,22 +20,24 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
         public void Handle(MessageContext context, string arguments)
         {
             var colourStr = arguments.StartsWith("#") ? arguments.Substring(1) : arguments;
-            if(arguments.Length != 6) context.MessageHub.PublishSystemMessage(context.ConnectionId, "Must be a six character hex string");
+            if (arguments.Length != 6) context.MessageHub.PublishSystemMessage(context.ConnectionId, "Must be a six character hex string");
 
-            if(!m_ColourGenerator.ValidColour(colourStr, out string errorMessage))
+            if (!m_ColourGenerator.ValidColour(colourStr, out string errorMessage))
             {
                 context.MessageHub.PublishSystemMessage(context.ConnectionId, errorMessage);
                 return;
             }
-            
-            var oldUser = m_UserRepository.GetUserDetails(context.UserId);
-            var newUser = new User(context.UserId,
-                                   colourStr,
-                                   oldUser.VerifiedPublicIdentity);
-            m_UserRepository.UpdateUser(newUser);
-            context.MessageHub.PublishUserDetails(new[]{ newUser.UserId });
+
+            var user = new User(context.User.Id,
+                                context.User.UserName,
+                                colourStr,
+                                context.User.VerifiedPublicIdentity);
+
+            m_UserRepository.UpdateUser(user);
+
+            context.MessageHub.PublishUserDetails(new[] { user.UserName });
         }
 
-        public string HelpText => "changes your user name colour. Six character RGB hex string.";
+        public string HelpText => "changes your username colour. Six character RGB hex string.";
     }
 }

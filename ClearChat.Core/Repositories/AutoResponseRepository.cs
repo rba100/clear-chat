@@ -11,24 +11,22 @@ namespace ClearChat.Core.Repositories
     public sealed class AutoResponseRepository : IAutoResponseRepository
     {
         private readonly string m_ConnectionString;
-        private readonly IStringHasher m_StringHasher;
 
         public AutoResponseRepository(string connectionString, IStringHasher stringHasher)
         {
             m_ConnectionString = connectionString
                 ?? throw new ArgumentNullException(nameof(connectionString));
-            m_StringHasher = stringHasher ?? throw new ArgumentNullException(nameof(stringHasher));
         }
 
-        public string GetResponse(string message)
+        public string GetResponse(int channelId, string message)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                return db.AutoResponses.FirstOrDefault(m => message.Contains(m.Substring))?.Response;
+                return db.AutoResponses.FirstOrDefault(m =>m.ChannelId == channelId && message.Contains(m.Substring))?.Response;
             }
         }
 
-        public void AddResponse(string creatorId, string substring, string response)
+        public void AddResponse(int authorUserId, int channelId, string substring, string response)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
@@ -38,9 +36,12 @@ namespace ClearChat.Core.Repositories
                         $"There's is already an auto-response that will respond to '{substring}'", nameof(substring));
                 }
 
+                
+
                 db.AutoResponses.Add(new AutoResponseBinding
                 {
-                    UserIdHash = m_StringHasher.Hash(creatorId),
+                    AuthorUserId = authorUserId,
+                    ChannelId = channelId,
                     Substring = substring,
                     Response = response
                 });
@@ -48,11 +49,11 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public void RemoveResponse(string substring)
+        public void RemoveResponse(int channelId, string substring)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var existing = db.AutoResponses.FirstOrDefault(s => s.Substring.Contains(substring));
+                var existing = db.AutoResponses.FirstOrDefault(s => s.ChannelId == channelId && s.Substring.Contains(substring));
                 if (existing == null) return;
                 db.Remove(existing);
                 db.SaveChanges();
@@ -65,7 +66,8 @@ namespace ClearChat.Core.Repositories
             {
                 return db.AutoResponses
                          .ToArray()
-                         .Select(r => new AutoResponseTemplate(r.UserIdHash, 
+                         .Select(r => new AutoResponseTemplate(r.AuthorUserId, 
+                                                               r.ChannelId,
                                                                r.Substring, 
                                                                r.Response))
                          .ToArray();

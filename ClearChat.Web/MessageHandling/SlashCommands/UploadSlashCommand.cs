@@ -55,7 +55,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 }
             }
 
-            var chatMessage = m_MessageRepository.WriteMessage(context.UserId,
+            var chatMessage = m_MessageRepository.WriteMessage(context.User.Id,
                                                                context.ChannelName,
                                                                "",
                                                                context.MessageTime);
@@ -63,7 +63,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             var attachmentId = m_MessageRepository.AddAttachment(chatMessage.Id, contentType, content);
 
             context.MessageHub.Publish(new ChatMessage(chatMessage.Id,
-                                                       chatMessage.UserId,
+                                                       chatMessage.UserName,
                                                        chatMessage.ChannelName,
                                                        chatMessage.Message,
                                                        new[] { attachmentId },

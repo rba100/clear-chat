@@ -16,16 +16,19 @@ namespace ClearChat.Web.Hubs
     public class ChatHub : Hub
     {
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IUserRepository m_UserRepository;
         private readonly IConnectionManager m_ConnectionManager;
         private readonly IMessageHandler m_MessageHandler;
         private readonly IMessageHub m_MessageHub;
 
         public ChatHub(IMessageRepository messageRepository,
+                       IUserRepository userRepository,
                        IConnectionManager connectionManager,
                        IMessageHandler messageHandler,
                        IMessageHub messageHub)
         {
             m_MessageRepository = messageRepository;
+            m_UserRepository = userRepository;
             m_ConnectionManager = connectionManager;
             m_MessageHandler = messageHandler;
             m_MessageHub = messageHub;
@@ -43,8 +46,10 @@ namespace ClearChat.Web.Hubs
 
         public void GetHistory(string channelName)
         {
+            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
+            var channels = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
             if (channelName != "default" &&
-                !m_MessageRepository.GetChannelMembershipsForUser(Context.User.Identity.Name).Contains(channelName))
+                !channels.Contains(user.Id))
             {
                 return;
             }
@@ -98,8 +103,9 @@ namespace ClearChat.Web.Hubs
 
         private MessageContext GetContext(string message, string channelName)
         {
+            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
             return new MessageContext(message,
-                                      Context.User.Identity.Name,
+                                      user,
                                       Context.ConnectionId,
                                       channelName,
                                       m_MessageHub,

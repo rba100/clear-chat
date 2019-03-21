@@ -7,8 +7,8 @@ namespace ClearChat.Core.Repositories.Bindings
     public class ChannelBinding
     {
         [Key]
-        public int ChannelId { get; set; }
-        public byte[] ChannelNameHash { get; set; }
+        public int Id { get; set; }
+        public string ChannelName { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
     }

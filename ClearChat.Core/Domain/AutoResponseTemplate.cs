@@ -2,13 +2,15 @@
 {
     public class AutoResponseTemplate
     {
-        public byte[] CreatorIdHash { get; }
+        public int AuthorUserId { get; }
+        public int ChannelId { get; }
         public string SubstringTrigger { get; }
         public string Response { get; }
 
-        public AutoResponseTemplate(byte[] creatorIdHash, string substringTrigger, string response)
+        public AutoResponseTemplate(int authorUserId, int channelId, string substringTrigger, string response)
         {
-            CreatorIdHash = creatorIdHash;
+            AuthorUserId = authorUserId;
+            ChannelId = channelId;
             SubstringTrigger = substringTrigger;
             Response = response;
         }

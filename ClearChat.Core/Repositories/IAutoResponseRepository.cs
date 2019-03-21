@@ -10,7 +10,7 @@ namespace ClearChat.Core.Repositories
         /// Gets auto response for given message
         /// </summary>
         /// <remarks>Can return null</remarks>
-        string GetResponse(string message);
+        string GetResponse(int channelId, string message);
 
         /// <summary>
         /// Registers an auto response with the server
@@ -18,9 +18,9 @@ namespace ClearChat.Core.Repositories
         /// <exception cref="DuplicateAutoResponseException">
         /// Auto response for given phrase already exists
         /// </exception>
-        void AddResponse(string creatorId, string substring, string response);
+        void AddResponse(int authorUserId, int channelId, string substring, string response);
 
-        void RemoveResponse(string substring);
+        void RemoveResponse(int channelId, string substring);
 
         IReadOnlyCollection<AutoResponseTemplate> GetAll();
     }

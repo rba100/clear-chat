@@ -6,19 +6,16 @@ namespace ClearChat.Web.MessageHandling
 {
     internal class ChannelPermissionHandler : IMessageHandler
     {
-        private readonly IUserRepository m_UserRepository;
-
-        public ChannelPermissionHandler(IUserRepository userRepository)
+        public ChannelPermissionHandler()
         {
-            m_UserRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         public bool Handle(MessageContext context)
         {
-            if (context.ChannelName == "default"
-                && !m_UserRepository.GetUserDetails(context.UserId).VerifiedPublicIdentity)
+            if (context.ChannelName == "default" && !context.User.VerifiedPublicIdentity)
             {
-                context.MessageHub.PublishSystemMessage(context.ConnectionId, "This channel is not for anonymous use. See `/help` for details on joining channels.");
+                context.MessageHub.PublishSystemMessage(context.ConnectionId,
+                                                        "This channel is not for anonymous use. See `/help` for details on joining channels.");
                 return true;
             }
             return false;

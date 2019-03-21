@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using ClearChat.Core.Domain;
 
 namespace ClearChat.Core.Repositories
@@ -14,38 +15,44 @@ namespace ClearChat.Core.Repositories
             m_UserRepository = userRepository;
         }
 
-        public User GetUserDetails(string userId)
+        public User GetUserDetails(string userName)
         {
-            if (m_Cache.TryGetValue(userId, out User val))
+            if (m_Cache.TryGetValue(userName, out User val))
             {
                 return val;
             }
 
-            var user = m_UserRepository.GetUserDetails(userId);
+            var user = m_UserRepository.GetUserDetails(userName);
             if (user == null) return null;
-            m_Cache.TryAdd(userId, user);
+            m_Cache.TryAdd(userName, user);
             return user;
         }
 
-        public void SaveUser(string userId, string password)
+        public User GetUserDetails(int userId)
         {
-            m_UserRepository.SaveUser(userId, password);
+            var user = m_Cache.Values.FirstOrDefault(u => u.Id == userId);
+            return user ?? m_UserRepository.GetUserDetails(userId);
+        }
+
+        public void SaveUser(User user, string password)
+        {
+            m_UserRepository.SaveUser(user, password);
         }
 
         public void UpdateUser(User user)
         {
             m_UserRepository.UpdateUser(user);
-            m_Cache[user.UserId] = user;
+            m_Cache[user.UserName] = user;
         }
 
-        public bool UserIdExists(string userId)
+        public bool UserNameExists(string userName)
         {
-            return m_Cache.ContainsKey(userId) || m_UserRepository.UserIdExists(userId);
+            return m_Cache.ContainsKey(userName) || m_UserRepository.UserNameExists(userName);
         }
 
-        public bool ValidateUser(string userId, string password)
+        public bool ValidateUser(string userName, string password)
         {
-            return m_UserRepository.ValidateUser(userId, password);
+            return m_UserRepository.ValidateUser(userName, password);
         }
     }
 }

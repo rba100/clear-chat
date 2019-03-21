@@ -21,7 +21,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
         public void Handle(MessageContext context, string arguments)
         {
-            var userId = context.UserId;
+            var userId = context.User.Id;
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())
             {
@@ -38,7 +38,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             m_MessageRepository.RemoveChannelMembership(userId, channelName);
-            var connectionIds = m_ConnectionManager.GetConnectionsForUser(userId);
+            var connectionIds = m_ConnectionManager.GetConnectionsForUser(context.User.UserName);
             foreach (var connection in connectionIds)
             {
                 context.MessageHub.RemoveChannelMembership(connection, channelName);

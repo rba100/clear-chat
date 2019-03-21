@@ -18,7 +18,6 @@ namespace ClearChat.Web
 {
     public class Startup
     {
-
         private readonly IConfiguration m_Configuration;
 
         public Startup(IConfiguration configuration)
@@ -60,15 +59,15 @@ namespace ClearChat.Web
                 {
                     new ColourCommand(s.GetService<IUserRepository>(),s.GetService<IColourGenerator>()),
                     new JoinChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
-                    new InviteSlashCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
-                    new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher),
+                    new InviteSlashCommand(s.GetService<IMessageRepository>(), s.GetService<IUserRepository>(), s.GetService<IConnectionManager>()),
+                    new PurgeChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>(), hasher, s.GetService<IUserRepository>()),
                     new LeaveChannelCommand(s.GetService<IMessageRepository>(), s.GetService<IConnectionManager>()),
                     new DeleteMessageCommand(s.GetService<IMessageRepository>()),
-                    new AutoResponseCommand(s.GetService<IAutoResponseRepository>()),
+                    new AutoResponseCommand(s.GetService<IAutoResponseRepository>(), s.GetService<IMessageRepository>()),
                     new UploadSlashCommand(s.GetService<IMessageRepository>())
                 }),
-                new ChannelPermissionHandler(s.GetService<IUserRepository>()),
-                new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>())
+                new ChannelPermissionHandler(),
+                new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>(), s.GetService<IUserRepository>())
             }));
 
             services.AddSingleton<IMessageHub, ChatController>();

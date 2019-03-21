@@ -11,23 +11,26 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
     class PurgeChannelCommand : ISlashCommand
     {
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IUserRepository m_UserRepository;
         private readonly IConnectionManager m_ConnectionManager;
         private readonly IStringHasher m_StringHasher;
 
         public PurgeChannelCommand(IMessageRepository messageRepository, 
                                    IConnectionManager connectionManager,
-                                   IStringHasher stringHasher)
+                                   IStringHasher stringHasher,
+                                   IUserRepository userRepository)
         {
             m_MessageRepository = messageRepository;
             m_ConnectionManager = connectionManager;
             m_StringHasher = stringHasher;
+            m_UserRepository = userRepository;
         }
 
         public string CommandText => "purge";
 
         public void Handle(MessageContext context, string arguments)
         {
-            var userId = context.UserId;
+            var userId = context.User.Id;
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())
             {
@@ -45,12 +48,9 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             m_MessageRepository.ClearChannel(channelName);
-            var userIdHashes = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
-            var hashes = m_ConnectionManager.GetUsers().ToDictionary(u => m_StringHasher.Hash(u), u=>u);
-            var affectedUserHashes = userIdHashes.Intersect(hashes.Keys, ArrayEqualityComparer<byte>.Default);
-            var affectedUsers = hashes.Where(kvp => affectedUserHashes.Contains(kvp.Key, ArrayEqualityComparer<byte>.Default));
-            var affectedConnections = affectedUsers.SelectMany(u => m_ConnectionManager.GetConnectionsForUser(u.Value));
-            foreach (var connection in affectedConnections)
+            var users = m_MessageRepository.GetChannelMembershipsForChannel(channelName).Select(m_UserRepository.GetUserDetails);
+            var connections = users.SelectMany(u => m_ConnectionManager.GetConnectionsForUser(u.UserName)).ToArray();
+            foreach (var connection in connections)
             {
                 context.MessageHub.SendChannelHistory(connection, channelName);
             }
