@@ -41,7 +41,18 @@ namespace ClearChat.Web.Hubs
                 m_MessageHub.PublishSystemMessage(Context.ConnectionId, "You are not logged in.");
                 return;
             }
-            m_MessageHandler.Handle(GetContext(eventBinding.Body, eventBinding.Channel));
+
+            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
+            var channel = m_MessageRepository.GetChannel(eventBinding.Channel);
+
+            var context = new MessageContext(eventBinding.Body,
+                                             user,
+                                             Context.ConnectionId,
+                                             channel,
+                                             m_MessageHub,
+                                             DateTime.UtcNow);
+
+            m_MessageHandler.Handle(context);
         }
 
         public void GetHistory(string channelName)
@@ -100,18 +111,6 @@ namespace ClearChat.Web.Hubs
         {
             m_ConnectionManager.RegisterDisconnection(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
-        }
-
-        private MessageContext GetContext(string message, string channelName)
-        {
-            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
-            var channel = m_MessageRepository.GetChannel(channelName);
-            return new MessageContext(message,
-                                      user,
-                                      Context.ConnectionId,
-                                      channel,
-                                      m_MessageHub,
-                                      DateTime.UtcNow);
         }
     }
 

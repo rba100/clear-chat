@@ -21,7 +21,6 @@ $(function () {
     var typingNotifier = $('#typing-notifier');
     setTimeout(typingNotifierPoll, 3000);
 
-    var lastAuthor = "";
     var inputHistoryIndex = 0;
     var inputHistory = [];
 
@@ -164,7 +163,7 @@ $(function () {
                 channelLink.click(handler);
                 channelList.append(channelLink);
                 if (typeof (model.channelContentCache[channelName]) === "undefined") {
-                    model.channelContentCache[channelName] = { messages: [], lastAuthor: "", isTyping: [] };
+                    model.channelContentCache[channelName] = { messages: [], isTyping: [] };
                     connection.send("getHistory", channelName).catch(function (error) {
                         console.log(error);
                     });
@@ -186,7 +185,6 @@ $(function () {
         function (channelName, historyItems) {
             var cacheEntry = model.channelContentCache[channelName];
             if (!cacheEntry) return;
-            model.channelContentCache[channelName].lastAuthor = "";
             model.channelContentCache[channelName].messages = historyItems;
             if (model.selectedChannel === channelName) {
                 dataRefresh(messageContainer, historyItems.map(toMessageControlDataBinding));
@@ -267,19 +265,8 @@ $(function () {
     }
 
     function appendSingleMessage(chatItem) {
-        var sameAuthor = lastAuthor === chatItem.userName;
         var messageElement = instantiate('message-template', toMessageControlDataBinding(chatItem));
-        if (sameAuthor) {
-            // maybe hide username for subsequent messages.
-        }
         messageContainer.append(messageElement);
-        var attachmentIds = chatItem.attachmentIds;
-        for (var i = 0; i < attachmentIds.length; i++) {
-            var attachmentElement = instantiate('message-attachment-img-template',
-                { 'imageAttributes': { 'src': '/api/attachment/' + attachmentIds[i] } });
-            messageContainer.append(attachmentElement);
-        }
-        lastAuthor = chatItem.userName;
         return messageElement[0];
     }
 
@@ -322,14 +309,12 @@ $(function () {
     }
 
     function changeChannelLocal(channelName) {
-        if (model.selectedChannel !== channelName) lastAuthor = "";
         model.selectedChannel = channelName;
         var cacheEntry = model.channelContentCache[channelName];
         dataRefresh(
             messageContainer,
             cacheEntry.messages.map(toMessageControlDataBinding));
         if (cacheEntry.messages.length) {
-            lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userName;
             messageContainer.children().last()[0].scrollIntoView();
         }
         showNewMessageScrollWarning.hide();

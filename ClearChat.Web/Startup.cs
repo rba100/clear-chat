@@ -90,7 +90,7 @@ namespace ClearChat.Web
             app.UseChallengeOnPath("/", returnTo: "/");
             app.UseChallengeOnPathAlways("/changeIdentity", returnTo: "/");
             app.UseDefaultFiles();
-            app.UseStaticFiles(new StaticFileOptions()
+            app.UseStaticFiles(new StaticFileOptions
             {
                 OnPrepareResponse = context =>
                 {

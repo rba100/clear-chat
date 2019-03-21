@@ -35,19 +35,20 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
             using (var response = request.GetResponse())
             {
+                contentType = response.ContentType;
+
                 if (response.ContentLength > c_MaxUploadSizeBytes)
                 {
                     context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: file must be less than 5MB.");
                     return;
                 }
 
-                if (!s_ApprovedContentTypes.Contains(response.ContentType))
+                if (!s_ApprovedContentTypes.Contains(contentType))
                 {
-                    context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: that mime type is not white-listed.");
+                    context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: that content type is not supported.");
                     return;
                 }
-
-                contentType = response.ContentType;
+                
                 using (var memStream = new MemoryStream())
                 {
                     response.GetResponseStream().CopyTo(memStream);
