@@ -10,22 +10,25 @@ namespace ClearChat.Web.MessageHandling
     internal class ChatMessageHandler : IMessageHandler
     {
         private readonly IMessageRepository m_MessageRepository;
+        private readonly IUserRepository m_UserRepository;
         private readonly IAutoResponseRepository m_AutoResponseRepository;
 
         public ChatMessageHandler(IMessageRepository messageRepository,
-                                  IAutoResponseRepository autoresponseRepository)
+                                  IAutoResponseRepository autoresponseRepository,
+                                  IUserRepository userRepository)
         {
             m_MessageRepository = messageRepository
                 ?? throw new ArgumentNullException(nameof(messageRepository));
 
             m_AutoResponseRepository = autoresponseRepository
                 ?? throw new ArgumentNullException(nameof(autoresponseRepository));
-
+            m_UserRepository = userRepository 
+                ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         public bool Handle(MessageContext context)
         {
-            if (!m_MessageRepository.GetChannelMembershipsForUser(context.UserId).Contains(context.ChannelName))
+            if (!m_MessageRepository.GetChannelMembershipsForUser(context.User.Id).Contains(context.ChannelName))
             {
 
                 context.MessageHub.PublishSystemMessage(context.ConnectionId,
@@ -35,7 +38,7 @@ namespace ClearChat.Web.MessageHandling
 
             var message = new ImageLinkMessageTransformer().Transform(context.Message);
 
-            var chatMessage = m_MessageRepository.WriteMessage(context.UserId,
+            var chatMessage = m_MessageRepository.WriteMessage(context.User.Id,
                                                                context.ChannelName,
                                                                message,
                                                                DateTime.UtcNow);
@@ -43,9 +46,11 @@ namespace ClearChat.Web.MessageHandling
 
             if (message != context.Message) return true;
 
-            var autoResponse = m_AutoResponseRepository.GetResponse(chatMessage.Message);
+            var channel = m_MessageRepository.GetChannelInformation(context.ChannelName);
+            var autoResponse = m_AutoResponseRepository.GetResponse(channel.Id, chatMessage.Message);
             if (autoResponse == null) return true;
-            var autoReponseChangeMessage = m_MessageRepository.WriteMessage("ClearBot",
+            var botAccount = m_UserRepository.GetUserDetails("ClearBot");
+            var autoReponseChangeMessage = m_MessageRepository.WriteMessage(botAccount.Id,
                                                                             context.ChannelName,
                                                                             autoResponse,
                                                                             DateTime.UtcNow);

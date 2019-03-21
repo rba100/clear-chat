@@ -27,7 +27,7 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public string GetResponse(string message)
+        public string GetResponse(int channelId, string message)
         {
             var response = m_LastHits.Keys.FirstOrDefault(k => message.Contains(k));
             if (response != null)
@@ -37,18 +37,18 @@ namespace ClearChat.Core.Repositories
                 m_LastHits[response] = now;
             }
 
-            return m_InnerRepository.GetResponse(message);
+            return m_InnerRepository.GetResponse(channelId, message);
         }
 
-        public void AddResponse(string creatorId, string substring, string response)
+        public void AddResponse(int authorUserId, int channelId, string substring, string response)
         {
-            m_InnerRepository.AddResponse(creatorId, substring, response);
+            m_InnerRepository.AddResponse(authorUserId, channelId, substring, response);
             m_LastHits.TryAdd(substring, DateTime.MinValue.ToUniversalTime());
         }
 
-        public void RemoveResponse(string substring)
+        public void RemoveResponse(int channelId, string substring)
         {
-            m_InnerRepository.RemoveResponse(substring);
+            m_InnerRepository.RemoveResponse(channelId, substring);
             m_LastHits.TryRemove(substring, out DateTime _);
         }
 

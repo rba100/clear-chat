@@ -5,7 +5,7 @@ var model = {
     channels: [""],
     channelContentCache: {
     },
-    userIdToColour: {},
+    userNameToColour: {},
     lastKeyPressHeartbeat: 0,
     pageHasFocus: true
 };
@@ -178,7 +178,7 @@ $(function () {
         function (users) {
             for (var index in users) {
                 var user = users[index];
-                model.userIdToColour[user.userId] = user.hexColour;
+                model.userNameToColour[user.userName] = user.hexColour;
             }
         });
 
@@ -196,11 +196,11 @@ $(function () {
         });
 
     connection.on("isTyping",
-        function (userId, channelName) {
+        function (userName, channelName) {
             var cache = model.channelContentCache[channelName];
             if (!cache) return;
-            var index = cache.isTyping.findIndex(function (e) { return e.userId === userId; });
-            if (index === -1) cache.isTyping.push({ userId: userId, last: Date.now() });
+            var index = cache.isTyping.findIndex(function (e) { return e.userName === userName; });
+            if (index === -1) cache.isTyping.push({ userName: userName, last: Date.now() });
             else {
                 cache.isTyping[index].last = Date.now();
             }
@@ -209,10 +209,10 @@ $(function () {
     );
 
     connection.on("stoppedTyping",
-        function (userId, channelName) {
+        function (userName, channelName) {
             var cache = model.channelContentCache[channelName];
             if (!cache) return;
-            var index = cache.isTyping.findIndex(function (e) { return e.userId === userId; });
+            var index = cache.isTyping.findIndex(function (e) { return e.userName === userName; });
             if (index !== -1) {
                 cache.isTyping.splice(index, 1);
                 updateTypingCue();
@@ -223,34 +223,34 @@ $(function () {
     // See message-template in index.html
     function toMessageControlDataBinding(chatItem) {
         var binding = {
-            userId: chatItem.userId,
+            userName: chatItem.userName,
             channelName: chatItem.channelName,
             timeStampUtc: new Date(chatItem.timeStampUtc).format("h:MM TT"),
             message: converter.makeHtml(emojione.shortnameToImage(chatItem.message.replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;").replace(/>/g, "&gt;"))),
-            userIdCss: { color: '#' + toColour(chatItem.userId) },
+            userNameCss: { color: '#' + toColour(chatItem.userName) },
             headerAttributes: { title: chatItem.id },
             attachmentSources: chatItem.attachmentIds.map(function(id) {
                     return { 'imageAttributes': { 'src': '/api/attachment/' + id } };
                 }
             )
-    };
+        };
 
-        if (chatItem.userId === 'ClearBot') {
+        if (chatItem.userName === 'ClearBot') {
             binding.headerAttributes.class = "clear-bot-style";
-        } else if(chatItem.userId === 'System') {
+        } else if(chatItem.userName === 'System') {
             binding.headerAttributes.class = "system-bot-style";
         }
 
         return binding;
     }
 
-    function toColour(userId) {
-        if (typeof (model.userIdToColour[userId]) === "undefined") {
-            model.userIdToColour[userId] = "000000";
-            connection.send('getUserDetails', userId);
+    function toColour(userName) {
+        if (typeof (model.userNameToColour[userName]) === "undefined") {
+            model.userNameToColour[userName] = "000000";
+            connection.send('getUserDetails', userName);
         }
-        return model.userIdToColour[userId];
+        return model.userNameToColour[userName];
     }
 
     function send() {
@@ -267,7 +267,7 @@ $(function () {
     }
 
     function appendSingleMessage(chatItem) {
-        var sameAuthor = lastAuthor === chatItem.userId;
+        var sameAuthor = lastAuthor === chatItem.userName;
         var messageElement = instantiate('message-template', toMessageControlDataBinding(chatItem));
         if (sameAuthor) {
             // maybe hide username for subsequent messages.
@@ -279,7 +279,7 @@ $(function () {
                 { 'imageAttributes': { 'src': '/api/attachment/' + attachmentIds[i] } });
             messageContainer.append(attachmentElement);
         }
-        lastAuthor = chatItem.userId;
+        lastAuthor = chatItem.userName;
         return messageElement[0];
     }
 
@@ -303,7 +303,7 @@ $(function () {
         }
         for (var i = 0; i < typistsArray.length; i++) {
             if (i > 0) names = names + ", ";
-            names = names + typistsArray[i].userId;
+            names = names + typistsArray[i].userName;
         }
         if (names) {
             names = names + " is typing";
@@ -329,7 +329,7 @@ $(function () {
             messageContainer,
             cacheEntry.messages.map(toMessageControlDataBinding));
         if (cacheEntry.messages.length) {
-            lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userId;
+            lastAuthor = cacheEntry.messages[cacheEntry.messages.length - 1].userName;
             messageContainer.children().last()[0].scrollIntoView();
         }
         showNewMessageScrollWarning.hide();

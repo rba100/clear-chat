@@ -11,11 +11,15 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
     public class AutoResponseCommand : ISlashCommand
     {
         private readonly IAutoResponseRepository m_AutoResponseRepository;
+        private readonly IMessageRepository m_MessageRepository;
 
-        public AutoResponseCommand(IAutoResponseRepository autoResponseRepository)
+        public AutoResponseCommand(IAutoResponseRepository autoResponseRepository, 
+                                   IMessageRepository messageRepository)
         {
             m_AutoResponseRepository = autoResponseRepository
                 ?? throw new ArgumentNullException(nameof(autoResponseRepository));
+            m_MessageRepository = messageRepository 
+                ?? throw new ArgumentNullException(nameof(messageRepository));
         }
 
         public string CommandText => "autoresponse";
@@ -69,7 +73,8 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
             try
             {
-                m_AutoResponseRepository.AddResponse(context.UserId, substring, response);
+                var channelInfo = m_MessageRepository.GetChannelInformation(context.ChannelName);
+                m_AutoResponseRepository.AddResponse(context.User.Id, channelInfo.Id, substring, response);
             }
             catch (DuplicateAutoResponseException)
             {
@@ -96,7 +101,8 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
         private void RemoveResponse(MessageContext context, string substring)
         {
-            m_AutoResponseRepository.RemoveResponse(substring);
+            var channel = m_MessageRepository.GetChannelInformation(context.ChannelName);
+            m_AutoResponseRepository.RemoveResponse(channel.Id, substring);
             context.MessageHub.PublishSystemMessage(context.ConnectionId, $"Successfully removed auto response for '{substring}'.");
         }
 

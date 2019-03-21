@@ -2,7 +2,8 @@
 {
     public class User
     {
-        public string UserId { get; }
+        public int Id { get; }
+        public string UserName { get; }
         public string HexColour { get; }
 
         /// <summary>
@@ -13,9 +14,14 @@
         /// </remarks>
         public bool VerifiedPublicIdentity { get; }
 
-        public User(string userId, string hexColour, bool verifiedPublicIdentity)
+
+        public User(int id,
+                    string userName, 
+                    string hexColour, 
+                    bool verifiedPublicIdentity)
         {
-            UserId = userId;
+            Id = id;
+            UserName = userName;
             HexColour = hexColour;
             VerifiedPublicIdentity = verifiedPublicIdentity;
         }

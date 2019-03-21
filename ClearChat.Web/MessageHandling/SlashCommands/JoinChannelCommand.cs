@@ -22,7 +22,6 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
         public void Handle(MessageContext context, string arguments)
         {
-            var userId = context.UserId;
             var parts = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (!parts.Any())
             {
@@ -44,7 +43,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
-            var channels = m_MessageRepository.GetChannelMembershipsForUser(userId);
+            var channels = m_MessageRepository.GetChannelMembershipsForUser(context.User.Id);
             if (channels.Contains(channelName))
             {
                 context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: you are already a member of that channel.");
@@ -53,19 +52,19 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
             var password = parts.Length > 1 ? parts[1] : string.Empty;
             var channelResult = m_MessageRepository.GetOrCreateChannel(channelName, password);
-            var connectionIds = m_ConnectionManager.GetConnectionsForUser(userId);
+            var connectionIds = m_ConnectionManager.GetConnectionsForUser(context.User.UserName);
             switch (channelResult)
             {
                 case SwitchChannelResult.Denied:
                     context.MessageHub.PublishSystemMessage(context.ConnectionId, "Error: wrong password channel");
                     break;
                 case SwitchChannelResult.Created:
-                    m_MessageRepository.AddChannelMembership(userId, channelName);
+                    m_MessageRepository.AddChannelMembership(context.User.Id, channelName);
                     foreach(var connectionId in connectionIds) context.MessageHub.UpdateChannelMembership(connectionId);
                     context.MessageHub.PublishSystemMessage(context.ConnectionId, $"You created channel '{channelName}'");
                     break;
                 case SwitchChannelResult.Accepted:
-                    m_MessageRepository.AddChannelMembership(userId, channelName);
+                    m_MessageRepository.AddChannelMembership(context.User.Id, channelName);
                     foreach (var connectionId in connectionIds) context.MessageHub.UpdateChannelMembership(connectionId);
                     break;
                 default:

@@ -24,25 +24,5 @@ namespace ClearChat.Web.Api
             m_MessageRepository = messageRepository;
             m_StringHasher = stringHasher;
         }
-
-        [HttpGet, Route("users")]
-        public object Users()
-        {
-            var users = m_ConnectionManager.GetUsers();
-            return users.ToDictionary(u => u, m_MessageRepository.GetChannelMembershipsForUser);
-        }
-
-        [HttpGet, Route("channel/{channelName}")]
-        public object Channel(string channelName)
-        {
-            var users = m_ConnectionManager.GetUsers();
-            if (channelName == "default") return users;
-            var memberships = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
-            return users.Where(u =>
-            {
-                var hash = m_StringHasher.Hash(u);
-                return memberships.Any(m => m.SequenceEqual(hash));
-            }).ToArray();
-        }
     }
 }

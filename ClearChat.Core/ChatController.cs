@@ -51,25 +51,22 @@ namespace ClearChat.Core
         public void SendChannelInformation(string connectionId, string channelName)
         {
             var usersOnline = m_ConnectionManager.GetUsers();
+            var channel = m_MessageRepository.GetChannelInformation(channelName);
             var memberships = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
-            var usersInChannel = usersOnline.Where(u => memberships.Contains(m_StringHasher.Hash(u),
-                                                            ArrayEqualityComparer<byte>.Default));
 
-            var isPrivate = m_MessageRepository.IsChannelPrivate(channelName);
+            var usersInChannelAndOnline = usersOnline.Select(m_UserRepository.GetUserDetails)
+                                                     .Where(u => memberships.Contains(u.Id))
+                                                     .Select(u => u.UserName)
+                                                     .ToArray();
 
-            var channelInfo = new ChannelInformation(channelName,
-                                                     isPrivate,
-                                                     usersInChannel.ToArray(),
-                                                     $"Welcome to {channelName}");
-
-            m_ChatContext.SignalConnection(connectionId, "channelInformation", channelInfo);
+            m_ChatContext.SignalConnection(connectionId, "channelInformation", channel);
         }
 
         public void SendChannelHistory(string connectionId, string channelName)
         {
             var messages = m_MessageRepository.ChannelMessages(channelName);
 
-            var task = m_ChatContext.SignalConnection(connectionId, "userDetails", messages.Select(m => m.UserId)
+            var task = m_ChatContext.SignalConnection(connectionId, "userDetails", messages.Select(m => m.UserName)
                                                      .Distinct()
                                                      .Select(m_UserRepository.GetUserDetails)
                                                      .ToArray());
@@ -96,15 +93,17 @@ namespace ClearChat.Core
 
         public void SendChannelList(string connectionId)
         {
-            var userId = m_ConnectionManager.GetUserIdForConnection(connectionId);
-            var channels = m_MessageRepository.GetChannelMembershipsForUser(userId);
+            var userName = m_ConnectionManager.GetUserIdForConnection(connectionId);
+            var user = m_UserRepository.GetUserDetails(userName);
+            var channels = m_MessageRepository.GetChannelMembershipsForUser(user.Id);
             m_ChatContext.SignalConnection(connectionId, "channelMembership", channels);
         }
 
         public void UpdateChannelMembership(string connectionId)
         {
-            var userId = m_ConnectionManager.GetUserIdForConnection(connectionId);
-            var channels = m_MessageRepository.GetChannelMembershipsForUser(userId);
+            var userName = m_ConnectionManager.GetUserIdForConnection(connectionId);
+            var user = m_UserRepository.GetUserDetails(userName);
+            var channels = m_MessageRepository.GetChannelMembershipsForUser(user.Id);
             foreach (var channel in channels)
             {
                 m_ChatContext.AddToGroup(connectionId, channel);

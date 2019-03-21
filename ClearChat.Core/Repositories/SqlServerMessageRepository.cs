@@ -28,14 +28,9 @@ namespace ClearChat.Core.Repositories
 
         public IReadOnlyCollection<ChatMessage> ChannelMessages(string channelName)
         {
-            var isDefaultChannel = channelName == "default";
-            var channelNameHash = isDefaultChannel ? null : m_StringHasher.Hash(channelName);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channelId = isDefaultChannel ? 0 : db.Channels
-                                                         .SingleOrDefault(c => c.ChannelNameHash == channelNameHash)
-                                                         ?.ChannelId;
+                var channelId = db.Channels.SingleOrDefault(c => c.ChannelName == channelName)?.Id;
 
                 if (!channelId.HasValue) return new ChatMessage[0];
 
@@ -54,57 +49,51 @@ namespace ClearChat.Core.Repositories
                                     .GroupBy(a => a.MessageId)
                                     .ToDictionary(g => g.Key, g => g.Select(a => a.Id).ToArray());
 
-                return msgs.Select(m => FromBinding(m, attachments, channelName)).ToArray();
+                return msgs.Select(m => FromBinding(db, m, attachments, channelName)).ToArray();
             }
         }
 
-        private ChatMessage FromBinding(MessageBinding arg,
+        private ChatMessage FromBinding(DatabaseContext db,
+                                        MessageBinding arg,
                                         Dictionary<int, int[]> attachments,
                                         string channelName)
         {
-            var userId = m_StringProtector.Unprotect(Convert.FromBase64String(arg.UserId));
-
             var attachmentIds = attachments != null && attachments.ContainsKey(arg.Id) ? attachments[arg.Id] : new int[0];
 
+            var userName = db.Users.Single(u => u.Id == arg.UserId).UserName;
+
             return new ChatMessage(arg.Id,
-                                   userId,
+                                   userName,
                                    channelName,
                                    m_StringProtector.Unprotect(arg.Message),
                                    attachmentIds,
                                    DateTime.SpecifyKind(arg.TimeStampUtc, DateTimeKind.Utc));
         }
 
-        public ChatMessage WriteMessage(string userId, string channelName, string message, DateTime timeStampUtc)
+        public ChatMessage WriteMessage(int userId, string channelName, string message, DateTime timeStampUtc)
         {
-            var isDefaultChannel = channelName == "default";
-            var channelNameHash = isDefaultChannel ? null : m_StringHasher.Hash(channelName);
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channelId = isDefaultChannel ? 0 : db.Channels
-                                                         .Single(c => c.ChannelNameHash == channelNameHash)
-                                                         .ChannelId;
+                var channelId = db.Channels.Single(c => c.ChannelName == channelName).Id;
                 var messageBinding = new MessageBinding
                 {
-                    UserId = Convert.ToBase64String(m_StringProtector.Protect(userId)),
+                    UserId = userId,
                     ChannelId = channelId,
                     Message = m_StringProtector.Protect(message),
                     TimeStampUtc = timeStampUtc
                 };
                 db.Messages.Add(messageBinding);
                 db.SaveChanges();
-                return FromBinding(messageBinding, null, channelName);
+                return FromBinding(db, messageBinding, null, channelName);
             }
         }
 
         public void ClearChannel(string channelName)
         {
-            var isDefaultChannel = channelName == "default";
-            var channelNameHash = m_StringHasher.Hash(channelName);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channel = db.Channels.SingleOrDefault(c => c.ChannelNameHash == channelNameHash);
-                var channelId = isDefaultChannel ? 0 : channel.ChannelId;
+                var channel = db.Channels.SingleOrDefault(c => c.ChannelName == channelName);
+                var channelId = channel.Id;
                 var messagesToRemove = db.Messages.Where(m => m.ChannelId == channelId);
                 db.Messages.RemoveRange(messagesToRemove);
                 db.SaveChanges();
@@ -164,12 +153,11 @@ namespace ClearChat.Core.Repositories
         {
             if (channelName == "default") return false;
 
-            var channelNameHash = m_StringHasher.Hash(channelName);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channel = db.Channels.Single(c => c.ChannelNameHash == channelNameHash);
-                return m_StringHasher.HashMatch("", channel.PasswordHash, channel.PasswordSalt);
+                var channel = db.Channels.Single(c => c.ChannelName == channelName);
+                return channel.PasswordSalt != null
+                       && m_StringHasher.HashMatch("", channel.PasswordHash, channel.PasswordSalt);
             }
         }
 
@@ -177,17 +165,15 @@ namespace ClearChat.Core.Repositories
         {
             if (channelName == "default") return SwitchChannelResult.Accepted;
 
-            var channelNameHash = m_StringHasher.Hash(channelName);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var channel = db.Channels.SingleOrDefault(c => c.ChannelNameHash == channelNameHash);
+                var channel = db.Channels.SingleOrDefault(c => c.ChannelName == channelName);
                 if (channel == null)
                 {
                     var salt = Guid.NewGuid().ToByteArray();
                     channel = new ChannelBinding
                     {
-                        ChannelNameHash = channelNameHash,
+                        ChannelName = channelName,
                         PasswordHash = m_StringHasher.Hash(channelPassword, salt),
                         PasswordSalt = salt
                     };
@@ -204,57 +190,68 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public void AddChannelMembership(string userId, string channelName)
+        public void AddChannelMembership(int userId, string channelName)
         {
-            var userIdHash = m_StringHasher.Hash(userId);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var memberships = db.Memberships.Where(m => m.UserIdHash == userIdHash).ToArray();
-                if (memberships.Any(m => m_StringProtector.Unprotect(m.ChannelName) == channelName)) return;
+                var channelId = db.Channels.Single(u => u.ChannelName == channelName).Id;
+                var exists = db.Memberships.Any(m => m.UserId == userId && m.ChannelId == channelId);
+                if (exists) return;
                 var newMembership = new ChannelMembershipBinding
                 {
-                    ChannelName = m_StringProtector.Protect(channelName),
-                    UserIdHash = userIdHash
+                    ChannelId = channelId,
+                    UserId = userId
                 };
                 db.Memberships.Add(newMembership);
                 db.SaveChanges();
             }
         }
 
-        public void RemoveChannelMembership(string userId, string channelName)
+        public void RemoveChannelMembership(int userId, string channelName)
         {
-            var userIdHash = m_StringHasher.Hash(userId);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var membership =
-                    db.Memberships.FirstOrDefault(m => m.UserIdHash == userIdHash &&
-                                                       m_StringProtector.Unprotect(m.ChannelName) == channelName);
+                var channelId = db.Channels.Single(u => u.ChannelName == channelName).Id;
+                var membership = db.Memberships.FirstOrDefault(m => m.UserId == userId && m.ChannelId == channelId);
                 if (membership == null) return;
                 db.Memberships.Remove(membership);
                 db.SaveChanges();
             }
         }
 
-        public IReadOnlyCollection<string> GetChannelMembershipsForUser(string userId)
+        public ChannelInformation GetChannelInformation(string channelName)
         {
-            var userIdHash = m_StringHasher.Hash(userId);
-
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var memberships = db.Memberships.Where(m => m.UserIdHash == userIdHash).ToArray();
-                return new[] { "default" }.Concat(memberships.Select(m => m_StringProtector.Unprotect(m.ChannelName)))
+                var channel = db.Channels.Single(u => u.ChannelName == channelName);
+                var members = db.Memberships.Where(m => m.ChannelId == channel.Id).Select(m=>m.UserId).ToArray();
+                var userNames = db.Users.Where(u => members.Contains(u.Id)).Select(u=>u.UserName).ToArray();
+                return new ChannelInformation(channel.Id,
+                                              channelName,
+                                              channelName == "default",
+                                              userNames,
+                                              $"Welcome to {channelName}");
+            }
+        }
+
+        public IReadOnlyCollection<string> GetChannelMembershipsForUser(int userId)
+        {
+            using (var db = new DatabaseContext(m_ConnectionString))
+            {
+                var memberships = db.Memberships.Where(m => m.UserId == userId).Select(m => m.ChannelId).ToArray();
+                var channels = db.Channels.Where(c => memberships.Contains(c.Id));
+                return new[] { "default" }.Concat(channels.Select(c => c.ChannelName))
                                           .ToArray();
             }
         }
 
-        public IReadOnlyCollection<byte[]> GetChannelMembershipsForChannel(string channelName)
+        public IReadOnlyCollection<int> GetChannelMembershipsForChannel(string channelName)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
-                var memberships = db.Memberships.Where(m => m_StringProtector.Unprotect(m.ChannelName) == channelName).ToArray();
-                return memberships.Select(m => m.UserIdHash).ToArray();
+                var channelId = db.Channels.Single(u => u.ChannelName == channelName).Id;
+                var memberships = db.Memberships.Where(m => m.ChannelId == channelId).ToArray();
+                return memberships.Select(m=>m.UserId).ToArray();
             }
         }
 
@@ -298,8 +295,15 @@ namespace ClearChat.Core.Repositories
             {
             }
 
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder.Entity<ChannelMembershipBinding>().HasKey(c => new {c.UserId, c.ChannelId});
+                base.OnModelCreating(modelBuilder);
+            }
+
             // ReSharper disable UnusedMember.Local
             // ReSharper disable UnusedAutoPropertyAccessor.Local
+            public DbSet<UserBinding> Users { get; set; }
             public DbSet<MessageBinding> Messages { get; set; }
             public DbSet<MessageAttachmentBinding> MessageAttachments { get; set; }
             public DbSet<ChannelBinding> Channels { get; set; }
