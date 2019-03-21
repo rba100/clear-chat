@@ -34,7 +34,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             var inviteeUserName = parts[0];
-            var inviteeUserId = m_UserRepository.GetUserDetails(inviteeUserName).Id;
+            var invitee = m_UserRepository.GetUserDetails(inviteeUserName);
             var channelName = parts[1];
 
             if (channelName.StartsWith("@"))
@@ -44,7 +44,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             var inviterChannels = m_MessageRepository.GetChannelMembershipsForUser(context.User.Id);
-            var inviteeChannels = m_MessageRepository.GetChannelMembershipsForUser(inviteeUserId);
+            var inviteeChannels = m_MessageRepository.GetChannelMembershipsForUser(invitee.Id);
 
             if (!inviterChannels.Contains(channelName))
             {
@@ -59,11 +59,11 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
-            m_MessageRepository.AddChannelMembership(inviteeUserId, channelName);
-            var connectionIds = m_ConnectionManager.GetConnectionsForUser(inviteeUserName);
+            m_MessageRepository.AddChannelMembership(invitee.Id, channelName);
+            var connectionIds = m_ConnectionManager.GetConnectionsForUser(invitee);
             foreach (var connectionId in connectionIds) context.MessageHub.UpdateChannelMembership(connectionId);
             context.MessageHub.PublishSystemMessage(context.ConnectionId,
-                                                    $"{inviteeUserId} is now a member of {channelName}.");
+                                                    $"{invitee.UserName} is now a member of {channelName}.");
 
         }
         public string HelpText => "adds another user to a channel. /invite \"userId\" \"channelName\"";

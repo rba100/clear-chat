@@ -52,7 +52,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
             var password = parts.Length > 1 ? parts[1] : string.Empty;
             var channelResult = m_MessageRepository.GetOrCreateChannel(channelName, password);
-            var connectionIds = m_ConnectionManager.GetConnectionsForUser(context.User.UserName);
+            var connectionIds = m_ConnectionManager.GetConnectionsForUser(context.User);
             switch (channelResult)
             {
                 case SwitchChannelResult.Denied:

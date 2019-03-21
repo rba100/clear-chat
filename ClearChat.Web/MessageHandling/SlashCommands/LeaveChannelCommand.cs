@@ -38,7 +38,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             m_MessageRepository.RemoveChannelMembership(userId, channelName);
-            var connectionIds = m_ConnectionManager.GetConnectionsForUser(context.User.UserName);
+            var connectionIds = m_ConnectionManager.GetConnectionsForUser(context.User);
             foreach (var connection in connectionIds)
             {
                 context.MessageHub.RemoveChannelMembership(connection, channelName);

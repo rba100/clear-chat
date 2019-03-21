@@ -13,16 +13,13 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
         private readonly IMessageRepository m_MessageRepository;
         private readonly IUserRepository m_UserRepository;
         private readonly IConnectionManager m_ConnectionManager;
-        private readonly IStringHasher m_StringHasher;
 
         public PurgeChannelCommand(IMessageRepository messageRepository, 
                                    IConnectionManager connectionManager,
-                                   IStringHasher stringHasher,
                                    IUserRepository userRepository)
         {
             m_MessageRepository = messageRepository;
             m_ConnectionManager = connectionManager;
-            m_StringHasher = stringHasher;
             m_UserRepository = userRepository;
         }
 
@@ -49,7 +46,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
 
             m_MessageRepository.ClearChannel(channelName);
             var users = m_MessageRepository.GetChannelMembershipsForChannel(channelName).Select(m_UserRepository.GetUserDetails);
-            var connections = users.SelectMany(u => m_ConnectionManager.GetConnectionsForUser(u.UserName)).ToArray();
+            var connections = users.SelectMany(m_ConnectionManager.GetConnectionsForUser).ToArray();
             foreach (var connection in connections)
             {
                 context.MessageHub.SendChannelHistory(connection, channelName);

@@ -89,7 +89,8 @@ namespace ClearChat.Web.Hubs
 
             if (name != null)
             {
-                m_ConnectionManager.RegisterConnection(Context.ConnectionId, name);
+                var user = m_UserRepository.GetUserDetails(name);
+                m_ConnectionManager.RegisterConnection(Context.ConnectionId, user);
             }
 
             return base.OnConnectedAsync();

@@ -53,13 +53,15 @@ namespace ClearChat.Core
             var usersOnline = m_ConnectionManager.GetUsers();
             var channel = m_MessageRepository.GetChannel(channelName);
             var memberships = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
+            var usersInChannel = usersOnline.Where(u => memberships.Contains(u.Id)).Select(u=>u.UserName).ToArray();
 
-            var usersInChannelAndOnline = usersOnline.Select(m_UserRepository.GetUserDetails)
-                                                     .Where(u => memberships.Contains(u.Id))
-                                                     .Select(u => u.UserName)
-                                                     .ToArray();
+            var channelInformation = new ChannelInformation(channel.Id, 
+                                                            channel.Name,
+                                                            !channel.IsDefault,
+                                                            usersInChannel, 
+                                                            "Welcome");
 
-            m_ChatContext.SignalConnection(connectionId, "channelInformation", channel);
+            m_ChatContext.SignalConnection(connectionId, "channelInformation", channelInformation);
         }
 
         public void SendChannelHistory(string connectionId, string channelName)
@@ -93,16 +95,14 @@ namespace ClearChat.Core
 
         public void SendChannelList(string connectionId)
         {
-            var userName = m_ConnectionManager.GetUserIdForConnection(connectionId);
-            var user = m_UserRepository.GetUserDetails(userName);
+            var user = m_ConnectionManager.GetUserForConnection(connectionId);
             var channels = m_MessageRepository.GetChannelMembershipsForUser(user.Id);
             m_ChatContext.SignalConnection(connectionId, "channelMembership", channels);
         }
 
         public void UpdateChannelMembership(string connectionId)
         {
-            var userName = m_ConnectionManager.GetUserIdForConnection(connectionId);
-            var user = m_UserRepository.GetUserDetails(userName);
+            var user = m_ConnectionManager.GetUserForConnection(connectionId);
             var channels = m_MessageRepository.GetChannelMembershipsForUser(user.Id);
             foreach (var channel in channels)
             {
