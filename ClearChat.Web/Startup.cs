@@ -1,10 +1,13 @@
 ﻿
 using System;
-using ClearChat.Core;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
+using ClearChat.Core;
 using ClearChat.Core.Crypto;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
@@ -12,8 +15,6 @@ using ClearChat.Web.Hubs;
 using ClearChat.Web.MessageHandling;
 using ClearChat.Web.MessageHandling.MessageTransformers;
 using ClearChat.Web.MessageHandling.SlashCommands;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Configuration;
 
 namespace ClearChat.Web
 {
@@ -30,11 +31,17 @@ namespace ClearChat.Web
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            var configurationConnectionString = m_Configuration.GetConnectionString("clear-chat");
+            var environmentVariableConnString = Environment.GetEnvironmentVariable("ClearChat",
+                                                                                   EnvironmentVariableTarget.Machine);
 
-            var connString = string.IsNullOrWhiteSpace(configurationConnectionString)
-                ? Environment.GetEnvironmentVariable("ClearChat", EnvironmentVariableTarget.Machine)
-                : configurationConnectionString;
+            var connString = string.IsNullOrWhiteSpace(environmentVariableConnString) 
+                ? m_Configuration.GetConnectionString("clear-chat") 
+                : environmentVariableConnString;
+
+            if (string.IsNullOrWhiteSpace(connString))
+            {
+                throw new ApplicationException("No connection string has been configured. See Startup.cs");
+            }
 
             var hasher = new Sha256StringHasher();
             var msgRepo = new ChannelCachingMessageRepository(new SqlServerMessageRepository(
