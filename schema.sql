@@ -65,6 +65,8 @@ CREATE TABLE [dbo].[Channels]
     [passwordSalt] [VARBINARY](256) NOT NULL
 );
 
+INSERT INTO [dbo].[Channels] ([channelName],[passwordHash],[passwordSalt]) VALUES ('default',0x0,0x0);
+
 CREATE TABLE [dbo].[ChannelMembership]
 (
     [userId] INT NOT NULL,

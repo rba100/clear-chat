@@ -10,6 +10,7 @@ using ClearChat.Core.Repositories;
 using ClearChat.Web.Auth;
 using ClearChat.Web.Hubs;
 using ClearChat.Web.MessageHandling;
+using ClearChat.Web.MessageHandling.MessageTransformers;
 using ClearChat.Web.MessageHandling.SlashCommands;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -67,7 +68,10 @@ namespace ClearChat.Web
                     new UploadSlashCommand(s.GetService<IMessageRepository>())
                 }),
                 new ChannelPermissionHandler(),
-                new ChatMessageHandler(msgRepo, s.GetService<IAutoResponseRepository>(), s.GetService<IUserRepository>())
+                new ChatMessageHandler(msgRepo,
+                                       s.GetService<IAutoResponseRepository>(),
+                                       s.GetService<IUserRepository>(), 
+                                       new []{ new ImageLinkMessageTransformer() })
             }));
 
             services.AddSingleton<IMessageHub, ChatController>();
