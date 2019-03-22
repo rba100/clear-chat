@@ -45,7 +45,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             m_MessageRepository.ClearChannel(channelName);
-            var users = m_MessageRepository.GetChannelMembershipsForChannel(channelName).Select(m_UserRepository.GetUserDetails);
+            var users = m_MessageRepository.GetChannelMembershipsForChannel(channelName).Select(m_UserRepository.GetUser);
             var connections = users.SelectMany(m_ConnectionManager.GetConnectionsForUser).ToArray();
             foreach (var connection in connections)
             {

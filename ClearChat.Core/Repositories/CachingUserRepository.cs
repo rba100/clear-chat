@@ -17,28 +17,28 @@ namespace ClearChat.Core.Repositories
             m_UserRepository = userRepository;
         }
 
-        public User GetUserDetails(string userName)
+        public User GetUser(string userName)
         {
             if (m_NameCache.TryGetValue(userName, out User val))
             {
                 return val;
             }
 
-            var user = m_UserRepository.GetUserDetails(userName);
+            var user = m_UserRepository.GetUser(userName);
             if (user == null) return null;
             m_NameCache.TryAdd(user.UserName, user);
             m_IdCache.TryAdd(user.Id, user);
             return user;
         }
 
-        public User GetUserDetails(int userId)
+        public User GetUser(int userId)
         {
             if (m_IdCache.TryGetValue(userId, out User val))
             {
                 return val;
             }
 
-            var user = m_UserRepository.GetUserDetails(userId);
+            var user = m_UserRepository.GetUser(userId);
             if (user == null) return null;
             m_NameCache.TryAdd(user.UserName, user);
             m_IdCache.TryAdd(user.Id, user);

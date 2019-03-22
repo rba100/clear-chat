@@ -70,7 +70,7 @@ namespace ClearChat.Core
 
             var task = m_ChatContext.SignalConnection(connectionId, "userDetails", messages.Select(m => m.UserName)
                                                      .Distinct()
-                                                     .Select(m_UserRepository.GetUserDetails)
+                                                     .Select(m_UserRepository.GetUser)
                                                      .ToArray());
             task.ContinueWith(_ =>
                 m_ChatContext.SignalConnection(connectionId, "channelHistory", channelName, messages));
@@ -78,13 +78,13 @@ namespace ClearChat.Core
 
         public void PublishUserDetails(string connectionId, IReadOnlyCollection<string> userIds)
         {
-            var users = userIds.Select(m_UserRepository.GetUserDetails);
+            var users = userIds.Select(m_UserRepository.GetUser);
             m_ChatContext.SignalConnection(connectionId, "userDetails", users);
         }
 
         public void PublishUserDetails(IReadOnlyCollection<string> userIds)
         {
-            var users = userIds.Select(m_UserRepository.GetUserDetails).ToArray();
+            var users = userIds.Select(m_UserRepository.GetUser).ToArray();
             m_ChatContext.SignalAll("userDetails", users);
         }
 

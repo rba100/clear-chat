@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using ClearChat.Core;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,6 +16,7 @@ namespace ClearChat.Web.Auth
         private const string AuthorizationHeaderName = "Authorization";
         private const string BasicSchemeName = "Basic";
         private readonly IBasicAuthenticationService _authenticationService;
+        private readonly UserNameRules m_NameRules = new UserNameRules();
 
         public BasicAuthenticationHandler(
             IOptionsMonitor<BasicAuthenticationOptions> options,
@@ -54,15 +56,24 @@ namespace ClearChat.Web.Auth
             {
                 return AuthenticateResult.Fail("Invalid Basic authentication header");
             }
-            string user = parts[0].Trim();
+
+            string user = m_NameRules.TrimAndCondense(parts[0]);
             string password = parts[1];
 
-            bool isValidUser = await _authenticationService.IsValidUserAsync(user, password);
+            var validUserNameRules = m_NameRules.IsValid(user);
 
-            if (!isValidUser)
+            if (!validUserNameRules.isValid)
             {
-                return AuthenticateResult.Fail("Invalid username or password");
+                return AuthenticateResult.Fail(validUserNameRules.errorMessage);
             }
+
+            bool userAuthenticated = await _authenticationService.IsValidUserAsync(user, password);
+
+            if (!userAuthenticated)
+            {
+                return AuthenticateResult.Fail("Invalid username and password");
+            }
+
             var claims = new[] { new Claim(ClaimTypes.Name, user) };
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);

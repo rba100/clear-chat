@@ -48,7 +48,7 @@ namespace ClearChat.Web.MessageHandling
             var channel = m_MessageRepository.GetChannel(context.Channel.Name);
             var autoResponse = m_AutoResponseRepository.GetResponse(channel.Id, chatMessage.Message);
             if (autoResponse == null) return true;
-            var botAccount = m_UserRepository.GetUserDetails("ClearBot");
+            var botAccount = m_UserRepository.GetUser("ClearBot");
             var autoReponseChangeMessage = m_MessageRepository.WriteMessage(botAccount.Id,
                                                                             context.Channel.Name,
                                                                             autoResponse,

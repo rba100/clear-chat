@@ -42,7 +42,7 @@ namespace ClearChat.Web.Hubs
                 return;
             }
 
-            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
+            var user = m_UserRepository.GetUser(Context.User.Identity.Name);
             var channel = m_MessageRepository.GetChannel(eventBinding.Channel);
 
             var context = new MessageContext(eventBinding.Body,
@@ -57,7 +57,7 @@ namespace ClearChat.Web.Hubs
 
         public void GetHistory(string channelName)
         {
-            var user = m_UserRepository.GetUserDetails(Context.User.Identity.Name);
+            var user = m_UserRepository.GetUser(Context.User.Identity.Name);
             var channels = m_MessageRepository.GetChannelMembershipsForChannel(channelName);
             if (channelName != "default" &&
                 !channels.Contains(user.Id))
@@ -100,7 +100,7 @@ namespace ClearChat.Web.Hubs
 
             if (name != null)
             {
-                var user = m_UserRepository.GetUserDetails(name);
+                var user = m_UserRepository.GetUser(name);
                 m_ConnectionManager.RegisterConnection(Context.ConnectionId, user);
             }
 

@@ -34,7 +34,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
             }
 
             var inviteeUserName = parts[0];
-            var invitee = m_UserRepository.GetUserDetails(inviteeUserName);
+            var invitee = m_UserRepository.GetUser(inviteeUserName);
             var channelName = parts[1];
 
             if (channelName.StartsWith("@"))

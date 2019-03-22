@@ -61,6 +61,9 @@ namespace ClearChat.Core.Repositories
                 db.Users.Add(binding);
                 db.SaveChanges();
 
+                // side effect - set internal property
+                user.Id = binding.Id;
+
                 return new User(binding.Id, 
                                 user.UserName,
                                 user.HexColour,
@@ -79,9 +82,9 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public User GetUserDetails(string userName)
+        public User GetUser(string userName)
         {
-            if(s_BuiltInUsers.Contains(userName)) return new User(-1, userName, "000000", true);
+            if(s_BuiltInUsers.Contains(userName)) return new User(userName, "000000", verifiedPublicIdentity: true);
 
             using (var db = new DatabaseContext(m_ConnectionString))
             {
@@ -94,7 +97,7 @@ namespace ClearChat.Core.Repositories
             }
         }
 
-        public User GetUserDetails(int userId)
+        public User GetUser(int userId)
         {
             using (var db = new DatabaseContext(m_ConnectionString))
             {
@@ -114,6 +117,9 @@ namespace ClearChat.Core.Repositories
                 var userBinding = db.Users.FirstOrDefault(u => u.UserName == user.UserName);
                 userBinding.HexColour = user.HexColour;
                 db.SaveChanges();
+
+                // side-effect: set ID
+                user.Id = userBinding.Id;
             }
         }
 

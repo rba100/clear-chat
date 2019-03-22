@@ -28,8 +28,7 @@ namespace ClearChat.Web.MessageHandling.SlashCommands
                 return;
             }
 
-            var user = new User(context.User.Id,
-                                context.User.UserName,
+            var user = new User(context.User.UserName,
                                 colourStr,
                                 context.User.VerifiedPublicIdentity);
 
