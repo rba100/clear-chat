@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using ClearChat.Core;
+
 using ClearChat.Core.Domain;
 using ClearChat.Core.Repositories;
 using ClearChat.Web.MessageHandling.MessageTransformers;
@@ -13,9 +14,12 @@ namespace ClearChat.Web.MessageHandling
         private readonly IUserRepository m_UserRepository;
         private readonly IAutoResponseRepository m_AutoResponseRepository;
 
+        private readonly IReadOnlyCollection<IMessageTransformer> m_MessageTransformers;
+
         public ChatMessageHandler(IMessageRepository messageRepository,
                                   IAutoResponseRepository autoresponseRepository,
-                                  IUserRepository userRepository)
+                                  IUserRepository userRepository, 
+                                  IReadOnlyCollection<IMessageTransformer> messageTransformers)
         {
             m_MessageRepository = messageRepository
                 ?? throw new ArgumentNullException(nameof(messageRepository));
@@ -24,6 +28,8 @@ namespace ClearChat.Web.MessageHandling
                 ?? throw new ArgumentNullException(nameof(autoresponseRepository));
             m_UserRepository = userRepository 
                 ?? throw new ArgumentNullException(nameof(userRepository));
+            m_MessageTransformers = messageTransformers 
+                ?? throw new ArgumentNullException(nameof(messageTransformers));
         }
 
         public bool Handle(MessageContext context)
@@ -35,7 +41,9 @@ namespace ClearChat.Web.MessageHandling
                 return true;
             }
 
-            var message = new ImageLinkMessageTransformer().Transform(context.Message);
+            var message =
+                m_MessageTransformers.Aggregate(context.Message,
+                                                (current, transformer) => transformer.Transform(current));
 
             var chatMessage = m_MessageRepository.WriteMessage(context.User.Id,
                                                                context.Channel.Name,
@@ -45,8 +53,7 @@ namespace ClearChat.Web.MessageHandling
 
             if (message != context.Message) return true;
 
-            var channel = m_MessageRepository.GetChannel(context.Channel.Name);
-            var autoResponse = m_AutoResponseRepository.GetResponse(channel.Id, chatMessage.Message);
+            var autoResponse = m_AutoResponseRepository.GetResponse(context.Channel.Id, chatMessage.Message);
             if (autoResponse == null) return true;
             var botAccount = m_UserRepository.GetUser("ClearBot");
             var autoReponseChangeMessage = m_MessageRepository.WriteMessage(botAccount.Id,
