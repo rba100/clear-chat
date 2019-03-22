@@ -49,7 +49,8 @@ namespace ClearChat.Core.Repositories
                 errorMessage = "Colour is too light. Go darker.";
                 return false;
             }
-            if (hsl.luminance < 0.35)
+
+            if (hsl.luminance < 0.1)
             {
                 errorMessage = "Colour is too dark.";
                 return false;
